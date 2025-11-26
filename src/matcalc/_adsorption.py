@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
+from copy import copy
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
@@ -102,7 +102,7 @@ class AdsorptionCalc(PropCalc):
         self.bulk_energy: float | None = None
         self.n_bulk_atoms: int | None = None
 
-    def calc_adslabs(
+    def calc_adslabs(  # noqa: C901
         self,
         adsorbate: Molecule | Atoms,
         # slab parameters
@@ -112,6 +112,7 @@ class AdsorptionCalc(PropCalc):
         adsorbate_energy: float | None = None,
         min_slab_size: float = 10.0,
         min_vacuum_size: float = 20.0,
+        min_area_extent: tuple[float, float] | None = None,
         inplane_supercell: tuple[int, int] = (1, 1),
         slab_gen_kwargs: dict[str, Any] | None = None,
         get_slabs_kwargs: dict[str, Any] | None = None,
@@ -140,6 +141,10 @@ class AdsorptionCalc(PropCalc):
         :type min_slab_size: float, optional
         :param min_vacuum_size: Minimum size of the vacuum layer in Å. Default is 20.0.
         :type min_vacuum_size: float, optional
+        :param min_area_extent: Minimum in-plane dimensions of the slab in Å. If provided,
+            the slab will be expanded to at least these dimensions in the a and perpendicular
+            to a directions by projecting the b lattice vector onto a. Default is None.
+        :type min_area_extent: tuple[float, float] | None, optional
         :param inplane_supercell: Tuple defining the in-plane supercell size. Default is (1, 1).
         :type inplane_supercell: tuple[int, int], optional
         :param slab_gen_kwargs: Additional keyword arguments passed to the SlabGenerator. Default is None.
@@ -189,7 +194,8 @@ class AdsorptionCalc(PropCalc):
 
         # Generally want the surface perpendicular to z
         if slab_gen_kwargs is not None:
-            slab_gen_kwargs["max_normal_search"] = slab_gen_kwargs.get("max_normal_search", np.max(miller_index))
+            slab_gen_kwargs["max_normal_search"] = slab_gen_kwargs.get("max_normal_search", np.max(miller_index) + 1)
+            slab_gen_kwargs["reorient_lattice"] = slab_gen_kwargs.get("reorient_lattice", True)
 
         slabgen = SlabGenerator(
             initial_structure=bulk_opt["final_structure"],
@@ -198,17 +204,27 @@ class AdsorptionCalc(PropCalc):
             min_vacuum_size=min_vacuum_size,
             **(slab_gen_kwargs or {}),
         )
-        slab_dicts = [
-            {
-                "slab": slab.make_supercell((*inplane_supercell, 1), in_place=False),
-                "miller_index": miller_index,
-                "shift": slab.shift,
-            }
-            for slab in slabgen.get_slabs(**(get_slabs_kwargs or {}))
-        ]
+
+        slab_dicts = []
+        for slab_ in slabgen.get_slabs(**(get_slabs_kwargs or {})):
+            if min_area_extent is not None:
+                avec = slab_.lattice.matrix[0]
+                bvec = slab_.lattice.matrix[1]
+                na = int(np.ceil(min_area_extent[0] / np.linalg.norm(avec)))
+                nb = int(np.ceil(min_area_extent[1] / np.linalg.norm(bvec)))
+                inplane_supercell = (na, nb)
+
+            slab_dicts.append(
+                {
+                    "slab": slab_.make_supercell((*inplane_supercell, 1), in_place=False),
+                    "miller_index": miller_index,
+                    "shift": slab_.shift,
+                }
+            )
+
         adslabs: list[dict[str, Any]] = []
         for slab_dict_ in slab_dicts:
-            slab_dict = deepcopy(slab_dict_)
+            slab_dict = copy(slab_dict_)
             slab: Slab = cast("Slab", slab_dict["slab"])
 
             if fixed_height is not None:
@@ -220,7 +236,7 @@ class AdsorptionCalc(PropCalc):
                 )
 
             slab_dict |= self.calc_slab(slab)
-            slab_dict |= deepcopy(adsorbate_dict)
+            slab_dict |= copy(adsorbate_dict)
 
             final_slab = cast("Slab", slab_dict["final_slab"])
             asf = AdsorbateSiteFinder(
@@ -258,7 +274,7 @@ class AdsorptionCalc(PropCalc):
                         "adsorption_site_coord": adsite_coord,
                         "adsorption_site_index": adsite_idx,
                     }
-                    adslab_dict |= deepcopy(slab_dict)
+                    adslab_dict |= copy(slab_dict)
                     adslabs.append(adslab_dict)
 
         if dry_run:
