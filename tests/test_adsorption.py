@@ -94,6 +94,7 @@ def test_adsorption_calc_slab_inputs(
     assert (results["adsorbate_energy"]) == pytest.approx(expected[1], rel=1e-1)
     assert "adsorption_energy" in results
 
+
 @pytest.mark.parametrize("relax_slab", [True, False])
 @pytest.mark.parametrize("relax_bulk", [True, False])
 @pytest.mark.parametrize("relax_adsorbate", [True, False])
@@ -102,9 +103,9 @@ def test_adsorption_calc_adslabs(
     Pt_bulk: Slab,
     CO2: Molecule,
     m3gnet_calculator: PESCalculator,
-    relax_slab: bool, # noqa: FBT001
-    relax_bulk: bool, # noqa: FBT001
-    relax_adsorbate: bool, # noqa: FBT001
+    relax_slab: bool,  # noqa: FBT001
+    relax_bulk: bool,  # noqa: FBT001
+    relax_adsorbate: bool,  # noqa: FBT001
     min_area_extent: tuple[float, float] | None,
 ) -> None:
     """Test adsorption calculation over multiple adsorption sites."""
@@ -142,10 +143,15 @@ def test_adsorption_calc_adslabs(
     assert "C" in results[0]["adslab"].symbol_set
     assert "O" in results[0]["adslab"].symbol_set
     assert slab.lattice.a >= min_area_extent[0] if min_area_extent else True
-    assert (np.abs(
-        np.linalg.norm(np.cross(slab.lattice.matrix[0], slab.lattice.matrix[1]))
-    ) >= min_area_extent[0]*min_area_extent[1]) if min_area_extent else True
+    assert (
+        (
+            np.abs(np.linalg.norm(np.cross(slab.lattice.matrix[0], slab.lattice.matrix[1])))
+            >= min_area_extent[0] * min_area_extent[1]
+        )
+        if min_area_extent
+        else True
+    )
     assert "selective_dynamics" in results[0]["adslab"].site_properties
     assert results[0]["adsorbate_energy"] == pytest.approx(1.0, rel=1e-1)
     if relax_slab:
-        assert results[0]["slab_energy_per_atom"] == pytest.approx(-6.016221, rel=1.e-1)
+        assert results[0]["slab_energy_per_atom"] == pytest.approx(-6.016221, rel=1.0e-1)

@@ -135,8 +135,7 @@ class AdsorptionCalc(PropCalc):
         else:
             bulk_opt = {
                 "final_structure": bulk,
-                "energy": bulk_energy
-                if bulk_energy is not None else None,
+                "energy": bulk_energy if bulk_energy is not None else None,
             }
 
         return bulk_opt
@@ -405,9 +404,7 @@ class AdsorptionCalc(PropCalc):
             adsorbate_energy=structure.get("adsorbate_energy"),
         )
 
-        result_dict |= self.calc_slab(
-            structure["slab"], slab_energy=structure.get("slab_energy")
-        )
+        result_dict |= self.calc_slab(structure["slab"], slab_energy=structure.get("slab_energy"))
 
         try:
             adslab = structure["adslab"]
