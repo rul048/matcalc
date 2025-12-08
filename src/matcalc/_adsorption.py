@@ -218,15 +218,19 @@ class AdsorptionCalc(PropCalc):
             )
             slab_opt = relaxer.calc(slab)
         else:
-            slab_opt = {"final_structure": slab}
+            slab_opt = {
+                "final_structure": slab,
+            }
 
         if slab_energy is None:
             slab_energy = self.calculator.get_potential_energy(to_ase_atoms(slab))
 
+        slab_energy_per_atom = slab_energy / len(slab) if slab_energy is not None else None
+
         return {
             "slab": slab,
             "slab_energy": slab_energy,
-            "slab_energy_per_atom": slab_energy / len(slab),  # pyright: ignore [reportOptionalOperand]
+            "slab_energy_per_atom": slab_energy_per_atom,
             "final_slab": slab_opt["final_structure"],
         }
 
@@ -438,7 +442,6 @@ class AdsorptionCalc(PropCalc):
         opt.run(fmax=self.fmax, steps=self.max_steps)
         final_adslab = to_pmg_structure(adslab_atoms)
         adslab_energy = adslab_atoms.get_potential_energy()
-
         ads_energy = (
             adslab_energy - n_slab_atoms * result_dict["slab_energy_per_atom"] - result_dict["adsorbate_energy"]
         )
