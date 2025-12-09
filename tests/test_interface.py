@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from pymatgen.core import Structure
 
 
-def test_interface_calc_basic(Si: Structure, SiO2: Structure, m3gnet_calculator: PESCalculator) -> None:
+def test_interface_calc_basic(Si: Structure, SiO2: Structure, matpes_calculator: PESCalculator) -> None:
     """
     Test the basic workflow:
       1) calc_interfaces on SiO2 (film) and Si (substrate)
@@ -21,7 +21,7 @@ def test_interface_calc_basic(Si: Structure, SiO2: Structure, m3gnet_calculator:
       3) Check the final results
     """
     interface_calc = InterfaceCalc(
-        calculator=m3gnet_calculator,
+        calculator=matpes_calculator,
         relax_bulk=True,
         relax_interface=True,
         fmax=0.1,
