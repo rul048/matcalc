@@ -178,7 +178,7 @@ def test_pescalculator_calculate() -> None:
 
 def test_aliases() -> None:
     # Ensures that model aliases always point to valid models.
-    names = [u.name for u in UNIVERSAL_CALCULATORS]
+    names = {u.name for u in UNIVERSAL_CALCULATORS}
     if find_spec("mace"):
         from mace.calculators.foundations_models import mace_mp_names
 
