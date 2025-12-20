@@ -429,7 +429,6 @@ class PESCalculator(Calculator):
         backend = _infer_backend(route_tag)
 
         if backend == "matgl":
-
             result = PESCalculator.load_matgl(backend_name, **kwargs)
 
         elif backend == "mace":

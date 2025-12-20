@@ -263,6 +263,6 @@ def test_allias_to_id() -> None:
         for alias in aliases:
             backend_name, route_tag = _resolve_model(alias)
             assert backend_name == expected_backend_name, (
-                f"Alias {alias!r} resolved to {backend_name!r}, " f"expected {expected_backend_name!r}"
+                f"Alias {alias!r} resolved to {backend_name!r}, expected {expected_backend_name!r}"
             )
-            assert route_tag == model_id, f"Alias {alias!r} produced route_tag {route_tag!r}, " f"expected {model_id!r}"
+            assert route_tag == model_id, f"Alias {alias!r} produced route_tag {route_tag!r}, expected {model_id!r}"
