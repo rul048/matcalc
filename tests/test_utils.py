@@ -11,9 +11,11 @@ from ase.calculators.calculator import Calculator
 
 from matcalc import RelaxCalc
 from matcalc.utils import (
-    MODEL_ALIASES,
+    ID_TO_ALIAS,
+    ID_TO_NAME,
     UNIVERSAL_CALCULATORS,
     PESCalculator,
+    _resolve_model,
 )
 
 DIR = Path(__file__).parent.absolute()
@@ -66,7 +68,7 @@ UNIVERSAL_TO_PACKAGE = _map_calculators_to_packages(UNIVERSAL_CALCULATORS)
         ("GPa", 1.0),
     ],
 )
-@pytest.mark.skipif(not find_spec("maml"), reason="maml is not installed")
+# @pytest.mark.skipif(not find_spec("maml"), reason="maml is not installed")
 def test_pescalculator_load_mtp(expected_unit: str, expected_weight: float) -> None:
     calc = PESCalculator.load_mtp(
         filename=DIR / "pes" / "MTP-Cu-2020.1-PES" / "fitted.mtp",
@@ -176,9 +178,12 @@ def test_pescalculator_calculate() -> None:
     assert list(stresses.shape) == [6]
 
 
-def test_aliases() -> None:
-    # Ensures that model aliases always point to valid models.
+def _known_backend_models() -> set[str]:
+    """Return all backend model names that IDs or aliases are allowed to map to."""
+    # Built-in universal calculators
     names = {u.name for u in UNIVERSAL_CALCULATORS}
+
+    # MACE backend models
     if find_spec("mace"):
         from mace.calculators.foundations_models import mace_mp_names
 
@@ -203,6 +208,8 @@ def test_aliases() -> None:
             "mh-0",
             "mh-1",
         }
+
+    # GRACE backend models
     if find_spec("tensorpotential"):
         from tensorpotential.calculator.foundation_models import MODELS_METADATA
 
@@ -232,8 +239,30 @@ def test_aliases() -> None:
             "GRACE-2L-OMAT-large-ft-E",
             "GRACE-2L-OMAT-large-ft-AM",
         }
-    names = names | mace_models | grace_models
-    for v in MODEL_ALIASES.values():
-        # We are not testing DGL based models.
-        if "M3GNet" not in v and "CHGNet" not in v:
-            assert v in names
+
+    return names | mace_models | grace_models
+
+
+def test_id_to_name() -> None:
+    """Verify that all ID_TO_NAME values map to known backend model names."""
+    known = _known_backend_models()
+
+    for model_name in ID_TO_NAME.values():
+        # Skip matgl models since they depend on installed pretrained models.
+        if any(key in model_name for key in ("M3GNet", "CHGNet", "TensorNet")):
+            continue
+        assert model_name in known, f"Unknown backend model mapped: {model_name!r}"
+
+
+def test_allias_to_id() -> None:
+    """Ensure aliases resolve to canonical IDs and correct backend names."""
+    for model_id, aliases in ID_TO_ALIAS.items():
+        assert model_id in ID_TO_NAME  # Canonical ID must exist
+        expected_backend_name = ID_TO_NAME[model_id]
+
+        for alias in aliases:
+            backend_name, route_tag = _resolve_model(alias)
+            assert backend_name == expected_backend_name, (
+                f"Alias {alias!r} resolved to {backend_name!r}, " f"expected {expected_backend_name!r}"
+            )
+            assert route_tag == model_id, f"Alias {alias!r} produced route_tag {route_tag!r}, " f"expected {model_id!r}"

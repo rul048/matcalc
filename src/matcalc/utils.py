@@ -54,51 +54,70 @@ except Exception:  # noqa: BLE001
 
 # Different backend libraries (MatGL, MACE, GRACE, etc.) use
 # inconsistent or non-canonical model names (e.g., "small-omat-0",
-# "TensorNet-MatPES-PBE-v2025.1-PES", "GRACE-1L-OMAT-medium-base").
+# "TensorNet-MatPES-PBE-v2025.1-PES", "GRACE-2L-OMAT-medium-base").
 
 # Users and developers are encouraged to use the model naming convention below.
 # MatCalc Model Naming Convention (Unified model ID format):
-# [Model]-(#Layers)-[Dataset]-(Functional)-(Cutoff)-(Version)-(Size)-(Postprocess)
-# Not all fields must appear.
+# <Model>-<Dataset>-<Functional>-<Version>-<Size>
 
 # Examples:
-# TensorNet-MatPES-PBE-v2025.1-PES
-# MACE-MP-0-medium
-# GRACE-1L-MP-r6
-# GRACE-1L-OMAT-medium-base
-# GRACE-2L-OMAT-large-ft-AM
+# TensorNet-MatPES-r2SCAN-v2025.1-S
+# MACE-MP-PBE-0-M
+# GRACE-OMAT-PBE-0-L
 
 # This table maps such identifiers into the backend model names that
-# each library expects.
-
-# This tabel will be gradually expanded as new models are released.
+# each library expects and will be gradually expanded as new models
+# are released.
 
 # Keys must be lowercase and represent canonical identifiers
 # Values are the actual model names passed to the backend libraries.
-
-MODEL_ALIASES = {
-    # Using abbreviations will load the most advanced model.
-    "tensornet": "TensorNet-MatPES-PBE-v2025.1-PES",
-    "m3gnet": "M3GNet-MatPES-PBE-v2025.1-PES",
-    "chgnet": "CHGNet-MatPES-PBE-2025.2.10-2.7M-PES",
-    "mace": "medium-mpa-0",
-    "grace": "GRACE-2L-OAM",
-    "pbe": "TensorNet-MatPES-PBE-v2025.1-PES",
-    "r2scan": "TensorNet-MatPES-r2SCAN-v2025.1-PES",
-    "mace-mp-0-small": "small",
-    "mace-mp-0-medium": "medium",
-    "mace-mp-0-large": "large",
-    "mace-mp-0b-small": "small-0b",
-    "mace-mp-0b-medium": "medium-0b",
-    "mace-mp-0b2-small": "small-0b2",
-    "mace-mp-0b2-medium": "medium-0b2",
-    "mace-mp-0b2-large": "large-0b2",
-    "mace-mp-0b3-medium": "medium-0b3",
-    "mace-mpa-0-medium": "medium-mpa-0",
-    "mace-omat-0-small": "small-omat-0",
-    "mace-omat-0-medium": "medium-omat-0",
+ID_TO_NAME = {
+    "tensornet-matpes-pbe-v2025.1-s": "TensorNet-MatPES-PBE-v2025.1-PES",
+    "tensornet-matpes-r2scan-v2025.1-s": "TensorNet-MatPES-r2SCAN-v2025.1-PES",
+    "m3gnet-matpes-pbe-v2025.1-s": "M3GNet-MatPES-PBE-v2025.1-PES",
+    "m3gnet-matpes-r2scan-v2025.1-s": "M3GNet-MatPES-r2SCAN-v2025.1-PES",
+    "chgnet-matpes-pbe-v2025.2-m": "CHGNet-MatPES-PBE-2025.2.10-2.7M-PES",
+    "chgnet-matpes-r2scan-v2025.2-m": "CHGNet-MatPES-r2SCAN-2025.2.10-2.7M-PES",
+    "mace-mp-pbe-0-s": "small",
+    "mace-mp-pbe-0-m": "medium",
+    "mace-mp-pbe-0-l": "large",
+    "mace-mp-pbe-0b-s": "small-0b",
+    "mace-mp-pbe-0b-m": "medium-0b",
+    "mace-mp-pbe-0b2-s": "small-0b2",
+    "mace-mp-pbe-0b2-m": "medium-0b2",
+    "mace-mp-pbe-0b2-l": "large-0b2",
+    "mace-mp-pbe-0b3-m": "medium-0b3",
+    "mace-mpa-pbe-0-m": "medium-mpa-0",
+    "mace-omt-pbe-0-s": "small-omat-0",
+    "mace-omat-pbe-0-m": "medium-omat-0",
+    "mace-matpes-pbe-0-m": "mace-matpes-pbe-0",
+    "mace-matpes-r2scan-0-m": "mace-matpes-r2scan-0",
+    "grace-mp-pbe-0-l": "GRACE-2L-MP-r6",
+    "grace-oam-pbe-0-s": "GRACE-2L-OAM",
+    "grace-oam-pbe-0-m": "GRACE-2L-OMAT-medium-ft-AM",
+    "grace-oam-pbe-0-l": "GRACE-2L-OMAT-large-ft-AM",
+    "grace-omat-pbe-0-s": "GRACE-2L-OMAT",
+    "grace-omat-pbe-0-m": "GRACE-2L-OMAT-medium-ft-E",
+    "grace-omat-pbe-0-l": "GRACE-2L-OMAT-large-ft-E",
 }
 
+# Common aliases and abbreviations will load the most advanced or widely used model.
+ID_TO_ALIAS = {
+    "tensornet-matpes-pbe-v2025.1-s": ["tensornet", "tensornet-pbe", "pbe"],
+    "tensornet-matpes-r2scan-v2025.1-s": ["tensornet-r2scan", "r2scan"],
+    "m3gnet-matpes-pbe-v2025.1-s": ["m3gnet", "m3gnet-pbe"],
+    "m3gnet-matpes-r2scan-v2025.1-s": ["m3gnet-r2scan"],
+    "chgnet-matpes-pbe-v2025.2-m": ["chgnet", "chgnet-pbe"],
+    "chgnet-matpes-r2scan-v2025.2-m": ["chgnet-r2scan"],
+    "mace-mp-pbe-0-m": ["mace-mp-0", "mace-mp-0-m", "mace-mp-pbe-0"],
+    "mace-mpa-pbe-0-m": ["mace", "mace-mpa-0", "mace-mpa-0-m", "mace-mpa-pbe-0"],
+    "mace-omat-pbe-0-m": ["mace-omat-0", "mace-omat-0-m", "mace-omat-pbe-0"],
+    "mace-matpes-pbe-0-m": ["mace-matpes-pbe", "mace-matpes-pbe-0"],
+    "mace-matpes-r2scan-0-m": ["mace-matpes-r2scan", "mace-matpes-r2scan-0"],
+    "grace-mp-pbe-0-l": ["grace-mp"],
+    "grace-oam-pbe-0-l": ["grace", "grace-oam"],
+    "grace-omat-pbe-0-l": ["grace-omat"],
+}
 
 UNIVERSAL_CALCULATORS = Enum("UNIVERSAL_CALCULATORS", {k: k for k in _universal_calculators})  # type: ignore[misc]
 
@@ -403,46 +422,46 @@ class PESCalculator(Calculator):
         """
         result: Calculator
 
-        if not isinstance(name, str):  # e.g. already an ase Calculator instance
-            result = name
+        if not isinstance(name, str):
+            return name
 
-        elif any(name.lower().startswith(m) for m in ("m3gnet", "chgnet", "tensornet", "pbe", "r2scan")):
-            name = MODEL_ALIASES.get(name.lower(), name)
-            result = PESCalculator.load_matgl(name, **kwargs)
+        backend_name, route_tag = _resolve_model(name)
+        backend = _infer_backend(route_tag)
 
-        elif name.lower().startswith("mace"):
-            name = MODEL_ALIASES.get(name.lower(), name)
+        if backend == "matgl":
+
+            result = PESCalculator.load_matgl(backend_name, **kwargs)
+
+        elif backend == "mace":
             from mace.calculators import mace_mp
 
-            result = mace_mp(model=name, **kwargs)
+            result = mace_mp(model=backend_name, **kwargs)
 
-        elif name.lower() == "sevennet":
+        elif backend == "grace":
+            from tensorpotential.calculator.foundation_models import grace_fm
+
+            result = grace_fm(model=backend_name, **kwargs)
+
+        elif backend == "sevennet":
             from sevenn.calculator import SevenNetCalculator
 
             result = SevenNetCalculator(**kwargs)
 
-        elif name.lower().startswith("grace"):
-            name = MODEL_ALIASES.get(name.lower(), name)
-            from tensorpotential.calculator.foundation_models import grace_fm
-
-            result = grace_fm(model=name, **kwargs)
-
-        elif name.lower() == "orb":
+        elif backend == "orb":
             from orb_models.forcefield.calculator import ORBCalculator
             from orb_models.forcefield.pretrained import ORB_PRETRAINED_MODELS
 
             model = kwargs.pop("model", "orb-v2")
             device = kwargs.get("device", "cpu")
-
             orbff = ORB_PRETRAINED_MODELS[model](device=device)
             result = ORBCalculator(orbff, **kwargs)
 
-        elif name.lower() == "mattersim":  # pragma: no cover
+        elif backend == "mattersim":  # pragma: no cover
             from mattersim.forcefield import MatterSimCalculator
 
             result = MatterSimCalculator(**kwargs)
 
-        elif name.lower() == "fairchem":  # pragma: no cover
+        elif backend == "fairchem":  # pragma: no cover
             from fairchem.core import FAIRChemCalculator, pretrained_mlip
 
             device = kwargs.pop("device", "cpu")
@@ -451,7 +470,7 @@ class PESCalculator(Calculator):
             predictor = pretrained_mlip.get_predict_unit(model, device=device)
             result = FAIRChemCalculator(predictor, task_name=task_name, **kwargs)
 
-        elif name.lower() == "petmad":  # pragma: no cover
+        elif backend == "petmad":  # pragma: no cover
             from pet_mad.calculator import PETMADCalculator
 
             result = PETMADCalculator(**kwargs)
@@ -525,3 +544,46 @@ def to_pmg_molecule(structure: Atoms | Structure | Molecule | IMolecule) -> IMol
         structure = AseAtomsAdaptor.get_molecule(structure)
 
     return Molecule.from_sites(structure)  # type: ignore[return-value]
+
+
+def _resolve_model(name: str) -> tuple[str, str]:
+    key = name.lower()
+    model_id: str | None = None
+
+    if key in ID_TO_NAME:
+        model_id = key
+    else:
+        for mid, aliases in ID_TO_ALIAS.items():
+            if key in aliases:
+                model_id = mid
+                break
+
+    if model_id is not None:
+        return ID_TO_NAME[model_id], model_id
+
+    return name, key
+
+
+def _infer_backend(route_tag: str) -> str:
+    backend = "unknown"
+
+    if route_tag.startswith(("tensornet", "m3gnet", "chgnet")):
+        backend = "matgl"
+    elif route_tag.startswith("mace"):
+        backend = "mace"
+    elif route_tag.startswith("grace"):
+        backend = "grace"
+    elif route_tag == "sevennet":
+        backend = "sevennet"
+    elif route_tag == "orb":
+        backend = "orb"
+    elif route_tag == "mattersim":
+        backend = "mattersim"
+    elif route_tag == "fairchem":
+        backend = "fairchem"
+    elif route_tag == "petmad":
+        backend = "petmad"
+    elif route_tag.startswith("deepmd"):
+        backend = "deepmd"
+
+    return backend
