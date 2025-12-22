@@ -90,7 +90,7 @@ class PhononCalc(PropCalc):
         t_step: float = 10,
         t_max: float = 1000,
         t_min: float = 0,
-        fmax: float = 0.1,
+        fmax: float = 0.01,
         optimizer: str = "FIRE",
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
