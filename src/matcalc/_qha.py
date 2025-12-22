@@ -85,7 +85,7 @@ class QHACalc(PropCalc):
         pressure: None | float = None,
         fmax: float = 0.1,
         optimizer: str = "FIRE",
-        eos: Literal["vinet", "birch_murnaghan", "murnaghan"] = "vinet",
+        eos: Literal[vinet, birch_murnaghan, murnaghan] = "vinet",
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
