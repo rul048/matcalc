@@ -338,7 +338,7 @@ class QHACalc(PropCalc):
             free_energy=np.transpose(free_energies),
             cv=np.transpose(heat_capacities),
             entropy=np.transpose(entropies),
-            pressure=pressure
+            pressure=pressure,
             eos=self.eos,
             t_max=self.t_max,
         )
