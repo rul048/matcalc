@@ -15,7 +15,7 @@ from .backend import run_pes_calc
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
-    from typing import Any
+    from typing import Any, Literal
 
     from ase import Atoms
     from ase.calculators.calculator import Calculator
@@ -85,7 +85,7 @@ class QHACalc(PropCalc):
         pressure: None | float = None,
         fmax: float = 0.1,
         optimizer: str = "FIRE",
-        eos: Literal[vinet, birch_murnaghan, murnaghan] = "vinet",
+        eos: Literal["vinet", "birch_murnaghan", "murnaghan"] = "vinet",
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
@@ -146,6 +146,7 @@ class QHACalc(PropCalc):
         self.t_step = t_step
         self.t_max = t_max
         self.t_min = t_min
+        self.pressure = pressure
         self.fmax = fmax
         self.optimizer = optimizer
         self.eos = eos
@@ -243,7 +244,7 @@ class QHACalc(PropCalc):
         volumes, electronic_energies, free_energies, entropies, heat_capacities = self._collect_properties(structure_in)
 
         qha = self._create_qha(
-            volumes, electronic_energies, temperatures, free_energies, entropies, heat_capacities, pressure
+            volumes, electronic_energies, temperatures, free_energies, entropies, heat_capacities, self.pressure
         )  # type: ignore[arg-type]
 
         self._write_output_files(qha)
