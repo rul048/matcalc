@@ -242,7 +242,9 @@ class QHACalc(PropCalc):
         temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
         volumes, electronic_energies, free_energies, entropies, heat_capacities = self._collect_properties(structure_in)
 
-        qha = self._create_qha(volumes, electronic_energies, temperatures, free_energies, entropies, heat_capacities, pressure)  # type: ignore[arg-type]
+        qha = self._create_qha(
+            volumes, electronic_energies, temperatures, free_energies, entropies, heat_capacities, pressure
+        )  # type: ignore[arg-type]
 
         self._write_output_files(qha)
 
