@@ -41,12 +41,13 @@ class QHACalc(PropCalc):
     :type t_max: float
     :ivar t_min: Minimum temperature in Kelvin.
     :type t_min: float
+    :type pressure: float
     :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
     :type fmax: float
     :ivar optimizer: Type of optimizer used for structural relaxation.
     :type optimizer: str
     :ivar eos: Equation of state used for fitting energy vs. volume data.
-    :type eos: str
+    :type eos: Literal["vinet", "birch_murnaghan", "murnaghan"]
     :ivar relax_structure: Whether to perform structure relaxation before phonon calculations.
     :type relax_structure: bool
     :ivar relax_calc_kwargs: Additional keyword arguments for structure relaxation calculations.
