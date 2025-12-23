@@ -247,11 +247,11 @@ class QHACalc(PropCalc):
         qha = self._create_qha(
             volumes,
             electronic_energies,
-            temperatures,
+            temperatures,  # type: ignore[arg-type]
             free_energies,
             entropies,
             heat_capacities,
-            self.pressure,  # type: ignore[arg-type]
+            self.pressure,
         )
 
         self._write_output_files(qha)
