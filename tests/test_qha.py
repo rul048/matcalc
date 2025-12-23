@@ -86,6 +86,7 @@ def test_qha_calc(
         t_step=50,
         t_max=1000,
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
+        fmax=0.1,
         **write_kwargs,  # type: ignore[arg-type]
     )
 
@@ -93,14 +94,7 @@ def test_qha_calc(
 
     # Test values corresponding to different scale factors
     assert result["volumes"] == pytest.approx(
-        [
-            23.414817553443186,
-            24.138936643414272,
-            24.877833166286138,
-            25.631656389057774,
-            26.40055557872818,
-            27.184680002296354,
-        ],
+        [23.07207, 23.79302, 24.52884, 25.27967, 26.04567, 26.82699, 27.62378],
         rel=1e-3,
     )
 
@@ -149,6 +143,7 @@ def test_qha_calc_atoms(
         t_step=50,
         t_max=1000,
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
+        fmax=0.1,
     )
 
     result = qha_calc.calc(Si_atoms)
