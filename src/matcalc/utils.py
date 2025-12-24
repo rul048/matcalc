@@ -88,7 +88,7 @@ ID_TO_NAME = {
     "MACE-MP-PBE-0b2-L": "large-0b2",
     "MACE-MP-PBE-0b3-M": "medium-0b3",
     "MACE-MPA-PBE-0-M": "medium-mpa-0",
-    "MACE-OMT-PBE-0-S": "small-omat-0",
+    "MACE-OMAT-PBE-0-S": "small-omat-0",
     "MACE-OMAT-PBE-0-M": "medium-omat-0",
     "MACE-MatPES-PBE-0-M": "mace-matpes-pbe-0",
     "MACE-MatPES-r2SCAN-0-M": "mace-matpes-r2scan-0",
@@ -105,24 +105,26 @@ _ID_LOOKUP = {cid.lower(): cid for cid in ID_TO_NAME}
 
 
 # Common aliases and abbreviations will load the most advanced or widely used model.
-ID_TO_ALIAS = {
-    "TensorNet-MatPES-PBE-v2025.1-S": ["tensornet", "tensornet-pbe", "pbe"],
-    "TensorNet-MatPES-r2SCAN-v2025.1-S": ["tensornet-r2scan", "r2scan"],
-    "M3GNet-MatPES-PBE-v2025.1-S": ["m3gnet", "m3gnet-pbe"],
-    "M3GNet-MatPES-r2SCAN-v2025.1-S": ["m3gnet-r2scan"],
-    "CHGNet-MatPES-PBE-v2025.2-M": ["chgnet", "chgnet-pbe"],
-    "CHGNet-MatPES-r2SCAN-v2025.2-M": ["chgnet-r2scan"],
-    "MACE-MP-PBE-0-M": ["mace-mp-0", "mace-mp-0-m", "mace-mp-pbe-0"],
-    "MACE-MPA-PBE-0-M": ["mace", "mace-mpa-0", "mace-mpa-0-m", "mace-mpa-pbe-0"],
-    "MACE-OMAT-PBE-0-M": ["mace-omat-0", "mace-omat-0-m", "mace-omat-pbe-0"],
-    "MACE-MatPES-PBE-0-M": ["mace-matpes-pbe", "mace-matpes-pbe-0"],
-    "MACE-MatPES-r2SCAN-0-M": ["mace-matpes-r2scan", "mace-matpes-r2scan-0"],
-    "GRACE-MP-PBE-0-L": ["grace-mp"],
-    "GRACE-OAM-PBE-0-L": ["grace", "grace-oam"],
-    "GRACE-OMAT-PBE-0-L": ["grace-omat"],
+ALIAS_TO_ID = {
+    ("tensornet", "tensornet-pbe", "pbe"): "TensorNet-MatPES-PBE-v2025.1-S",
+    ("tensornet-r2scan", "r2scan"): "TensorNet-MatPES-r2SCAN-v2025.1-S",
+    ("m3gnet", "m3gnet-pbe"): "M3GNet-MatPES-PBE-v2025.1-S",
+    ("m3gnet-r2scan"): "M3GNet-MatPES-r2SCAN-v2025.1-S",
+    ("chgnet", "chgnet-pbe"): "CHGNet-MatPES-PBE-v2025.2-M",
+    ("chgnet-r2scan",): "CHGNet-MatPES-r2SCAN-v2025.2-M",
+    ("mace-mp-0", "mace-mp-0-m", "mace-mp-pbe-0"): "MACE-MP-PBE-0-M",
+    ("mace", "mace-mpa-0", "mace-mpa-0-m", "mace-mpa-pbe-0"): "MACE-MPA-PBE-0-M",
+    ("mace-omat-0", "mace-omat-0-m", "mace-omat-pbe-0"): "MACE-OMAT-PBE-0-M",
+    ("mace-matpes-pbe", "mace-matpes-pbe-0"): "MACE-MatPES-PBE-0-M",
+    ("mace-matpes-r2scan", "mace-matpes-r2scan-0"): "MACE-MatPES-r2SCAN-0-M",
+    ("grace-mp",): "GRACE-MP-PBE-0-L",
+    ("grace", "grace-oam"): "GRACE-OAM-PBE-0-L",
+    ("grace-omat",): "GRACE-OMAT-PBE-0-L",
 }
 
-ALIAS_TO_ID = {alias.lower(): cid for cid, aliases in ID_TO_ALIAS.items() for alias in aliases}
+ALIAS_HASH_TABLE: dict[str, str] = {
+    alias.lower(): canonical for aliases, canonical in ALIAS_TO_ID.items() for alias in aliases
+}
 
 
 UNIVERSAL_CALCULATORS = Enum("UNIVERSAL_CALCULATORS", {k: k for k in _universal_calculators})  # type: ignore[misc]
@@ -461,7 +463,7 @@ class PESCalculator(Calculator):
 
             result = PETMADCalculator(**kwargs)
 
-        elif name.lower().startswith("deepmd"):  # pragma: no cover
+        elif backend == "deepmd":  # pragma: no cover
             from pathlib import Path
 
             from deepmd.calculator import DP
@@ -500,12 +502,12 @@ def _resolve_model(name: str) -> tuple[str, str]:
     """Resolve user input to (backend_name, route_tag).
 
     - Canonical IDs (keys of ID_TO_NAME) are matched case-insensitively via _ID_LOOKUP.
-    - Aliases are matched case-insensitively via ALIAS_TO_ID (O(1) lookup).
+    - Aliases are matched case-insensitively via ALIAS_HASH_TABLE.
     - If neither matches, passthrough is used.
     """
     key = name.lower()
 
-    model_id = _ID_LOOKUP.get(key) or ALIAS_TO_ID.get(key)
+    model_id = _ID_LOOKUP.get(key) or ALIAS_HASH_TABLE.get(key)
 
     if model_id is not None:
         return ID_TO_NAME[model_id], model_id

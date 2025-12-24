@@ -11,7 +11,7 @@ from ase.calculators.calculator import Calculator
 
 from matcalc import RelaxCalc
 from matcalc.utils import (
-    ID_TO_ALIAS,
+    ALIAS_TO_ID,
     ID_TO_NAME,
     UNIVERSAL_CALCULATORS,
     PESCalculator,
@@ -256,7 +256,7 @@ def test_id_to_name() -> None:
 
 def test_allias_to_id() -> None:
     """Ensure aliases resolve to canonical IDs and correct backend names."""
-    for model_id, aliases in ID_TO_ALIAS.items():
+    for aliases, model_id in ALIAS_TO_ID.items():
         assert model_id in ID_TO_NAME  # Canonical ID must exist
         expected_backend_name = ID_TO_NAME[model_id]
 
@@ -265,4 +265,7 @@ def test_allias_to_id() -> None:
             assert backend_name == expected_backend_name, (
                 f"Alias {alias!r} resolved to {backend_name!r}, expected {expected_backend_name!r}"
             )
-            assert route_tag == model_id, f"Alias {alias!r} produced route_tag {route_tag!r}, expected {model_id!r}"
+            assert route_tag == model_id, (
+                f"Alias {alias!r} produced route_tag {route_tag!r}, expected {model_id!r}"
+            )
+
