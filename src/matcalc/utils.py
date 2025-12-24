@@ -514,6 +514,7 @@ def _resolve_model(name: str) -> tuple[str, str]:
 
 
 def _infer_backend(route_tag: str) -> str:
+    route_tag = route_tag.lower()
     backend = "unknown"
 
     if route_tag.startswith(("tensornet", "m3gnet", "chgnet")):
