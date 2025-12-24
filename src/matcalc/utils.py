@@ -157,7 +157,16 @@ class PESCalculator(Calculator):
         stress_weight: float = 1.0,
         **kwargs: Any,
     ) -> None:
-        """Initialize PESCalculator with a potential from maml."""
+        """
+        Initialize PESCalculator with a potential from maml.
+
+        Args:
+            potential (LMPStaticCalculator): maml.apps.pes._lammps.LMPStaticCalculator
+            stress_unit (str): The unit of stress. Default to "GPa"
+            stress_weight (float): The conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa.
+                Default to 1.0.
+            **kwargs: Additional keyword arguments passed to super().__init__().
+        """
         super().__init__(**kwargs)
         self.potential = potential
 
@@ -177,7 +186,16 @@ class PESCalculator(Calculator):
         properties: list | None = None,
         system_changes: list | None = None,
     ) -> None:
-        """Perform calculation for an input Atoms."""
+        """
+        Perform calculation for an input Atoms.
+
+        Args:
+            atoms (ase.Atoms): ase Atoms object
+            properties (list): The list of properties to calculate
+            system_changes (list): monitor which properties of atoms were
+                changed for new calculation. If not, the previous calculation
+                results will be loaded.
+        """
         from ase.calculators.calculator import all_changes, all_properties
         from maml.apps.pes import EnergyForceStress
 
@@ -481,17 +499,53 @@ class PESCalculator(Calculator):
 
 
 def to_ase_atoms(structure: Atoms | Structure | Molecule) -> Atoms:
-    """Converts a given structure into an ASE Atoms object."""
+    """
+    Converts a given structure into an ASE Atoms object. This function checks
+    if the input structure is already an ASE Atoms object. If not, it converts
+    a pymatgen Structure object to an ASE Atoms object using the AseAtomsAdaptor.
+
+    :param structure: The input structure, which can be either an ASE Atoms object
+        or a pymatgen Structure object.
+    :type structure: Atoms | Structure
+    :return: An ASE Atoms object representing the given structure.
+    :rtype: Atoms
+    """
     return structure if isinstance(structure, Atoms) else AseAtomsAdaptor.get_atoms(structure)
 
 
 def to_pmg_structure(structure: Atoms | Structure) -> Structure:
-    """Converts a given structure into a pymatgen Structure."""
+    """
+    Converts a given structure of type Atoms or Structure into a Structure
+    object. If the input structure is already of type Structure, it is
+    returned unchanged. If the input structure is of type Atoms, it is
+    converted to a Structure using the AseAtomsAdaptor.
+
+    :param structure: The input structure to be converted. This can be of
+        type Atoms or Structure.
+    :type structure: Atoms | Structure
+    :return: A Structure object corresponding to the input structure. If the
+        input is already a Structure, it is returned as-is. Otherwise, it is
+        converted.
+    :rtype: Structure
+    """
     return structure if isinstance(structure, Structure) else AseAtomsAdaptor.get_structure(structure)  # type: ignore[return-value]
 
 
 def to_pmg_molecule(structure: Atoms | Structure | Molecule | IMolecule) -> IMolecule:
-    """Converts a given structure into a pymatgen Molecule."""
+    """
+    Converts a given structure of type Atoms or Structure into a Molecule
+    object. If the input structure is already of type Molecule, it is
+    returned unchanged. If the input structure is of type Atoms, it is
+    converted to a Molecule using the AseAtomsAdaptor.
+
+    :param structure: The input structure to be converted. This can be of
+        type Atoms or Structure or Molecule.
+    :type structure: Atoms | Structure | Molecule
+    :return: A Molecule object corresponding to the input structure. If the
+        input is already a Molecule, it is returned as-is. Otherwise, it is
+        converted.
+    :rtype: Molecule
+    """
     if isinstance(structure, Atoms):
         structure = AseAtomsAdaptor.get_molecule(structure)
 
