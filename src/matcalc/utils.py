@@ -69,55 +69,61 @@ except Exception:  # noqa: BLE001
 # each library expects and will be gradually expanded as new models
 # are released.
 
-# Keys must be lowercase and represent canonical identifiers
+# Keys use proper canonical capitalization.
 # Values are the actual model names passed to the backend libraries.
 ID_TO_NAME = {
-    "tensornet-matpes-pbe-v2025.1-s": "TensorNet-MatPES-PBE-v2025.1-PES",
-    "tensornet-matpes-r2scan-v2025.1-s": "TensorNet-MatPES-r2SCAN-v2025.1-PES",
-    "m3gnet-matpes-pbe-v2025.1-s": "M3GNet-MatPES-PBE-v2025.1-PES",
-    "m3gnet-matpes-r2scan-v2025.1-s": "M3GNet-MatPES-r2SCAN-v2025.1-PES",
-    "chgnet-matpes-pbe-v2025.2-m": "CHGNet-MatPES-PBE-2025.2.10-2.7M-PES",
-    "chgnet-matpes-r2scan-v2025.2-m": "CHGNet-MatPES-r2SCAN-2025.2.10-2.7M-PES",
-    "mace-mp-pbe-0-s": "small",
-    "mace-mp-pbe-0-m": "medium",
-    "mace-mp-pbe-0-l": "large",
-    "mace-mp-pbe-0b-s": "small-0b",
-    "mace-mp-pbe-0b-m": "medium-0b",
-    "mace-mp-pbe-0b2-s": "small-0b2",
-    "mace-mp-pbe-0b2-m": "medium-0b2",
-    "mace-mp-pbe-0b2-l": "large-0b2",
-    "mace-mp-pbe-0b3-m": "medium-0b3",
-    "mace-mpa-pbe-0-m": "medium-mpa-0",
-    "mace-omt-pbe-0-s": "small-omat-0",
-    "mace-omat-pbe-0-m": "medium-omat-0",
-    "mace-matpes-pbe-0-m": "mace-matpes-pbe-0",
-    "mace-matpes-r2scan-0-m": "mace-matpes-r2scan-0",
-    "grace-mp-pbe-0-l": "GRACE-2L-MP-r6",
-    "grace-oam-pbe-0-s": "GRACE-2L-OAM",
-    "grace-oam-pbe-0-m": "GRACE-2L-OMAT-medium-ft-AM",
-    "grace-oam-pbe-0-l": "GRACE-2L-OMAT-large-ft-AM",
-    "grace-omat-pbe-0-s": "GRACE-2L-OMAT",
-    "grace-omat-pbe-0-m": "GRACE-2L-OMAT-medium-ft-E",
-    "grace-omat-pbe-0-l": "GRACE-2L-OMAT-large-ft-E",
+    "TensorNet-MatPES-PBE-v2025.1-S": "TensorNet-MatPES-PBE-v2025.1-PES",
+    "TensorNet-MatPES-r2SCAN-v2025.1-S": "TensorNet-MatPES-r2SCAN-v2025.1-PES",
+    "M3GNet-MatPES-PBE-v2025.1-S": "M3GNet-MatPES-PBE-v2025.1-PES",
+    "M3GNet-MatPES-r2SCAN-v2025.1-S": "M3GNet-MatPES-r2SCAN-v2025.1-PES",
+    "CHGNet-MatPES-PBE-v2025.2-M": "CHGNet-MatPES-PBE-2025.2.10-2.7M-PES",
+    "CHGNet-MatPES-r2SCAN-v2025.2-M": "CHGNet-MatPES-r2SCAN-2025.2.10-2.7M-PES",
+    "MACE-MP-PBE-0-S": "small",
+    "MACE-MP-PBE-0-M": "medium",
+    "MACE-MP-PBE-0-L": "large",
+    "MACE-MP-PBE-0b-S": "small-0b",
+    "MACE-MP-PBE-0b-M": "medium-0b",
+    "MACE-MP-PBE-0b2-S": "small-0b2",
+    "MACE-MP-PBE-0b2-M": "medium-0b2",
+    "MACE-MP-PBE-0b2-L": "large-0b2",
+    "MACE-MP-PBE-0b3-M": "medium-0b3",
+    "MACE-MPA-PBE-0-M": "medium-mpa-0",
+    "MACE-OMT-PBE-0-S": "small-omat-0",
+    "MACE-OMAT-PBE-0-M": "medium-omat-0",
+    "MACE-MatPES-PBE-0-M": "mace-matpes-pbe-0",
+    "MACE-MatPES-r2SCAN-0-M": "mace-matpes-r2scan-0",
+    "GRACE-MP-PBE-0-L": "GRACE-2L-MP-r6",
+    "GRACE-OAM-PBE-0-S": "GRACE-2L-OAM",
+    "GRACE-OAM-PBE-0-M": "GRACE-2L-OMAT-medium-ft-AM",
+    "GRACE-OAM-PBE-0-L": "GRACE-2L-OMAT-large-ft-AM",
+    "GRACE-OMAT-PBE-0-S": "GRACE-2L-OMAT",
+    "GRACE-OMAT-PBE-0-M": "GRACE-2L-OMAT-medium-ft-E",
+    "GRACE-OMAT-PBE-0-L": "GRACE-2L-OMAT-large-ft-E",
 }
+
+_ID_LOOKUP = {cid.lower(): cid for cid in ID_TO_NAME}
+
 
 # Common aliases and abbreviations will load the most advanced or widely used model.
 ID_TO_ALIAS = {
-    "tensornet-matpes-pbe-v2025.1-s": ["tensornet", "tensornet-pbe", "pbe"],
-    "tensornet-matpes-r2scan-v2025.1-s": ["tensornet-r2scan", "r2scan"],
-    "m3gnet-matpes-pbe-v2025.1-s": ["m3gnet", "m3gnet-pbe"],
-    "m3gnet-matpes-r2scan-v2025.1-s": ["m3gnet-r2scan"],
-    "chgnet-matpes-pbe-v2025.2-m": ["chgnet", "chgnet-pbe"],
-    "chgnet-matpes-r2scan-v2025.2-m": ["chgnet-r2scan"],
-    "mace-mp-pbe-0-m": ["mace-mp-0", "mace-mp-0-m", "mace-mp-pbe-0"],
-    "mace-mpa-pbe-0-m": ["mace", "mace-mpa-0", "mace-mpa-0-m", "mace-mpa-pbe-0"],
-    "mace-omat-pbe-0-m": ["mace-omat-0", "mace-omat-0-m", "mace-omat-pbe-0"],
-    "mace-matpes-pbe-0-m": ["mace-matpes-pbe", "mace-matpes-pbe-0"],
-    "mace-matpes-r2scan-0-m": ["mace-matpes-r2scan", "mace-matpes-r2scan-0"],
-    "grace-mp-pbe-0-l": ["grace-mp"],
-    "grace-oam-pbe-0-l": ["grace", "grace-oam"],
-    "grace-omat-pbe-0-l": ["grace-omat"],
+    "TensorNet-MatPES-PBE-v2025.1-S": ["tensornet", "tensornet-pbe", "pbe"],
+    "TensorNet-MatPES-r2SCAN-v2025.1-S": ["tensornet-r2scan", "r2scan"],
+    "M3GNet-MatPES-PBE-v2025.1-S": ["m3gnet", "m3gnet-pbe"],
+    "M3GNet-MatPES-r2SCAN-v2025.1-S": ["m3gnet-r2scan"],
+    "CHGNet-MatPES-PBE-v2025.2-M": ["chgnet", "chgnet-pbe"],
+    "CHGNet-MatPES-r2SCAN-v2025.2-M": ["chgnet-r2scan"],
+    "MACE-MP-PBE-0-M": ["mace-mp-0", "mace-mp-0-m", "mace-mp-pbe-0"],
+    "MACE-MPA-PBE-0-M": ["mace", "mace-mpa-0", "mace-mpa-0-m", "mace-mpa-pbe-0"],
+    "MACE-OMAT-PBE-0-M": ["mace-omat-0", "mace-omat-0-m", "mace-omat-pbe-0"],
+    "MACE-MatPES-PBE-0-M": ["mace-matpes-pbe", "mace-matpes-pbe-0"],
+    "MACE-MatPES-r2SCAN-0-M": ["mace-matpes-r2scan", "mace-matpes-r2scan-0"],
+    "GRACE-MP-PBE-0-L": ["grace-mp"],
+    "GRACE-OAM-PBE-0-L": ["grace", "grace-oam"],
+    "GRACE-OMAT-PBE-0-L": ["grace-omat"],
 }
+
+ALIAS_TO_ID = {alias.lower(): cid for cid, aliases in ID_TO_ALIAS.items() for alias in aliases}
+
 
 UNIVERSAL_CALCULATORS = Enum("UNIVERSAL_CALCULATORS", {k: k for k in _universal_calculators})  # type: ignore[misc]
 
@@ -149,16 +155,7 @@ class PESCalculator(Calculator):
         stress_weight: float = 1.0,
         **kwargs: Any,
     ) -> None:
-        """
-        Initialize PESCalculator with a potential from maml.
-
-        Args:
-            potential (LMPStaticCalculator): maml.apps.pes._lammps.LMPStaticCalculator
-            stress_unit (str): The unit of stress. Default to "GPa"
-            stress_weight (float): The conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa.
-                Default to 1.0.
-            **kwargs: Additional keyword arguments passed to super().__init__().
-        """
+        """Initialize PESCalculator with a potential from maml."""
         super().__init__(**kwargs)
         self.potential = potential
 
@@ -178,19 +175,9 @@ class PESCalculator(Calculator):
         properties: list | None = None,
         system_changes: list | None = None,
     ) -> None:
-        """
-        Perform calculation for an input Atoms.
-
-        Args:
-            atoms (ase.Atoms): ase Atoms object
-            properties (list): The list of properties to calculate
-            system_changes (list): monitor which properties of atoms were
-                changed for new calculation. If not, the previous calculation
-                results will be loaded.
-        """
+        """Perform calculation for an input Atoms."""
         from ase.calculators.calculator import all_changes, all_properties
         from maml.apps.pes import EnergyForceStress
-        from pymatgen.io.ase import AseAtomsAdaptor
 
         properties = properties or all_properties
         system_changes = system_changes or all_changes
@@ -492,53 +479,17 @@ class PESCalculator(Calculator):
 
 
 def to_ase_atoms(structure: Atoms | Structure | Molecule) -> Atoms:
-    """
-    Converts a given structure into an ASE Atoms object. This function checks
-    if the input structure is already an ASE Atoms object. If not, it converts
-    a pymatgen Structure object to an ASE Atoms object using the AseAtomsAdaptor.
-
-    :param structure: The input structure, which can be either an ASE Atoms object
-        or a pymatgen Structure object.
-    :type structure: Atoms | Structure
-    :return: An ASE Atoms object representing the given structure.
-    :rtype: Atoms
-    """
+    """Converts a given structure into an ASE Atoms object."""
     return structure if isinstance(structure, Atoms) else AseAtomsAdaptor.get_atoms(structure)
 
 
 def to_pmg_structure(structure: Atoms | Structure) -> Structure:
-    """
-    Converts a given structure of type Atoms or Structure into a Structure
-    object. If the input structure is already of type Structure, it is
-    returned unchanged. If the input structure is of type Atoms, it is
-    converted to a Structure using the AseAtomsAdaptor.
-
-    :param structure: The input structure to be converted. This can be of
-        type Atoms or Structure.
-    :type structure: Atoms | Structure
-    :return: A Structure object corresponding to the input structure. If the
-        input is already a Structure, it is returned as-is. Otherwise, it is
-        converted.
-    :rtype: Structure
-    """
+    """Converts a given structure into a pymatgen Structure."""
     return structure if isinstance(structure, Structure) else AseAtomsAdaptor.get_structure(structure)  # type: ignore[return-value]
 
 
 def to_pmg_molecule(structure: Atoms | Structure | Molecule | IMolecule) -> IMolecule:
-    """
-    Converts a given structure of type Atoms or Structure into a Molecule
-    object. If the input structure is already of type Molecule, it is
-    returned unchanged. If the input structure is of type Atoms, it is
-    converted to a Molecule using the AseAtomsAdaptor.
-
-    :param structure: The input structure to be converted. This can be of
-        type Atoms or Structure or Molecule.
-    :type structure: Atoms | Structure | Molecule
-    :return: A Molecule object corresponding to the input structure. If the
-        input is already a Molecule, it is returned as-is. Otherwise, it is
-        converted.
-    :rtype: Molecule
-    """
+    """Converts a given structure into a pymatgen Molecule."""
     if isinstance(structure, Atoms):
         structure = AseAtomsAdaptor.get_molecule(structure)
 
@@ -546,16 +497,15 @@ def to_pmg_molecule(structure: Atoms | Structure | Molecule | IMolecule) -> IMol
 
 
 def _resolve_model(name: str) -> tuple[str, str]:
-    key = name.lower()
-    model_id: str | None = None
+    """Resolve user input to (backend_name, route_tag).
 
-    if key in ID_TO_NAME:
-        model_id = key
-    else:
-        for mid, aliases in ID_TO_ALIAS.items():
-            if key in aliases:
-                model_id = mid
-                break
+    - Canonical IDs (keys of ID_TO_NAME) are matched case-insensitively via _ID_LOOKUP.
+    - Aliases are matched case-insensitively via ALIAS_TO_ID (O(1) lookup).
+    - If neither matches, passthrough is used.
+    """
+    key = name.lower()
+
+    model_id = _ID_LOOKUP.get(key) or ALIAS_TO_ID.get(key)
 
     if model_id is not None:
         return ID_TO_NAME[model_id], model_id
