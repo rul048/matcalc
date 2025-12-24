@@ -68,7 +68,9 @@ UNIVERSAL_TO_PACKAGE = _map_calculators_to_packages(UNIVERSAL_CALCULATORS)
         ("GPa", 1.0),
     ],
 )
-# @pytest.mark.skipif(not find_spec("maml"), reason="maml is not installed")
+
+
+@pytest.mark.skipif(not find_spec("maml"), reason="maml is not installed")
 def test_pescalculator_load_mtp(expected_unit: str, expected_weight: float) -> None:
     calc = PESCalculator.load_mtp(
         filename=DIR / "pes" / "MTP-Cu-2020.1-PES" / "fitted.mtp",
