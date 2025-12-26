@@ -15,7 +15,7 @@ from .backend import run_pes_calc
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
-    from typing import Any
+    from typing import Any, Literal
 
     from ase import Atoms
     from ase.calculators.calculator import Calculator
@@ -41,12 +41,13 @@ class QHACalc(PropCalc):
     :type t_max: float
     :ivar t_min: Minimum temperature in Kelvin.
     :type t_min: float
+    :type pressure: float
     :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
     :type fmax: float
     :ivar optimizer: Type of optimizer used for structural relaxation.
     :type optimizer: str
     :ivar eos: Equation of state used for fitting energy vs. volume data.
-    :type eos: str
+    :type eos: Literal["vinet", "birch_murnaghan", "murnaghan"]
     :ivar relax_structure: Whether to perform structure relaxation before phonon calculations.
     :type relax_structure: bool
     :ivar relax_calc_kwargs: Additional keyword arguments for structure relaxation calculations.
@@ -82,9 +83,10 @@ class QHACalc(PropCalc):
         t_step: float = 10,
         t_max: float = 1000,
         t_min: float = 0,
+        pressure: None | float = None,
         fmax: float = 0.1,
         optimizer: str = "FIRE",
-        eos: str = "vinet",
+        eos: Literal["vinet", "birch_murnaghan", "murnaghan"] = "vinet",
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
@@ -106,9 +108,10 @@ class QHACalc(PropCalc):
 
         :param calculator: Calculator object or string indicating the computational engine to use
             for performing calculations.
-        :param t_step: Step size for the temperature range, given in units of temperature.
-        :param t_max: Maximum temperature for the calculations, given in units of temperature.
-        :param t_min: Minimum temperature for the calculations, given in units of temperature.
+        :param t_step: Step size for the temperature range, given in units of K.
+        :param t_max: Maximum temperature for the calculations, given in units of K.
+        :param t_min: Minimum temperature for the calculations, given in units of K.
+        :param pressure: Pressure to calculate thermochemistry at, given in units of GPa.
         :param fmax: Maximum force convergence criterion for structure relaxation, in force units.
         :param optimizer: Name of the optimizer to use for structure optimization, default is
             "FIRE".
@@ -144,6 +147,7 @@ class QHACalc(PropCalc):
         self.t_step = t_step
         self.t_max = t_max
         self.t_min = t_min
+        self.pressure = pressure
         self.fmax = fmax
         self.optimizer = optimizer
         self.eos = eos
@@ -240,7 +244,15 @@ class QHACalc(PropCalc):
         temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
         volumes, electronic_energies, free_energies, entropies, heat_capacities = self._collect_properties(structure_in)
 
-        qha = self._create_qha(volumes, electronic_energies, temperatures, free_energies, entropies, heat_capacities)  # type: ignore[arg-type]
+        qha = self._create_qha(
+            volumes,
+            electronic_energies,
+            temperatures,  # type: ignore[arg-type]
+            free_energies,
+            entropies,
+            heat_capacities,
+            self.pressure,
+        )
 
         self._write_output_files(qha)
 
@@ -313,6 +325,7 @@ class QHACalc(PropCalc):
         free_energies: list,
         entropies: list,
         heat_capacities: list,
+        pressure: None | float,
     ) -> PhonopyQHA:
         """Helper to create a PhonopyQHA object for quasi-harmonic approximation.
 
@@ -323,6 +336,7 @@ class QHACalc(PropCalc):
             free_energies: List of free energies corresponding to different volumes and temperatures.
             entropies: List of entropies corresponding to different volumes and temperatures.
             heat_capacities: List of heat capacities corresponding to different volumes and temperatures.
+            pressure: Pressure in GPa.
 
         Returns:
             Phonopy.qha object.
@@ -332,8 +346,9 @@ class QHACalc(PropCalc):
             electronic_energies=electronic_energies,
             temperatures=temperatures,
             free_energy=np.transpose(free_energies),
-            entropy=np.transpose(entropies),
             cv=np.transpose(heat_capacities),
+            entropy=np.transpose(entropies),
+            pressure=pressure,
             eos=self.eos,
             t_max=self.t_max,
         )
