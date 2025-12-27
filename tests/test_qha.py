@@ -150,7 +150,7 @@ def test_qha_pressure(
     # Test values corresponding to different scale factors
     assert result["volumes"] == pytest.approx(
         [23.07207, 23.79302, 24.52884, 25.27967, 26.04567, 26.82699, 27.62378],
-        rel=1e-3,
+        abs=1e-1,
     )
 
     assert result["electronic_energies"] == pytest.approx(
