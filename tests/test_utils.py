@@ -14,10 +14,10 @@ from matcalc.utils import (
     ALIAS_TO_ID,
     UNIVERSAL_CALCULATORS,
     PESCalculator,
-    _resolve_model,
+    _parse_grace_model_id,
     _parse_mace_model_id,
     _parse_matgl_model_id,
-    _parse_grace_model_id,
+    _resolve_model,
 )
 
 DIR = Path(__file__).parent.absolute()
@@ -185,6 +185,7 @@ def test_allias_to_id():
         for alias in aliases:
             assert _resolve_model(alias) == model_id
 
+
 ID_TO_NAME = {
     "TensorNet-MatPES-PBE-v2025.1-S": "TensorNet-MatPES-PBE-v2025.1-PES",
     "TensorNet-MatPES-r2SCAN-v2025.1-S": "TensorNet-MatPES-r2SCAN-v2025.1-PES",
@@ -212,6 +213,7 @@ ID_TO_NAME = {
     "GRACE-OMAT-PBE-0-M": "GRACE-2L-OMAT-medium-ft-E",
     "GRACE-OMAT-PBE-0-L": "GRACE-2L-OMAT-large-ft-E",
 }
+
 
 @pytest.mark.parametrize("model_id, expected", ID_TO_NAME.items())
 def test_id_to_name(model_id: str, expected: str) -> None:
