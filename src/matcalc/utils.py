@@ -52,64 +52,13 @@ try:
 except Exception:  # noqa: BLE001
     warnings.warn("Unable to get pre-trained MatGL universal calculators.", stacklevel=1)
 
-# Different backend libraries (MatGL, MACE, GRACE, etc.) use
-# inconsistent or non-canonical model names (e.g., "small-omat-0",
-# "TensorNet-MatPES-PBE-v2025.1-PES", "GRACE-2L-OMAT-medium-base").
-
-# Users and developers are encouraged to use the model naming convention below.
-# MatCalc Model Naming Convention (Unified model ID format):
-# <Model>-<Dataset>-<Functional>-<Version>-<Size>
-
-# Examples:
-# TensorNet-MatPES-r2SCAN-v2025.1-S
-# MACE-MP-PBE-0-M
-# GRACE-OMAT-PBE-0-L
-
-# This table maps such identifiers into the backend model names that
-# each library expects and will be gradually expanded as new models
-# are released.
-
-# Keys use proper canonical capitalization.
-# Values are the actual model names passed to the backend libraries.
-ID_TO_NAME = {
-    "TensorNet-MatPES-PBE-v2025.1-S": "TensorNet-MatPES-PBE-v2025.1-PES",
-    "TensorNet-MatPES-r2SCAN-v2025.1-S": "TensorNet-MatPES-r2SCAN-v2025.1-PES",
-    "M3GNet-MatPES-PBE-v2025.1-S": "M3GNet-MatPES-PBE-v2025.1-PES",
-    "M3GNet-MatPES-r2SCAN-v2025.1-S": "M3GNet-MatPES-r2SCAN-v2025.1-PES",
-    "CHGNet-MatPES-PBE-v2025.2-M": "CHGNet-MatPES-PBE-2025.2.10-2.7M-PES",
-    "CHGNet-MatPES-r2SCAN-v2025.2-M": "CHGNet-MatPES-r2SCAN-2025.2.10-2.7M-PES",
-    "MACE-MP-PBE-0-S": "small",
-    "MACE-MP-PBE-0-M": "medium",
-    "MACE-MP-PBE-0-L": "large",
-    "MACE-MP-PBE-0b-S": "small-0b",
-    "MACE-MP-PBE-0b-M": "medium-0b",
-    "MACE-MP-PBE-0b2-S": "small-0b2",
-    "MACE-MP-PBE-0b2-M": "medium-0b2",
-    "MACE-MP-PBE-0b2-L": "large-0b2",
-    "MACE-MP-PBE-0b3-M": "medium-0b3",
-    "MACE-MPA-PBE-0-M": "medium-mpa-0",
-    "MACE-OMAT-PBE-0-S": "small-omat-0",
-    "MACE-OMAT-PBE-0-M": "medium-omat-0",
-    "MACE-MatPES-PBE-0-M": "mace-matpes-pbe-0",
-    "MACE-MatPES-r2SCAN-0-M": "mace-matpes-r2scan-0",
-    "GRACE-MP-PBE-0-L": "GRACE-2L-MP-r6",
-    "GRACE-OAM-PBE-0-S": "GRACE-2L-OAM",
-    "GRACE-OAM-PBE-0-M": "GRACE-2L-OMAT-medium-ft-AM",
-    "GRACE-OAM-PBE-0-L": "GRACE-2L-OMAT-large-ft-AM",
-    "GRACE-OMAT-PBE-0-S": "GRACE-2L-OMAT",
-    "GRACE-OMAT-PBE-0-M": "GRACE-2L-OMAT-medium-ft-E",
-    "GRACE-OMAT-PBE-0-L": "GRACE-2L-OMAT-large-ft-E",
-}
-
-_ID_LOOKUP = {cid.lower(): cid for cid in ID_TO_NAME}
-
 
 # Common aliases and abbreviations will load the most advanced or widely used model.
 ALIAS_TO_ID = {
     ("tensornet", "tensornet-pbe", "pbe"): "TensorNet-MatPES-PBE-v2025.1-S",
     ("tensornet-r2scan", "r2scan"): "TensorNet-MatPES-r2SCAN-v2025.1-S",
     ("m3gnet", "m3gnet-pbe"): "M3GNet-MatPES-PBE-v2025.1-S",
-    ("m3gnet-r2scan"): "M3GNet-MatPES-r2SCAN-v2025.1-S",
+    ("m3gnet-r2scan",): "M3GNet-MatPES-r2SCAN-v2025.1-S",
     ("chgnet", "chgnet-pbe"): "CHGNet-MatPES-PBE-v2025.2-M",
     ("chgnet-r2scan",): "CHGNet-MatPES-r2SCAN-v2025.2-M",
     ("mace-mp-0", "mace-mp-0-m", "mace-mp-pbe-0"): "MACE-MP-PBE-0-M",
@@ -125,6 +74,9 @@ ALIAS_TO_ID = {
 ALIAS_HASH_TABLE: dict[str, str] = {
     alias.lower(): canonical for aliases, canonical in ALIAS_TO_ID.items() for alias in aliases
 }
+
+
+MODEL_ID_PARTS = 5  # Architecture-Dataset-Functional-Version-Size
 
 
 UNIVERSAL_CALCULATORS = Enum("UNIVERSAL_CALCULATORS", {k: k for k in _universal_calculators})  # type: ignore[misc]
@@ -432,21 +384,24 @@ class PESCalculator(Calculator):
         if not isinstance(name, str):
             return name
 
-        backend_name, route_tag = _resolve_model(name)
-        backend = _infer_backend(route_tag)
+        model_id = _resolve_model(name)
+        backend = _infer_backend(model_id)
 
         if backend == "matgl":
-            result = PESCalculator.load_matgl(backend_name, **kwargs)
+            model_name = _parse_matgl_model_id(model_id)
+            result = PESCalculator.load_matgl(model_name, **kwargs)
 
         elif backend == "mace":
             from mace.calculators import mace_mp
 
-            result = mace_mp(model=backend_name, **kwargs)
+            model_name = _parse_mace_model_id(model_id)
+            result = mace_mp(model=model_name, **kwargs)
 
         elif backend == "grace":
             from tensorpotential.calculator.foundation_models import grace_fm
 
-            result = grace_fm(model=backend_name, **kwargs)
+            model_name = _parse_grace_model_id(model_id)
+            result = grace_fm(model=model_name, **kwargs)
 
         elif backend == "sevennet":
             from sevenn.calculator import SevenNetCalculator
@@ -552,44 +507,89 @@ def to_pmg_molecule(structure: Atoms | Structure | Molecule | IMolecule) -> IMol
     return Molecule.from_sites(structure)  # type: ignore[return-value]
 
 
-def _resolve_model(name: str) -> tuple[str, str]:
-    """Resolve user input to (backend_name, route_tag).
-
-    - Canonical IDs (keys of ID_TO_NAME) are matched case-insensitively via _ID_LOOKUP.
-    - Aliases are matched case-insensitively via ALIAS_HASH_TABLE.
-    - If neither matches, passthrough is used.
-    """
+def _resolve_model(name: str) -> str:
     key = name.lower()
 
-    model_id = _ID_LOOKUP.get(key) or ALIAS_HASH_TABLE.get(key)
-
-    if model_id is not None:
-        return ID_TO_NAME[model_id], model_id
-
-    return name, key
+    return ALIAS_HASH_TABLE.get(key, name)
 
 
-def _infer_backend(route_tag: str) -> str:
-    route_tag = route_tag.lower()
+def _infer_backend(model_id: str) -> str:
+    model_id = model_id.lower()
     backend = "unknown"
 
-    if route_tag.startswith(("tensornet", "m3gnet", "chgnet")):
+    if model_id.startswith(("tensornet", "m3gnet", "chgnet")):
         backend = "matgl"
-    elif route_tag.startswith("mace"):
+    elif model_id.startswith("mace"):
         backend = "mace"
-    elif route_tag.startswith("grace"):
+    elif model_id.startswith("grace"):
         backend = "grace"
-    elif route_tag == "sevennet":
+    elif model_id == "sevennet":
         backend = "sevennet"
-    elif route_tag == "orb":
+    elif model_id == "orb":
         backend = "orb"
-    elif route_tag == "mattersim":
+    elif model_id == "mattersim":
         backend = "mattersim"
-    elif route_tag == "fairchem":
+    elif model_id == "fairchem":
         backend = "fairchem"
-    elif route_tag == "petmad":
+    elif model_id == "petmad":
         backend = "petmad"
-    elif route_tag.startswith("deepmd"):
+    elif model_id.startswith("deepmd"):
         backend = "deepmd"
 
     return backend
+
+
+def _parse_mace_model_id(model_id: str) -> str:
+    parts = model_id.split("-")
+    result = model_id
+
+    if len(parts) == MODEL_ID_PARTS and parts[0] == "MACE":
+        _, dataset, functional, version, size = parts
+
+        size_map = {"S": "small", "M": "medium", "L": "large"}
+        mapped_size = size_map.get(size.upper())
+
+        if mapped_size is not None:
+            version = version.lower()
+            functional = functional.lower()
+
+            if dataset == "MP":
+                result = mapped_size if version == "0" else f"{mapped_size}-{version}"
+            elif dataset == "MPA":
+                result = f"{mapped_size}-mpa-{version}"
+            elif dataset == "OMAT":
+                result = f"{mapped_size}-omat-{version}"
+            elif dataset == "MatPES":
+                result = f"mace-matpes-{functional}-{version}"
+
+    return result
+
+
+def _parse_matgl_model_id(model_id: str) -> str:
+    parts = model_id.split("-")
+    if len(parts) == MODEL_ID_PARTS and parts[0] in {"TensorNet", "M3GNet", "CHGNet"} and parts[1] == "MatPES":
+        return "-".join(parts[:-1] + ["PES"])
+
+    return model_id
+
+
+def _parse_grace_model_id(model_id: str) -> str:
+    parts = model_id.split("-")
+    result = model_id
+
+    if len(parts) == MODEL_ID_PARTS and parts[0] == "GRACE":
+        _, dataset, functional, version, size = parts
+        size = size.upper()
+
+        if functional == "PBE" and version == "0":
+            if dataset == "MP":
+                if size == "L":
+                    result = "GRACE-2L-MP-r6"
+            elif dataset in {"OMAT", "OAM"}:
+                if size == "S":
+                    result = "GRACE-2L-OMAT" if dataset == "OMAT" else "GRACE-2L-OAM"
+                elif size in {"M", "L"}:
+                    suffix = "E" if dataset == "OMAT" else "AM"
+                    result = f"GRACE-2L-OMAT-medium-ft-{suffix}" if size == "M" else f"GRACE-2L-OMAT-large-ft-{suffix}"
+
+    return result

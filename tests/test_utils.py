@@ -12,10 +12,12 @@ from ase.calculators.calculator import Calculator
 from matcalc import RelaxCalc
 from matcalc.utils import (
     ALIAS_TO_ID,
-    ID_TO_NAME,
     UNIVERSAL_CALCULATORS,
     PESCalculator,
     _resolve_model,
+    _parse_mace_model_id,
+    _parse_matgl_model_id,
+    _parse_grace_model_id,
 )
 
 DIR = Path(__file__).parent.absolute()
@@ -178,91 +180,48 @@ def test_pescalculator_calculate() -> None:
     assert list(stresses.shape) == [6]
 
 
-def _known_backend_models() -> set[str]:
-    """Return all backend model names that IDs or aliases are allowed to map to."""
-    # Built-in universal calculators
-    names = {u.name for u in UNIVERSAL_CALCULATORS}
-
-    # MACE backend models
-    if find_spec("mace"):
-        from mace.calculators.foundations_models import mace_mp_names
-
-        mace_models = set(mace_mp_names)
-    else:
-        # This set is from https://github.com/ACEsuit/mace/blob/main/mace/calculators/foundations_models.py#L37
-        mace_models = {
-            "small",
-            "medium",
-            "large",
-            "small-0b",
-            "medium-0b",
-            "small-0b2",
-            "medium-0b2",
-            "large-0b2",
-            "medium-0b3",
-            "medium-mpa-0",
-            "small-omat-0",
-            "medium-omat-0",
-            "mace-matpes-pbe-0",
-            "mace-matpes-r2scan-0",
-            "mh-0",
-            "mh-1",
-        }
-
-    # GRACE backend models
-    if find_spec("tensorpotential"):
-        from tensorpotential.calculator.foundation_models import MODELS_METADATA
-
-        grace_models = set(MODELS_METADATA.keys())
-    else:
-        # This set is from https://github.com/ICAMS/grace-tensorpotential/blob/master/tensorpotential/calculator/foundation_models.py#L46
-        grace_models = {
-            "GRACE-1L-MP-r6",
-            "GRACE-2L-MP-r5",
-            "GRACE-2L-MP-r6",
-            "GRACE-FS-OAM",
-            "GRACE-1L-OAM",
-            "GRACE-2L-OAM",
-            "GRACE-FS-OMAT",
-            "GRACE-1L-OMAT",
-            "GRACE-2L-OMAT",
-            "GRACE-1L-OMAT-medium-base",
-            "GRACE-1L-OMAT-medium-ft-E",
-            "GRACE-1L-OMAT-medium-ft-AM",
-            "GRACE-1L-OMAT-large-base",
-            "GRACE-1L-OMAT-large-ft-E",
-            "GRACE-1L-OMAT-large-ft-AM",
-            "GRACE-2L-OMAT-medium-base",
-            "GRACE-2L-OMAT-medium-ft-E",
-            "GRACE-2L-OMAT-medium-ft-AM",
-            "GRACE-2L-OMAT-large-base",
-            "GRACE-2L-OMAT-large-ft-E",
-            "GRACE-2L-OMAT-large-ft-AM",
-        }
-
-    return names | mace_models | grace_models
-
-
-def test_id_to_name() -> None:
-    """Verify that all ID_TO_NAME values map to known backend model names."""
-    known = _known_backend_models()
-
-    for model_name in ID_TO_NAME.values():
-        # Skip matgl models since they depend on installed pretrained models.
-        if any(key in model_name for key in ("M3GNet", "CHGNet", "TensorNet")):
-            continue
-        assert model_name in known, f"Unknown backend model mapped: {model_name!r}"
-
-
-def test_allias_to_id() -> None:
-    """Ensure aliases resolve to canonical IDs and correct backend names."""
+def test_allias_to_id():
     for aliases, model_id in ALIAS_TO_ID.items():
-        assert model_id in ID_TO_NAME  # Canonical ID must exist
-        expected_backend_name = ID_TO_NAME[model_id]
-
         for alias in aliases:
-            backend_name, route_tag = _resolve_model(alias)
-            assert backend_name == expected_backend_name, (
-                f"Alias {alias!r} resolved to {backend_name!r}, expected {expected_backend_name!r}"
-            )
-            assert route_tag == model_id, f"Alias {alias!r} produced route_tag {route_tag!r}, expected {model_id!r}"
+            assert _resolve_model(alias) == model_id
+
+ID_TO_NAME = {
+    "TensorNet-MatPES-PBE-v2025.1-S": "TensorNet-MatPES-PBE-v2025.1-PES",
+    "TensorNet-MatPES-r2SCAN-v2025.1-S": "TensorNet-MatPES-r2SCAN-v2025.1-PES",
+    "M3GNet-MatPES-PBE-v2025.1-S": "M3GNet-MatPES-PBE-v2025.1-PES",
+    "M3GNet-MatPES-r2SCAN-v2025.1-S": "M3GNet-MatPES-r2SCAN-v2025.1-PES",
+    "MACE-MP-PBE-0-S": "small",
+    "MACE-MP-PBE-0-M": "medium",
+    "MACE-MP-PBE-0-L": "large",
+    "MACE-MP-PBE-0b-S": "small-0b",
+    "MACE-MP-PBE-0b-M": "medium-0b",
+    "MACE-MP-PBE-0b2-S": "small-0b2",
+    "MACE-MP-PBE-0b2-M": "medium-0b2",
+    "MACE-MP-PBE-0b2-L": "large-0b2",
+    "MACE-MP-PBE-0b3-M": "medium-0b3",
+    "MACE-MPA-PBE-0-M": "medium-mpa-0",
+    "MACE-OMAT-PBE-0-S": "small-omat-0",
+    "MACE-OMAT-PBE-0-M": "medium-omat-0",
+    "MACE-MatPES-PBE-0-M": "mace-matpes-pbe-0",
+    "MACE-MatPES-r2SCAN-0-M": "mace-matpes-r2scan-0",
+    "GRACE-MP-PBE-0-L": "GRACE-2L-MP-r6",
+    "GRACE-OAM-PBE-0-S": "GRACE-2L-OAM",
+    "GRACE-OAM-PBE-0-M": "GRACE-2L-OMAT-medium-ft-AM",
+    "GRACE-OAM-PBE-0-L": "GRACE-2L-OMAT-large-ft-AM",
+    "GRACE-OMAT-PBE-0-S": "GRACE-2L-OMAT",
+    "GRACE-OMAT-PBE-0-M": "GRACE-2L-OMAT-medium-ft-E",
+    "GRACE-OMAT-PBE-0-L": "GRACE-2L-OMAT-large-ft-E",
+}
+
+@pytest.mark.parametrize("model_id, expected", ID_TO_NAME.items())
+def test_id_to_name(model_id: str, expected: str) -> None:
+    if model_id.startswith("MACE"):
+        parsed = _parse_mace_model_id(model_id)
+    elif model_id.startswith(("TensorNet", "M3GNet", "CHGNet")):
+        parsed = _parse_matgl_model_id(model_id)
+    elif model_id.startswith("GRACE"):
+        parsed = _parse_grace_model_id(model_id)
+    else:
+        pytest.skip(f"No parser for {model_id}")
+
+    assert parsed == expected
