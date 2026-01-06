@@ -568,7 +568,7 @@ def _parse_mace_model_id(model_id: str) -> str:
 def _parse_matgl_model_id(model_id: str) -> str:
     parts = model_id.split("-")
     if len(parts) == MODEL_ID_PARTS and parts[0] in {"TensorNet", "M3GNet", "CHGNet"} and parts[1] == "MatPES":
-        return "-".join(parts[:-1] + ["PES"])
+        return "-".join([*parts[:-1], "PES"])
 
     return model_id
 
