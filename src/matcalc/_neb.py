@@ -14,6 +14,7 @@ try:
     from ase.mep import NEB
 except ImportError:
     from ase.neb import NEB as _NEB
+
     NEB = _NEB
 from ase.utils.forcecurve import fit_images
 from pymatgen.core import Lattice, Structure
