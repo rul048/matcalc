@@ -8,9 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from ase.io import Trajectory
-from ase.mep import NEBTools
-
-from ase.mep import NEB
+from ase.mep import NEB, NEBTools
 from ase.utils.forcecurve import fit_images
 from pymatgen.core import Lattice, Structure
 from pymatgen.core.periodic_table import Species
