@@ -12,7 +12,7 @@ from ase.mep import NEBTools
 
 try:
     from ase.mep import NEB
-except ImportError:
+except ImportError:  # pragma: no cover
     from ase.neb import NEB
 from ase.utils.forcecurve import fit_images
 from pymatgen.core import Lattice, Structure
