@@ -13,7 +13,7 @@ from ase.mep import NEBTools
 try:
     from ase.mep import NEB
 except ImportError:
-    from ase.neb import NEB
+    from ase.neb import NEB  # type: ignore[no-redef]
 from ase.utils.forcecurve import fit_images
 from pymatgen.core import Lattice, Structure
 from pymatgen.core.periodic_table import Species
