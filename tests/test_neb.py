@@ -23,7 +23,7 @@ def test_neb_calc(LiFePO4: Structure, matpes_calculator: PESCalculator, tmp_path
     image_end = LiFePO4.copy()
     image_end.remove_sites([3])
     image_end = relax.calc(image_end)["final_structure"]
-    neb_calc = NEBCalc(matpes_calculator, traj_folder=tmp_path, fmax=0.5)
+    neb_calc = NEBCalc(matpes_calculator, traj_folder=tmp_path, fmax=0.5, method="aseneb")
     barriers = neb_calc.calc_images(image_start, image_end, n_images=5)
     assert barriers["barrier"] == pytest.approx(0.17913818359375044, rel=0.002)
     assert barriers["force"] == pytest.approx(-0.0042724609375, rel=0.002)
