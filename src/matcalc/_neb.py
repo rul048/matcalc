@@ -8,12 +8,11 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from ase.io import Trajectory
-from ase.mep import NEBTools
 
 try:
-    from ase.mep import NEB
+    from ase.mep import NEB, NEBTools
 except ImportError:
-    from ase.neb import NEB  # type: ignore[no-redef]
+    from ase.neb import NEB, NEBTools  # type: ignore[no-redef]
 from ase.utils.forcecurve import fit_images
 from pymatgen.core import Lattice, Structure
 from pymatgen.core.periodic_table import Species
