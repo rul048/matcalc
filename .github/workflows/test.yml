@@ -29,14 +29,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
-          pip install setuptools  # Required by maml (pkg_resources) on Python 3.12+
+          apt-get update
+          apt-get install -y curl
+
+      - name: Upgrade pip/setuptools/wheel
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade setuptools wheel
+
+      - name: Install Python dependencies
+        run: |
           pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
           pip install -e '.[ci]'
 
-          apt-get update
-          apt-get install -y curl  # Curl is not part of the minimal container image, but is required for CodeCov upload.
       - name: pytest
         run: pytest --cov=matcalc --cov-report=xml tests --color=yes
       - name: Upload coverage reports to Codecov
