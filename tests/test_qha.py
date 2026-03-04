@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-import numpy as np
 import pytest
 
 from matcalc import QHACalc
@@ -52,9 +51,7 @@ EXPECTED_ENERGIES = [
 def _assert_output_consistency(result: dict) -> None:
     """Common assertions that every QHA result must satisfy."""
     # 1. All expected keys present
-    assert EXPECTED_RESULT_KEYS <= set(result), (
-        f"Missing keys: {EXPECTED_RESULT_KEYS - set(result)}"
-    )
+    assert set(result) >= EXPECTED_RESULT_KEYS, f"Missing keys: {EXPECTED_RESULT_KEYS - set(result)}"
 
     # 2. temperatures, gibbs, thermal_expansion, bulk_modulus, Cp, gruneisen
     #    must all have the same length (Bug #2 regression guard)
@@ -67,9 +64,7 @@ def _assert_output_consistency(result: dict) -> None:
         "heat_capacity_P",
         "gruneisen_parameters",
     ):
-        assert len(result[key]) == n, (
-            f"Length mismatch: temperatures has {n} but {key} has {len(result[key])}"
-        )
+        assert len(result[key]) == n, f"Length mismatch: temperatures has {n} but {key} has {len(result[key])}"
 
     # 3. volumes and electronic_energies must match scale_factors length
     n_scales = len(result["scale_factors"])
@@ -209,9 +204,7 @@ class TestQHACalcAtoms:
         _assert_output_consistency(result)
 
         ind = result["temperatures"].tolist().index(300)
-        assert result["thermal_expansion_coefficients"][ind] == pytest.approx(
-            5.191273165438463e-06, rel=1e-1
-        )
+        assert result["thermal_expansion_coefficients"][ind] == pytest.approx(5.191273165438463e-06, rel=1e-1)
 
     def test_atoms_without_relaxation(
         self,
@@ -371,10 +364,7 @@ class TestFileWriting:
         tmp_path: Path,
     ) -> None:
         """When all write_* are given paths, all files should be created."""
-        write_kwargs = {
-            key: str(tmp_path / fname)
-            for key, fname in self.WRITE_KWARGS_WITH_FILES.items()
-        }
+        write_kwargs = {key: str(tmp_path / fname) for key, fname in self.WRITE_KWARGS_WITH_FILES.items()}
 
         qha_calc = QHACalc(
             calculator=matpes_calculator,
