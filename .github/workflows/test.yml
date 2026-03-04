@@ -31,6 +31,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: |
+          pip install setuptools  # Required by maml (pkg_resources) on Python 3.12+
           pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
           pip install -e '.[ci]'
 
