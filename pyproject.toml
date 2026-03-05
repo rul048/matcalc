@@ -48,7 +48,7 @@ version = "0.4.5"
 
 [project.optional-dependencies]
 phonon = ["seekpath"]
-benchmark = ["matminer>=0.9.3"]
+benchmark = ["matminer>=0.9.3", "scipy<1.17"]
 ace = [
     "pyace>=0.1.1",
 ]
@@ -75,6 +75,7 @@ matgl = [
     "matgl>=2.0.2",
 ]
 ci = [
+    "setuptools<82",  # Required by maml which uses pkg_resources
     "codecov-cli>=10.3.0",
     "coverage>=7.7.1",
     "coveralls>=4.0.1",
@@ -83,6 +84,7 @@ ci = [
     "maml>=2025.4.3",
     "matgl>=2.0.1",
     "matminer>=0.9.3",
+    "scipy<1.17",
     "mp-api>=0.45.3",
     "nbmake>=1.5.5",
     "pre-commit>=4.2.0",
@@ -102,11 +104,12 @@ include = ["matcalc", "matcalc.*"]
 "matcalc" = ["elemental_refs/*.json.gz"]
 
 [build-system]
-requires = ["oldest-supported-numpy", "setuptools>=58.0.3"]
+requires = ["oldest-supported-numpy", "setuptools>=58.0.3,<82"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = [
+    "setuptools<82",  # Required by maml which uses pkg_resources
     "codecov-cli>=10.3.0",
     "coverage>=7.7.1",
     "coveralls>=4.0.1",
@@ -117,6 +120,7 @@ dev = [
     "maml>=2025.4.3",
     "matgl>=1.2.5",
     "matminer>=0.9.3",
+    "scipy<1.17",
     "mp-api>=0.45.3",
     "nbmake>=1.5.5",
     "openai>=1.101.0",

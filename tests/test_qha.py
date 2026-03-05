@@ -86,6 +86,7 @@ def test_qha_calc(
         t_step=50,
         t_max=1000,
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
+        fmax=0.1,
         **write_kwargs,  # type: ignore[arg-type]
     )
 
@@ -130,6 +131,46 @@ def test_qha_calc(
             assert not os.path.isfile(default_path)
 
 
+def test_qha_pressure(
+    Li2O: Structure,
+    matpes_calculator: PESCalculator,
+) -> None:
+    """Tests for QHACalc class with pressure parameter."""
+    # Initialize QHACalc
+    qha_calc = QHACalc(
+        calculator=matpes_calculator,
+        t_step=50,
+        t_max=1000,
+        scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
+        pressure=10.0,
+    )
+
+    result = qha_calc.calc(Li2O)
+
+    # Test values corresponding to different scale factors
+    assert result["volumes"] == pytest.approx(
+        [23.07207, 23.79302, 24.52884, 25.27967, 26.04567, 26.82699, 27.62378],
+        abs=1e-1,
+    )
+
+    assert result["electronic_energies"] == pytest.approx(
+        [
+            -14.043658256530762,
+            -14.065637588500977,
+            -14.07603645324707,
+            -14.07599925994873,
+            -14.066689491271973,
+            -14.048959732055664,
+            -14.023341178894043,
+        ],
+        abs=1e-2,
+    )
+
+    # Test values at 300 K
+    ind = result["temperatures"].tolist().index(300)
+    assert result["gibbs_free_energies"][ind] == pytest.approx(-12.43074657443325, rel=1e-1)
+
+
 def test_qha_calc_atoms(
     Si_atoms: Atoms,
     matpes_calculator: PESCalculator,
@@ -142,6 +183,7 @@ def test_qha_calc_atoms(
         t_step=50,
         t_max=1000,
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
+        fmax=0.1,
     )
 
     result = qha_calc.calc(Si_atoms)
