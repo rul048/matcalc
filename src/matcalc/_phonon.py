@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
 import phonopy
 from phonopy.file_IO import write_FORCE_CONSTANTS as write_force_constants
 from pymatgen.io.phonopy import get_phonopy_structure, get_pmg_structure
@@ -63,6 +64,13 @@ class PhononCalc(PropCalc):
     :ivar relax_calc_kwargs: Optional dictionary containing additional
         arguments for the structural relaxation calculation.
     :type relax_calc_kwargs: dict | None
+    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection
+        in THz. If set to a float value, the calculator will raise a
+        ValueError when imaginary frequencies with magnitude exceeding this
+        threshold are found. Imaginary frequencies are represented as
+        negative values in phonopy. A value of None (default) disables
+        the check.
+    :type imaginary_freq_tol: float | None
     :ivar write_force_constants: Path, boolean, or string specifying whether
         to write the calculated force constants to an output file, and the
         path or name of the file if applicable.
@@ -94,6 +102,7 @@ class PhononCalc(PropCalc):
         optimizer: str = "FIRE",
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
+        imaginary_freq_tol: float | None = None,
         write_force_constants: bool | str | Path = False,
         write_band_structure: bool | str | Path = False,
         write_total_dos: bool | str | Path = False,
@@ -114,6 +123,9 @@ class PhononCalc(PropCalc):
         :param optimizer: Name of the optimization algorithm for structural relaxation.
         :param relax_structure: Flag to indicate whether structure relaxation should be performed before calculations.
         :param relax_calc_kwargs: Additional keyword arguments for relaxation phase calculations.
+        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz.
+            If a positive float, a ValueError is raised when any imaginary frequency with
+            magnitude exceeding this value is found. Defaults to None (no check).
         :param write_force_constants: File path or boolean flag to write force constants.
             Defaults to "force_constants".
         :param write_band_structure: File path or boolean flag to write band structure data.
@@ -132,6 +144,7 @@ class PhononCalc(PropCalc):
         self.optimizer = optimizer
         self.relax_structure = relax_structure
         self.relax_calc_kwargs = relax_calc_kwargs
+        self.imaginary_freq_tol = imaginary_freq_tol
         self.write_force_constants = write_force_constants
         self.write_band_structure = write_band_structure
         self.write_total_dos = write_total_dos
@@ -195,6 +208,20 @@ class PhononCalc(PropCalc):
         ]
         phonon.produce_force_constants()
         phonon.run_mesh()
+        mesh_dict_results = phonon.get_mesh_dict()
+        frequencies = mesh_dict_results["frequencies"]
+
+        if self.imaginary_freq_tol is not None:
+            # In phonopy, imaginary frequencies are represented as negative values.
+            imag_freqs = frequencies < -self.imaginary_freq_tol
+            if np.any(imag_freqs):
+                n_imag = int(np.sum(imag_freqs))
+                raise ValueError(
+                    f"{n_imag} imaginary modes found with frequency below -{self.imaginary_freq_tol:.4f} THz "
+                    f"(most negative: {np.min(frequencies):.4f} THz). This indicates a dynamically "
+                    f"unstable structure. Thermal properties may not be reliable."
+                )
+
         phonon.run_thermal_properties(t_step=self.t_step, t_max=self.t_max, t_min=self.t_min)
         if self.write_force_constants:
             write_force_constants(phonon.force_constants, filename=self.write_force_constants)  # type: ignore[arg-type]
@@ -204,4 +231,8 @@ class PhononCalc(PropCalc):
             phonon.auto_total_dos(write_dat=True, filename=self.write_total_dos)
         if self.write_phonon:
             phonon.save(filename=self.write_phonon)  # type: ignore[arg-type]
-        return result | {"phonon": phonon, "thermal_properties": phonon.get_thermal_properties_dict()}
+        return result | {
+            "phonon": phonon,
+            "thermal_properties": phonon.get_thermal_properties_dict(),
+            "frequencies": frequencies,
+        }
