@@ -112,12 +112,12 @@ def test_phonon_calc_imaginary_freq_tol(
     )
     result = phonon_calc.calc(Si_atoms)
     assert "frequencies" in result
-    # All frequencies should be above the negative tolerance for a stable structure
     assert np.min(result["frequencies"]) >= -0.1
 
     # Distort the structure to create imaginary modes, then check that
     # the tolerance check raises ValueError
-    Si_atoms.cell += 0.5
+    distorted_Si_atoms = Si_atoms.copy()
+    distorted_Si_atoms.cell += 0.5
     phonon_calc = PhononCalc(
         calculator=matpes_calculator,
         supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
@@ -125,4 +125,17 @@ def test_phonon_calc_imaginary_freq_tol(
         imaginary_freq_tol=0.1,
     )
     with pytest.raises(ValueError, match=r"\d+ imaginary modes found"):
-        phonon_calc.calc(Si_atoms)
+        phonon_calc.calc(distorted_Si_atoms)
+
+    # Distort the structure to create imaginary modes, but it's okay
+    distorted_Si_atoms = Si_atoms.copy()
+    distorted_Si_atoms.cell += 0.5
+    phonon_calc = PhononCalc(
+        calculator=matpes_calculator,
+        supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
+        fmax=100.0,
+        imaginary_freq_tol=None,
+    )
+    result = phonon_calc.calc(distorted_Si_atoms)
+    assert "frequencies" in result
+    assert np.min(result["frequencies"]) < -0.1
