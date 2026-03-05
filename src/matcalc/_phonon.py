@@ -216,10 +216,11 @@ class PhononCalc(PropCalc):
             imag_freq_mask = frequencies < -self.imaginary_freq_tol
             if np.any(imag_freq_mask):
                 n_imag = np.sum(imag_freq_mask)
+                min_mode = np.min(frequencies)
                 raise ValueError(
                     f"{n_imag} imaginary modes found with frequency below -{self.imaginary_freq_tol:.4f} THz "
-                    f"(most negative: {np.min(frequencies):.4f} THz). This indicates a dynamically "
-                    f"unstable structure. Thermal properties may not be reliable."
+                    f"(most negative: {min_mode:.4f} THz). This indicates a dynamically unstable structure. "
+                    f"Thermal properties may not be reliable."
                 )
 
         phonon.run_thermal_properties(t_step=self.t_step, t_max=self.t_max, t_min=self.t_min)
