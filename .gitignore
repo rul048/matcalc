@@ -24,7 +24,7 @@ setuptools*
 .eggs/
 .coverage
 .*_cache
-.claude
+.claude/*
 # VS Code
 .vscode/*
 _site
