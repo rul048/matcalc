@@ -213,9 +213,9 @@ class PhononCalc(PropCalc):
 
         if self.imaginary_freq_tol is not None:
             # In phonopy, imaginary frequencies are represented as negative values.
-            is_imag_freq = frequencies < -self.imaginary_freq_tol
-            if np.any(imag_freqs):
-                n_imag = np.sum(imag_freqs)
+            imag_freq_mask = frequencies < -self.imaginary_freq_tol
+            if np.any(imag_freq_mask):
+                n_imag = np.sum(imag_freq_mask)
                 raise ValueError(
                     f"{n_imag} imaginary modes found with frequency below -{self.imaginary_freq_tol:.4f} THz "
                     f"(most negative: {np.min(frequencies):.4f} THz). This indicates a dynamically "
