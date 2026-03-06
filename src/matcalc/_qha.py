@@ -84,6 +84,7 @@ class QHACalc(PropCalc):
         t_max: float = 1000,
         t_min: float = 0,
         fmax: float = 1e-5,
+        max_steps: int = 5000,
         pressure: None | float = None,
         optimizer: str = "FIRE",
         eos: Literal["vinet", "birch_murnaghan", "murnaghan"] = "vinet",
@@ -113,6 +114,7 @@ class QHACalc(PropCalc):
         :param t_min: Minimum temperature for the calculations, given in units of K.
         :param pressure: Pressure to calculate thermochemistry at, given in units of GPa.
         :param fmax: Maximum force convergence criterion for structure relaxation, in force units.
+        :param max_steps: The maximum number of optimization steps during the relaxation.
         :param optimizer: Name of the optimizer to use for structure optimization, default is
             "FIRE".
         :param eos: Equation of state to use for calculating energy vs. volume relationships.
@@ -149,6 +151,7 @@ class QHACalc(PropCalc):
         self.t_min = t_min
         self.pressure = pressure
         self.fmax = fmax
+        self.max_steps = max_steps
         self.optimizer = optimizer
         self.eos = eos
         self.relax_structure = relax_structure
@@ -232,7 +235,7 @@ class QHACalc(PropCalc):
         structure_in: Structure = result["final_structure"]
 
         if self.relax_structure:
-            relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": 5000} | (
+            relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
                 self.relax_calc_kwargs or {}
             )
             relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
