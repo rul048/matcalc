@@ -216,7 +216,7 @@ def run_ase(
             opt.attach(obs, interval=interval)
             dyn = opt.run(fmax=fmax, steps=max_steps)
             if dyn.nsteps >= max_steps:
-                warnings.warn("Maximum steps reached in structure relaxation.", UserWarning)
+                warnings.warn("Maximum steps reached in structure relaxation.", UserWarning, stacklevel=2)
             if traj_file is not None:
                 obs()
                 obs.save(traj_file)
