@@ -97,7 +97,7 @@ class QHACalc(PropCalc):
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
         scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01)),
-        imaginary_freq_tol: float | None = 0.1,
+        imaginary_freq_tol: float | None = None,
         write_helmholtz_volume: bool | str | Path = False,
         write_volume_temperature: bool | str | Path = False,
         write_thermal_expansion: bool | str | Path = False,
@@ -135,7 +135,7 @@ class QHACalc(PropCalc):
         :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz.
             Passed through to internal PhononCalc instances. If a positive float, a ValueError
             is raised when any imaginary frequency with magnitude exceeding this value is found.
-            Defaults to 0.1 THz.
+            Defaults to None, which means no check will be carried out.
         :param write_helmholtz_volume: Path, boolean, or string to indicate whether and where
             to save Helmholtz energy as a function of volume.
         :param write_volume_temperature: Path, boolean, or string to indicate whether and where
