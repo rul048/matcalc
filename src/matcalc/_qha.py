@@ -311,8 +311,10 @@ class QHACalc(PropCalc):
             t_step=self.t_step,
             t_max=self.t_max,
             t_min=self.t_min,
+            fmax=self.fmax,
+            optimizer=self.optimizer,
             relax_structure=True,
-            relax_calc_kwargs={"optimizer": self.optimizer, "fmax": self.fmax, "relax_cell": False},
+            relax_calc_kwargs={"relax_cell": False},
             write_phonon=False,
             **(self.phonon_calc_kwargs or {}),
         )
