@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
 import phonopy
 from phonopy.file_IO import write_FORCE_CONSTANTS as write_force_constants
 from pymatgen.io.phonopy import get_phonopy_structure, get_pmg_structure
@@ -40,9 +41,12 @@ class PhononCalc(PropCalc):
     :ivar atom_disp: Magnitude of atomic displacements for phonon
         calculations.
     :type atom_disp: float
+    :ivar min_length: Minimum length of lattice dimensions, used to
+        automatically set supercell_matrix.
+    :type min_length: float | None
     :ivar supercell_matrix: Array defining the transformation matrix to
         construct supercells for phonon calculations.
-    :type supercell_matrix: ArrayLike
+    :type supercell_matrix: ArrayLike | None
     :ivar t_step: Temperature step for thermal property calculations in
         Kelvin.
     :type t_step: float
@@ -86,7 +90,8 @@ class PhononCalc(PropCalc):
         calculator: Calculator | str,
         *,
         atom_disp: float = 0.015,
-        supercell_matrix: ArrayLike = ((2, 0, 0), (0, 2, 0), (0, 0, 2)),
+        min_length: float | None = 20.0,
+        supercell_matrix: ArrayLike | None = None,
         t_step: float = 10,
         t_max: float = 1000,
         t_min: float = 0,
@@ -106,6 +111,7 @@ class PhononCalc(PropCalc):
 
         :param calculator: The calculator object or string name specifying the calculation backend to use.
         :param atom_disp: Atom displacement to be used for finite difference calculation of force constants.
+        :param min_length: Minimum length of lattice dimensions, used to automatically set supercell_matrix.
         :param supercell_matrix: Transformation matrix to define the supercell for the calculation.
         :param t_step: Temperature step for thermal property calculations.
         :param t_max: Maximum temperature for thermal property calculations.
@@ -124,6 +130,7 @@ class PhononCalc(PropCalc):
         """
         self.calculator = calculator  # type: ignore[assignment]
         self.atom_disp = atom_disp
+        self.min_length = min_length
         self.supercell_matrix = supercell_matrix
         self.t_step = t_step
         self.t_max = t_max
@@ -177,6 +184,8 @@ class PhononCalc(PropCalc):
         """
         result = super().calc(structure)
         structure_in: Structure = result["final_structure"]
+        if self.supercell_matrix is None:
+            supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure.lattice.abc)).astype(int))
 
         if self.relax_structure:
             relaxer = RelaxCalc(
@@ -185,7 +194,7 @@ class PhononCalc(PropCalc):
             result |= relaxer.calc(structure_in)
             structure_in = result["final_structure"]
         cell = get_phonopy_structure(to_pmg_structure(structure_in))
-        phonon = phonopy.Phonopy(cell, self.supercell_matrix)  # type: ignore[arg-type]
+        phonon = phonopy.Phonopy(cell, supercell_matrix)  # type: ignore[arg-type]
         phonon.generate_displacements(distance=self.atom_disp)
         disp_supercells = phonon.supercells_with_displacements
         phonon.forces = [  # type: ignore[assignment]
