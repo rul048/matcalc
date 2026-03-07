@@ -61,6 +61,9 @@ def test_phonon_calc(
     assert thermal_props["heat_capacity"][ind] == pytest.approx(58.42898, rel=1e-1)
     assert thermal_props["entropy"][ind] == pytest.approx(49.37746, rel=1e-1)
     assert thermal_props["free_energy"][ind] == pytest.approx(13.24547, rel=1e-1)
+    assert result["final_structure"].lattice.abc[0] == pytest.approx(6.582143584719512)
+    assert result["final_structure"].lattice.abc[1] == pytest.approx(6.582143799250172)
+    assert result["final_structure"].lattice.abc[2] == pytest.approx(6.5821441137115775)
 
     results = list(phonon_calc.calc_many([Li2O, Li2O]))
     assert len(results) == 2
@@ -95,3 +98,20 @@ def test_phonon_calc_atoms(
     thermal_props = result["thermal_properties"]
     ind = thermal_props["temperatures"].tolist().index(300)
     assert thermal_props["heat_capacity"][ind] == pytest.approx(43.3138042001517, rel=1e-1)
+
+
+def test_phonon_calc_lattice(
+    Si_atoms: Atoms,
+    matpes_calculator: PESCalculator,
+) -> None:
+    phonon_calc = PhononCalc(
+        calculator=matpes_calculator,
+        min_length=10.0,
+        fmax=1,
+        t_step=50,
+        t_max=1000,
+    )
+    result = phonon_calc.calc(Si_atoms)
+    assert result["final_structure"].lattice.abc[0] == pytest.approx(15.3607917348)
+    assert result["final_structure"].lattice.abc[1] == pytest.approx(15.360795977376975)
+    assert result["final_structure"].lattice.abc[2] == pytest.approx(15.360791734871095)
