@@ -225,7 +225,7 @@ def test_phonon_calc_imaginary_freq_tol(
         imaginary_freq_tol=0.1,
     )
 
-    with pytest.raises(ValueError, match=r"\d+ imaginary modes found"):
+    with pytest.raises(ValueError, match="are imaginary"):
         qha_calc.calc(distorted_Si_atoms)
 
     # Distorted no check
