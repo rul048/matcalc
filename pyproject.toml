@@ -73,7 +73,7 @@ sevennet = [
 ]
 matgl = [
     "matgl>=2.0.2",
-    "nvalchemi-toolkit-op"
+    "nvalchemi-toolkit-ops"
 ]
 ci = [
     "setuptools<82",  # Required by maml which uses pkg_resources
