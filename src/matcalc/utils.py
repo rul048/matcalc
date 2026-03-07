@@ -47,11 +47,15 @@ try:
     import matgl
 
     _universal_calculators += [
-        m for m in matgl.get_available_pretrained_models() if "PES" in m and "ANI-1x-Subset-PES" not in m
+        m
+        for m in matgl.get_available_pretrained_models()
+        if "PES" in m and "ANI-1x-Subset-PES" not in m
     ]
     _universal_calculators = sorted(set(_universal_calculators))
 except Exception:  # noqa: BLE001
-    warnings.warn("Unable to get pre-trained MatGL universal calculators.", stacklevel=1)
+    warnings.warn(
+        "Unable to get pre-trained MatGL universal calculators.", stacklevel=1
+    )
 
 # Provide simple aliases for some common models. The key in MODEL_ALIASES must be lower case.
 MODEL_ALIASES = {
@@ -112,7 +116,9 @@ class PESCalculator(Calculator):
         elif stress_unit == "GPa":
             conversion_factor = 1.0  # No conversion needed if stress is already in GPa
         else:
-            raise ValueError(f"Unsupported stress_unit: {stress_unit}. Must be 'GPa' or 'eV/A3'.")
+            raise ValueError(
+                f"Unsupported stress_unit: {stress_unit}. Must be 'GPa' or 'eV/A3'."
+            )
 
         self.stress_weight = stress_weight * conversion_factor
 
@@ -138,7 +144,9 @@ class PESCalculator(Calculator):
 
         properties = properties or all_properties
         system_changes = system_changes or all_changes
-        super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
+        super().calculate(
+            atoms=atoms, properties=properties, system_changes=system_changes
+        )
 
         structure: Structure | IStructure = AseAtomsAdaptor.get_structure(atoms)  # type: ignore[arg-type,assignment]
         efs_calculator = EnergyForceStress(ff_settings=self.potential)
@@ -172,7 +180,16 @@ class PESCalculator(Calculator):
 
         model = matgl.load_model(path=path)  # type:ignore[arg-type]
         kwargs.setdefault("stress_unit", "eV/A3")
-        return PESCalculator_(potential=model, **kwargs)
+        if (
+            path == "TensorNet-MatPES-PBE-v2025.1-PES"
+            or "TensorNet-MatPES-r2SCAN-v2025.1-PES"
+        ):
+            from matgl.ext._ase_pyg import PESCalculator as PESCalculator_pyg
+
+            return PESCalculator_pyg(potential=model, **kwargs)
+        from matgl.ext._ase_dgl import PESCalculator as PESCalculator_dgl
+
+        return PESCalculator_dgl(potential=model, **kwargs)
 
     @staticmethod
     def load_mtp(filename: str | Path, elements: list, **kwargs: Any) -> Calculator:
@@ -222,7 +239,10 @@ class PESCalculator(Calculator):
 
     @staticmethod
     def load_nnp(
-        input_filename: str | Path, scaling_filename: str | Path, weights_filenames: list, **kwargs: Any
+        input_filename: str | Path,
+        scaling_filename: str | Path,
+        weights_filenames: list,
+        **kwargs: Any,
     ) -> Calculator:
         """
         Loads a neural network potential (NNP) from specified configuration files and
@@ -251,7 +271,9 @@ class PESCalculator(Calculator):
         return PESCalculator(potential=model, **kwargs)
 
     @staticmethod
-    def load_snap(param_file: str | Path, coeff_file: str | Path, **kwargs: Any) -> Calculator:
+    def load_snap(
+        param_file: str | Path, coeff_file: str | Path, **kwargs: Any
+    ) -> Calculator:
         """
         Load a SNAP (Spectral Neighbor Analysis Potential) configuration and create a
         corresponding Calculator instance.
@@ -273,7 +295,8 @@ class PESCalculator(Calculator):
 
     @staticmethod
     def load_ace(  # pragma: no cover
-        basis_set: str | Path | ACEBBasisSet | ACECTildeBasisSet | BBasisConfiguration, **kwargs: Any
+        basis_set: str | Path | ACEBBasisSet | ACECTildeBasisSet | BBasisConfiguration,
+        **kwargs: Any,
     ) -> Calculator:
         """
         Load an ACE (Atomic Cluster Expansion) calculator using the specified basis set.
@@ -346,7 +369,9 @@ class PESCalculator(Calculator):
         return DP(model=model_path, **kwargs)
 
     @staticmethod
-    def load_universal(name: str | Calculator, **kwargs: Any) -> Calculator:  # noqa: C901
+    def load_universal(
+        name: str | Calculator, **kwargs: Any
+    ) -> Calculator:  # noqa: C901
         """
         Loads a calculator instance based on the provided name or an existing calculator object. The
         method supports multiple pre-built universal models and aliases for ease of use. If an existing calculator
@@ -369,7 +394,10 @@ class PESCalculator(Calculator):
         if not isinstance(name, str):  # e.g. already an ase Calculator instance
             result = name
 
-        elif any(name.lower().startswith(m) for m in ("m3gnet", "chgnet", "tensornet", "pbe", "r2scan")):
+        elif any(
+            name.lower().startswith(m)
+            for m in ("m3gnet", "chgnet", "tensornet", "pbe", "r2scan")
+        ):
             name = MODEL_ALIASES.get(name.lower(), name)
             result = PESCalculator.load_matgl(name, **kwargs)
 
@@ -424,13 +452,19 @@ class PESCalculator(Calculator):
             from deepmd.calculator import DP
 
             cwd = Path(__file__).parent.absolute()
-            model_path = cwd / "../../tests/pes/DPA3-LAM-2025.3.14-PES" / "2025-03-14-dpa3-openlam.pth"
+            model_path = (
+                cwd
+                / "../../tests/pes/DPA3-LAM-2025.3.14-PES"
+                / "2025-03-14-dpa3-openlam.pth"
+            )
             model_path = model_path.resolve()
             kwargs.setdefault("model", model_path)
             result = DP(**kwargs)
 
         else:
-            raise ValueError(f"Unrecognized {name=}, must be one of {UNIVERSAL_CALCULATORS}")
+            raise ValueError(
+                f"Unrecognized {name=}, must be one of {UNIVERSAL_CALCULATORS}"
+            )
 
         return result
 
@@ -447,7 +481,11 @@ def to_ase_atoms(structure: Atoms | Structure | Molecule) -> Atoms:
     :return: An ASE Atoms object representing the given structure.
     :rtype: Atoms
     """
-    return structure if isinstance(structure, Atoms) else AseAtomsAdaptor.get_atoms(structure)
+    return (
+        structure
+        if isinstance(structure, Atoms)
+        else AseAtomsAdaptor.get_atoms(structure)
+    )
 
 
 def to_pmg_structure(structure: Atoms | Structure) -> Structure:
