@@ -176,13 +176,12 @@ class PESCalculator(Calculator):
         :rtype: Calculator
         """
         import matgl
-        from matgl.ext.ase import PESCalculator as PESCalculator_
 
         model = matgl.load_model(path=path)  # type:ignore[arg-type]
         kwargs.setdefault("stress_unit", "eV/A3")
-        if (
-            path == "TensorNet-MatPES-PBE-v2025.1-PES"
-            or "TensorNet-MatPES-r2SCAN-v2025.1-PES"
+        if path in (
+            "TensorNet-MatPES-PBE-v2025.1-PES",
+            "TensorNet-MatPES-r2SCAN-v2025.1-PES",
         ):
             from matgl.ext._ase_pyg import PESCalculator as PESCalculator_pyg
 
