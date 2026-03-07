@@ -317,9 +317,13 @@ class QHACalc(PropCalc):
             "optimizer": self.optimizer,
             "max_steps": self.max_steps,
             "relax_structure": True,
-            "relax_calc_kwargs": self.relax_calc_kwargs or {} | {"relax_cell": False},
             "write_phonon": False,
         } | (self.phonon_calc_kwargs or {})
+        # relax_cell=False is mandatory for QHA: merge user's relax_calc_kwargs but
+        # always enforce fixed cell so the volume scan is not collapsed.
+        phonon_calc_kwargs["relax_calc_kwargs"] = (phonon_calc_kwargs.get("relax_calc_kwargs") or {}) | {
+            "relax_cell": False
+        }
         phonon_calc = PhononCalc(
             self.calculator,
             **phonon_calc_kwargs,
