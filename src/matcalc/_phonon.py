@@ -214,12 +214,13 @@ class PhononCalc(PropCalc):
         if self.imaginary_freq_tol is not None:
             # In phonopy, imaginary frequencies are represented as negative values.
             imag_freq_mask = frequencies < -self.imaginary_freq_tol
+            n_freqs = len(frequencies)
             if np.any(imag_freq_mask):
                 n_imag = np.sum(imag_freq_mask)
                 min_mode = np.min(frequencies)
                 raise ValueError(
-                    f"{n_imag} imaginary modes found with frequency below -{self.imaginary_freq_tol:.4f} THz "
-                    f"(most negative: {min_mode:.4f} THz). This indicates a dynamically unstable structure. "
+                    f"{n_imag}/{n_freqs} are imaginary (below -{self.imaginary_freq_tol:.4f} THz). "
+                    f"Most negative: {min_mode:.4f} THz. This indicates a dynamically unstable structure. "
                     f"Thermal properties may not be reliable."
                 )
 
