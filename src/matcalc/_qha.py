@@ -10,7 +10,6 @@ from phonopy import PhonopyQHA
 from ._base import PropCalc
 from ._phonon import PhononCalc
 from ._relaxation import RelaxCalc
-from .backend import run_pes_calc
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -277,8 +276,9 @@ class QHACalc(PropCalc):
         for scale_factor in self.scale_factors:
             struct = self._scale_structure(structure, scale_factor)
             volumes.append(struct.volume)
-            electronic_energies.append(run_pes_calc(struct, self.calculator).energy)
-            thermal_properties = self._calculate_thermal_properties(struct)
+            phonon_result = self._calculate_thermal_properties(struct)
+            electronic_energies.append(phonon_result["energy"])
+            thermal_properties = phonon_result["thermal_properties"]
             free_energies.append(thermal_properties["free_energy"])
             entropies.append(thermal_properties["entropy"])
             heat_capacities.append(thermal_properties["heat_capacity"])
@@ -305,7 +305,9 @@ class QHACalc(PropCalc):
             structure: Pymatgen structure for which the thermal properties are calculated.
 
         Returns:
-            Dictionary of thermal properties containing free energies, entropies and heat capacities.
+            Full result dict from PhononCalc, containing "energy" (eV, from the
+            volume-fixed ionic relaxation) and "thermal_properties" (free energies,
+            entropies and heat capacities).
         """
         phonon_calc_kwargs = {
             "t_step": self.t_step,
@@ -319,7 +321,7 @@ class QHACalc(PropCalc):
             self.calculator,
             **phonon_calc_kwargs,
         )
-        return phonon_calc.calc(structure)["thermal_properties"]
+        return phonon_calc.calc(structure)
 
     def _create_qha(
         self,
