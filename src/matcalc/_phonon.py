@@ -185,7 +185,7 @@ class PhononCalc(PropCalc):
         result = super().calc(structure)
         structure_in: Structure = result["final_structure"]
         if self.supercell_matrix is None:
-            supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure.lattice.abc)).astype(int))
+            supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure_in.lattice.abc)).astype(int))
 
         if self.relax_structure:
             relaxer = RelaxCalc(
