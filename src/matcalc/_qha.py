@@ -56,10 +56,8 @@ class QHACalc(PropCalc):
     :type phonon_calc_kwargs: dict | None
     :ivar scale_factors: List of scale factors for lattice scaling.
     :type scale_factors: Sequence[float]
-    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection
-        in THz. Passed through to the internal PhononCalc instances. If set to a float value, the
-        calculator will raise a ValueError when frequencies have a value below this threshold. A value of
-        None (default) disables the check.
+    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
+        a value below imaginary_freq_tol, a ValueError is raised. Defaults to None (no check).
     :type imaginary_freq_tol: float | None
     :ivar exclude_imaginaries_from_fit: If there is an imaginary frequency with a value
         below imaginary_freq_tol, then exclude it from the EOS fit if True; otherwise,
@@ -138,12 +136,11 @@ class QHACalc(PropCalc):
             phonon calculation routine.
         :param scale_factors: A sequence of scale factors for volume scaling during
             thermodynamic and phononic calculations.
-        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz.
-            Passed through to internal PhononCalc instances. If a frequency is below this value,
-            it is flagged as imaginary. Defaults to None, such that all checks are ignored.
-        :param exclude_imaginaries_from_fit: If there is an imaginary frequency with magnitude
-            below imaginary_freq_tol, then exclude it from the EOS fit if True; otherwise,
-            if False then include in fit.
+        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a
+            frequency is found with a value below imaginary_freq_tol, a ValueError is raised.
+            Defaults to None (no check).
+        :param exclude_imaginaries_from_fit: If there is an imaginary frequency with a value
+            below imaginary_freq_tol, then exclude it from the EOS fit if set to True.
         :param write_helmholtz_volume: Path, boolean, or string to indicate whether and where
             to save Helmholtz energy as a function of volume.
         :param write_volume_temperature: Path, boolean, or string to indicate whether and where

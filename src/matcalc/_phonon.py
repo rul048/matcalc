@@ -65,12 +65,9 @@ class PhononCalc(PropCalc):
     :ivar relax_calc_kwargs: Optional dictionary containing additional
         arguments for the structural relaxation calculation.
     :type relax_calc_kwargs: dict | None
-    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection
-        in THz. If set to a float value, the calculator will raise a
-        ValueError when imaginary frequencies with magnitude exceeding this
-        threshold are found. Imaginary frequencies are represented as
-        negative values in phonopy. A value of None (default) disables
-        the check.
+    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in
+        THz. If a frequency is found with a value below imaginary_freq_tol,
+        a ValueError is raised. Defaults to None (no check).
     :type imaginary_freq_tol: float | None
     :ivar error_on_imaginaries: If there is an frequency with a value below
         imaginary_freq_tol, then raise a ValueError if True; if False then
@@ -131,9 +128,8 @@ class PhononCalc(PropCalc):
         :param optimizer: Name of the optimization algorithm for structural relaxation.
         :param relax_structure: Flag to indicate whether structure relaxation should be performed before calculations.
         :param relax_calc_kwargs: Additional keyword arguments for relaxation phase calculations.
-        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz.
-            If a positive float, a ValueError is raised when any imaginary frequency with
-            magnitude exceeding this value is found. Defaults to None (no check).
+        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
+            a value below imaginary_freq_tol, a ValueError is raised. Defaults to None (no check).
         :param error_on_imaginaries: If there is a frequency with value below imaginary_freq_tol, then
             raise a ValueError if True or raise a UserWarning if False.
         :param write_force_constants: File path or boolean flag to write force constants.
