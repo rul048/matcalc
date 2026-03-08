@@ -88,6 +88,7 @@ def test_qha_calc(
         t_max=1000,
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         fmax=0.1,
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
         **write_kwargs,  # type: ignore[arg-type]
     )
 
@@ -150,6 +151,7 @@ def test_qha_pressure(
         fmax=0.05,
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         pressure=10.0,
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
     )
 
     result = qha_calc.calc(Li2O)
@@ -191,6 +193,7 @@ def test_qha_calc_atoms(
         t_max=1000,
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         fmax=0.1,
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
     )
 
     result = qha_calc.calc(Si_atoms)

@@ -42,9 +42,13 @@ class PhononCalc(PropCalc):
     :ivar atom_disp: Magnitude of atomic displacements for phonon
         calculations.
     :type atom_disp: float
+    :ivar min_length: Minimum length of lattice dimensions, used to
+        automatically set supercell_matrix.
+    :type min_length: float | None
     :ivar supercell_matrix: Array defining the transformation matrix to
-        construct supercells for phonon calculations.
-    :type supercell_matrix: ArrayLike
+        construct supercells for phonon calculations. Takes precedence
+        over min_length.
+    :type supercell_matrix: ArrayLike | None
     :ivar t_step: Temperature step for thermal property calculations in
         Kelvin.
     :type t_step: float
@@ -96,7 +100,8 @@ class PhononCalc(PropCalc):
         calculator: Calculator | str,
         *,
         atom_disp: float = 0.015,
-        supercell_matrix: ArrayLike = ((2, 0, 0), (0, 2, 0), (0, 0, 2)),
+        min_length: float | None = 20.0,
+        supercell_matrix: ArrayLike | None = None,
         t_step: float = 10,
         t_max: float = 1000,
         t_min: float = 0,
@@ -119,7 +124,9 @@ class PhononCalc(PropCalc):
 
         :param calculator: The calculator object or string name specifying the calculation backend to use.
         :param atom_disp: Atom displacement to be used for finite difference calculation of force constants.
-        :param supercell_matrix: Transformation matrix to define the supercell for the calculation.
+        :param min_length: Minimum length of lattice dimensions, used to automatically set supercell_matrix.
+        :param supercell_matrix: Transformation matrix to define the supercell for the calculation. Takes
+            precedence over min_length
         :param t_step: Temperature step for thermal property calculations.
         :param t_max: Maximum temperature for thermal property calculations.
         :param t_min: Minimum temperature for thermal property calculations.
@@ -142,6 +149,7 @@ class PhononCalc(PropCalc):
         """
         self.calculator = calculator  # type: ignore[assignment]
         self.atom_disp = atom_disp
+        self.min_length = min_length
         self.supercell_matrix = supercell_matrix
         self.t_step = t_step
         self.t_max = t_max
@@ -157,6 +165,9 @@ class PhononCalc(PropCalc):
         self.write_band_structure = write_band_structure
         self.write_total_dos = write_total_dos
         self.write_phonon = write_phonon
+
+        if supercell_matrix is None and min_length is None:
+            raise ValueError("min_length must be set when supercell_matrix is None.")
 
         # Set default paths for output files.
         for key, val, default_path in (
@@ -197,7 +208,7 @@ class PhononCalc(PropCalc):
         }
         """
         result = super().calc(structure)
-        structure_in: Structure = result["final_structure"]
+        structure_in: Structure = to_pmg_structure(result["final_structure"])
 
         if self.relax_structure:
             relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
@@ -206,15 +217,21 @@ class PhononCalc(PropCalc):
             relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
             result |= relaxer.calc(structure_in)
             structure_in = result["final_structure"]
-        cell = get_phonopy_structure(to_pmg_structure(structure_in))
-        phonon = phonopy.Phonopy(cell, self.supercell_matrix)  # type: ignore[arg-type]
+
+        cell = get_phonopy_structure(structure_in)
+        if self.supercell_matrix:
+            supercell_matrix = np.array(self.supercell_matrix, dtype=int)
+        else:
+            supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure_in.lattice.abc)).astype(int))
+
+        phonon = phonopy.Phonopy(cell, supercell_matrix=supercell_matrix)
         phonon.generate_displacements(distance=self.atom_disp)
-        disp_supercells = phonon.supercells_with_displacements
-        phonon.forces = [  # type: ignore[assignment]
-            run_pes_calc(get_pmg_structure(supercell), self.calculator).forces
-            for supercell in disp_supercells  # type:ignore[union-attr]
+        disp_supercells = [
+            get_pmg_structure(supercell)
+            for supercell in phonon.supercells_with_displacements  # type:ignore[union-attr]
             if supercell is not None
         ]
+        phonon.forces = [run_pes_calc(supercell, self.calculator).forces for supercell in disp_supercells]
         phonon.produce_force_constants()
         phonon.run_mesh()
         mesh_dict_results = phonon.get_mesh_dict()
@@ -250,4 +267,5 @@ class PhononCalc(PropCalc):
             "phonon": phonon,
             "thermal_properties": phonon.get_thermal_properties_dict(),
             "frequencies": frequencies,
+            "disp_supercells": disp_supercells,
         }
