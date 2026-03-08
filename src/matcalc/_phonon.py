@@ -45,7 +45,8 @@ class PhononCalc(PropCalc):
         automatically set supercell_matrix.
     :type min_length: float | None
     :ivar supercell_matrix: Array defining the transformation matrix to
-        construct supercells for phonon calculations.
+        construct supercells for phonon calculations. Takes precedence
+        over min_length.
     :type supercell_matrix: ArrayLike | None
     :ivar t_step: Temperature step for thermal property calculations in
         Kelvin.
@@ -121,7 +122,8 @@ class PhononCalc(PropCalc):
         :param calculator: The calculator object or string name specifying the calculation backend to use.
         :param atom_disp: Atom displacement to be used for finite difference calculation of force constants.
         :param min_length: Minimum length of lattice dimensions, used to automatically set supercell_matrix.
-        :param supercell_matrix: Transformation matrix to define the supercell for the calculation.
+        :param supercell_matrix: Transformation matrix to define the supercell for the calculation. Takes
+            precedence over min_length
         :param t_step: Temperature step for thermal property calculations.
         :param t_max: Maximum temperature for thermal property calculations.
         :param t_min: Minimum temperature for thermal property calculations.
@@ -161,8 +163,6 @@ class PhononCalc(PropCalc):
 
         if supercell_matrix is None and min_length is None:
             raise ValueError("min_length must be set when supercell_matrix is None.")
-        if supercell_matrix is not None and min_length is not None:
-            raise ValueError("Only one of supercell_matrix and min_length can be set.")
 
         # Set default paths for output files.
         for key, val, default_path in (
