@@ -218,10 +218,9 @@ class PhononCalc(PropCalc):
         cell = get_phonopy_structure(structure_in)
         phonon = phonopy.Phonopy(cell, supercell_matrix)  # type: ignore[arg-type]
         phonon.generate_displacements(distance=self.atom_disp)
-        disp_supercells = phonon.supercells_with_displacements
         supercells = [
             get_pmg_structure(supercell)
-            for supercell in disp_supercells  # type:ignore[union-attr]
+            for supercell in phonon.supercells_with_displacements  # type:ignore[union-attr]
             if supercell is not None
         ]
         phonon.forces = [  # type: ignore[assignment]
