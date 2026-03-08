@@ -73,7 +73,7 @@ sevennet = [
     "sevenn>=0.10.4",
 ]
 matgl = [
-    "matgl>=2.0.2",
+    "matgl<=2.0.6",
 ]
 ci = [
     "setuptools<82",  # Required by maml which uses pkg_resources
