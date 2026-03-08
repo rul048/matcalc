@@ -369,9 +369,7 @@ class PESCalculator(Calculator):
         return DP(model=model_path, **kwargs)
 
     @staticmethod
-    def load_universal(
-        name: str | Calculator, **kwargs: Any
-    ) -> Calculator:  # noqa: C901
+    def load_universal(name: str | Calculator, **kwargs: Any) -> Calculator: # noqa: C901
         """
         Loads a calculator instance based on the provided name or an existing calculator object. The
         method supports multiple pre-built universal models and aliases for ease of use. If an existing calculator
