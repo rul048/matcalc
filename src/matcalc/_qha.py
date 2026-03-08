@@ -271,8 +271,21 @@ class QHACalc(PropCalc):
         )
 
         self._write_output_files(qha)
+        output_dict = {
+            "qha": qha,
+            "scale_factors": self.scale_factors,
+            "volumes": volumes,
+            "scaled_structures": scaled_structures,
+            "electronic_energies": electronic_energies,
+            "temperatures": temperatures,
+            "thermal_expansion_coefficients": qha.thermal_expansion,
+            "gibbs_free_energies": qha.gibbs_temperature,
+            "bulk_modulus_P": qha.bulk_modulus_temperature,
+            "heat_capacity_P": qha.heat_capacity_P_polyfit,
+            "gruneisen_parameters": qha.gruneisen_temperature,
+        }
 
-        return result | self._generate_output_dict(qha, volumes, electronic_energies, temperatures, scaled_structures)  # type: ignore[arg-type]
+        return result | output_dict
 
     def _collect_properties(self, structure: Structure) -> tuple[list, list, list, list, list, list]:
         """Helper to collect properties like volumes, electronic energies, and thermal properties.
@@ -374,37 +387,3 @@ class QHACalc(PropCalc):
             qha.write_heat_capacity_P_polyfit(filename=self.write_heat_capacity_p_polyfit)
         if self.write_gruneisen_temperature:
             qha.write_gruneisen_temperature(filename=self.write_gruneisen_temperature)
-
-    def _generate_output_dict(
-        self,
-        qha: PhonopyQHA,
-        volumes: list,
-        electronic_energies: list,
-        temperatures: list,
-        scaled_structures: list[Structure],
-    ) -> dict:
-        """Helper to generate the output dictionary after QHA calculation.
-
-        Args:
-            qha: Phonopy.qha object.
-            volumes: List of volumes corresponding to different scale factors.
-            electronic_energies: List of electronic energies corresponding to different volumes.
-            temperatures: List of temperatures in ascending order (in Kelvin).
-            scaled_structures: List of fixed-volume relaxed structures
-
-        Returns:
-            Dictionary containing the results of QHA calculation.
-        """
-        return {
-            "qha": qha,
-            "scale_factors": self.scale_factors,
-            "volumes": volumes,
-            "scaled_structures": scaled_structures,
-            "electronic_energies": electronic_energies,
-            "temperatures": temperatures,
-            "thermal_expansion_coefficients": qha.thermal_expansion,
-            "gibbs_free_energies": qha.gibbs_temperature,
-            "bulk_modulus_P": qha.bulk_modulus_temperature,
-            "heat_capacity_P": qha.heat_capacity_P_polyfit,
-            "gruneisen_parameters": qha.gruneisen_temperature,
-        }
