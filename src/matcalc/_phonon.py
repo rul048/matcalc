@@ -232,7 +232,7 @@ class PhononCalc(PropCalc):
         if self.imaginary_freq_tol is not None:
             # In phonopy, imaginary frequencies are represented as negative values.
             imag_freq_mask = frequencies < -self.imaginary_freq_tol
-            n_freqs = len(frequencies)
+            n_freqs = frequencies.size
             if np.any(imag_freq_mask):
                 n_imag = np.sum(imag_freq_mask)
                 min_mode = np.min(frequencies)
