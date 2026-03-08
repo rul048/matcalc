@@ -296,6 +296,7 @@ class QHACalc(PropCalc):
         for scale_factor in self.scale_factors:
             # Apply linear strain
             struct = self._scale_structure(structure, scale_factor)
+            volume = struct.volume
 
             # Relax at fixed volume
             relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
@@ -321,7 +322,7 @@ class QHACalc(PropCalc):
                 continue
 
             # Store results
-            volumes.append(struct.volume)
+            volumes.append(volume)
             electronic_energies.append(relaxed_result["energy"])
             scaled_structures.append(relaxed_result["final_structure"])
             free_energies.append(thermal_properties["free_energy"])
