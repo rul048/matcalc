@@ -202,7 +202,7 @@ class PhononCalc(PropCalc):
         if self.supercell_matrix is None:
             supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure_in.lattice.abc)).astype(int))
         else:
-            supercell_matrix = self.supercell_matrix
+            supercell_matrix = np.array(self.supercell_matrix)
 
         if self.relax_structure:
             relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
