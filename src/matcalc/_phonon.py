@@ -213,12 +213,12 @@ class PhononCalc(PropCalc):
             result |= relaxer.calc(structure_in)
             structure_in = result["final_structure"]
 
+        cell = get_phonopy_structure(structure_in)
         if self.supercell_matrix:
             supercell_matrix = np.array(self.supercell_matrix, dtype=int)
         else:
             supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure_in.lattice.abc)).astype(int))
 
-        cell = get_phonopy_structure(structure_in)
         phonon = phonopy.Phonopy(cell, supercell_matrix=supercell_matrix)
         phonon.generate_displacements(distance=self.atom_disp)
         disp_supercells = [
@@ -235,7 +235,7 @@ class PhononCalc(PropCalc):
         if self.imaginary_freq_tol is not None:
             # In phonopy, imaginary frequencies are represented as negative values.
             imag_freq_mask = frequencies < -self.imaginary_freq_tol
-            n_freqs = frequencies.size
+            n_freqs = len(frequencies)
             if np.any(imag_freq_mask):
                 n_imag = np.sum(imag_freq_mask)
                 min_mode = np.min(frequencies)
