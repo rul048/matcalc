@@ -258,14 +258,16 @@ class QHACalc(PropCalc):
             self._collect_properties(structure_in)
         )
 
-        qha = self._create_qha(
-            volumes,
-            electronic_energies,
-            temperatures,  # type: ignore[arg-type]
-            free_energies,
-            entropies,
-            heat_capacities,
-            self.pressure,
+        qha = PhonopyQHA(
+            volumes=volumes,
+            electronic_energies=electronic_energies,
+            temperatures=temperatures,
+            free_energy=np.transpose(free_energies),
+            cv=np.transpose(heat_capacities),
+            entropy=np.transpose(entropies),
+            pressure=self.pressure,
+            eos=self.eos,
+            t_max=self.t_max,
         )
 
         self._write_output_files(qha)
@@ -349,42 +351,6 @@ class QHACalc(PropCalc):
             **phonon_calc_kwargs,
         )
         return phonon_calc.calc(structure)
-
-    def _create_qha(
-        self,
-        volumes: list,
-        electronic_energies: list,
-        temperatures: list,
-        free_energies: list,
-        entropies: list,
-        heat_capacities: list,
-        pressure: None | float,
-    ) -> PhonopyQHA:
-        """Helper to create a PhonopyQHA object for quasi-harmonic approximation.
-
-        Args:
-            volumes: List of volumes corresponding to different scale factors.
-            electronic_energies: List of electronic energies corresponding to different volumes.
-            temperatures: List of temperatures in ascending order (in Kelvin).
-            free_energies: List of free energies corresponding to different volumes and temperatures.
-            entropies: List of entropies corresponding to different volumes and temperatures.
-            heat_capacities: List of heat capacities corresponding to different volumes and temperatures.
-            pressure: Pressure in GPa.
-
-        Returns:
-            Phonopy.qha object.
-        """
-        return PhonopyQHA(
-            volumes=volumes,
-            electronic_energies=electronic_energies,
-            temperatures=temperatures,
-            free_energy=np.transpose(free_energies),
-            cv=np.transpose(heat_capacities),
-            entropy=np.transpose(entropies),
-            pressure=pressure,
-            eos=self.eos,
-            t_max=self.t_max,
-        )
 
     def _write_output_files(self, qha: PhonopyQHA) -> None:
         """Helper to write various output files based on the QHA calculation.
