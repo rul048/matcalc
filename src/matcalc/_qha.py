@@ -254,25 +254,38 @@ class QHACalc(PropCalc):
             structure_in = result["final_structure"]
 
         temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
-        volumes, electronic_energies, free_energies, entropies, heat_capacities, scaled_structures = (
-            self._collect_properties(structure_in)
-        )
+        properties = self._collect_properties(structure_in)
 
-        qha = self._create_qha(
-            volumes,
-            electronic_energies,
-            temperatures,  # type: ignore[arg-type]
-            free_energies,
-            entropies,
-            heat_capacities,
-            self.pressure,
+        qha = PhonopyQHA(
+            volumes=properties["volumes"],
+            electronic_energies=properties["electronic_energies"],
+            temperatures=temperatures,
+            free_energy=np.transpose(properties["free_energies"]),
+            cv=np.transpose(properties["heat_capacities"]),
+            entropy=np.transpose(properties["entropies"]),
+            pressure=self.pressure,
+            eos=self.eos,
+            t_max=self.t_max,
         )
 
         self._write_output_files(qha)
+        output_dict = {
+            "qha": qha,
+            "scale_factors": self.scale_factors,
+            "volumes": properties["volumes"],
+            "scaled_structures": properties["scaled_structures"],
+            "electronic_energies": properties["electronic_energies"],
+            "temperatures": temperatures,
+            "thermal_expansion_coefficients": qha.thermal_expansion,
+            "gibbs_free_energies": qha.gibbs_temperature,
+            "bulk_modulus_P": qha.bulk_modulus_temperature,
+            "heat_capacity_P": qha.heat_capacity_P_polyfit,
+            "gruneisen_parameters": qha.gruneisen_temperature,
+        }
 
-        return result | self._generate_output_dict(qha, volumes, electronic_energies, temperatures, scaled_structures)  # type: ignore[arg-type]
+        return result | output_dict
 
-    def _collect_properties(self, structure: Structure) -> tuple[list, list, list, list, list, list]:
+    def _collect_properties(self, structure: Structure) -> dict[str, list]:
         """Helper to collect properties like volumes, electronic energies, and thermal properties.
 
         Args:
@@ -309,7 +322,14 @@ class QHACalc(PropCalc):
             free_energies.append(thermal_properties["free_energy"])
             entropies.append(thermal_properties["entropy"])
             heat_capacities.append(thermal_properties["heat_capacity"])
-        return volumes, electronic_energies, free_energies, entropies, heat_capacities, scaled_structures
+        return {
+            "volumes": volumes,
+            "electronic_energies": electronic_energies,
+            "free_energies": free_energies,
+            "entropies": entropies,
+            "heat_capacities": heat_capacities,
+            "scaled_structures": scaled_structures,
+        }
 
     def _scale_structure(self, structure: Structure, scale_factor: float) -> Structure:
         """Helper to scale the lattice of a structure.
@@ -350,42 +370,6 @@ class QHACalc(PropCalc):
         )
         return phonon_calc.calc(structure)
 
-    def _create_qha(
-        self,
-        volumes: list,
-        electronic_energies: list,
-        temperatures: list,
-        free_energies: list,
-        entropies: list,
-        heat_capacities: list,
-        pressure: None | float,
-    ) -> PhonopyQHA:
-        """Helper to create a PhonopyQHA object for quasi-harmonic approximation.
-
-        Args:
-            volumes: List of volumes corresponding to different scale factors.
-            electronic_energies: List of electronic energies corresponding to different volumes.
-            temperatures: List of temperatures in ascending order (in Kelvin).
-            free_energies: List of free energies corresponding to different volumes and temperatures.
-            entropies: List of entropies corresponding to different volumes and temperatures.
-            heat_capacities: List of heat capacities corresponding to different volumes and temperatures.
-            pressure: Pressure in GPa.
-
-        Returns:
-            Phonopy.qha object.
-        """
-        return PhonopyQHA(
-            volumes=volumes,
-            electronic_energies=electronic_energies,
-            temperatures=temperatures,
-            free_energy=np.transpose(free_energies),
-            cv=np.transpose(heat_capacities),
-            entropy=np.transpose(entropies),
-            pressure=pressure,
-            eos=self.eos,
-            t_max=self.t_max,
-        )
-
     def _write_output_files(self, qha: PhonopyQHA) -> None:
         """Helper to write various output files based on the QHA calculation.
 
@@ -408,37 +392,3 @@ class QHACalc(PropCalc):
             qha.write_heat_capacity_P_polyfit(filename=self.write_heat_capacity_p_polyfit)
         if self.write_gruneisen_temperature:
             qha.write_gruneisen_temperature(filename=self.write_gruneisen_temperature)
-
-    def _generate_output_dict(
-        self,
-        qha: PhonopyQHA,
-        volumes: list,
-        electronic_energies: list,
-        temperatures: list,
-        scaled_structures: list[Structure],
-    ) -> dict:
-        """Helper to generate the output dictionary after QHA calculation.
-
-        Args:
-            qha: Phonopy.qha object.
-            volumes: List of volumes corresponding to different scale factors.
-            electronic_energies: List of electronic energies corresponding to different volumes.
-            temperatures: List of temperatures in ascending order (in Kelvin).
-            scaled_structures: List of fixed-volume relaxed structures
-
-        Returns:
-            Dictionary containing the results of QHA calculation.
-        """
-        return {
-            "qha": qha,
-            "scale_factors": self.scale_factors,
-            "volumes": volumes,
-            "scaled_structures": scaled_structures,
-            "electronic_energies": electronic_energies,
-            "temperatures": temperatures,
-            "thermal_expansion_coefficients": qha.thermal_expansion,
-            "gibbs_free_energies": qha.gibbs_temperature,
-            "bulk_modulus_P": qha.bulk_modulus_temperature,
-            "heat_capacity_P": qha.heat_capacity_P_polyfit,
-            "gruneisen_parameters": qha.gruneisen_temperature,
-        }
