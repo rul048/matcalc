@@ -228,7 +228,7 @@ class PhononCalc(PropCalc):
                 n_freqs = frequencies.size
                 min_mode = np.min(frequencies)
                 msg = (
-                    f"{n_imag}/{n_freqs} modes are imaginary (below -{self.imaginary_freq_tol:.4f} THz). "
+                    f"{n_imag}/{n_freqs} modes are imaginary (below {self.imaginary_freq_tol:.4f} THz). "
                     f"Most negative: {min_mode:.4f} THz. This indicates a dynamically unstable structure. "
                     f"Thermal properties may not be reliable."
                 )
