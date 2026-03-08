@@ -65,14 +65,14 @@ def test_phonon_calc(
     assert thermal_props["free_energy"][ind] == pytest.approx(13.24547, rel=1e-1)
     assert_allclose(result["final_structure"].lattice.abc, (3.291071792359756, 3.291071792359756, 3.291071792359756))
     assert_allclose(
-        result["supercells"][0].lattice.abc,
+        result["disp_supercells"][0].lattice.abc,
         (
             2 * result["final_structure"].lattice.abc[0],
             2 * result["final_structure"].lattice.abc[1],
             2 * result["final_structure"].lattice.abc[2],
         ),
     )
-    pytest.approx(result["supercells"][0].volume, result["supercells"][-1].volume)
+    pytest.approx(result["disp_supercells"][0].volume, result["disp_supercells"][-1].volume)
 
     results = list(phonon_calc.calc_many([Li2O, Li2O]))
     assert len(results) == 2
@@ -122,14 +122,14 @@ def test_phonon_calc_lattice(
     )
     result = phonon_calc.calc(Si_atoms)
     assert_allclose(
-        result["supercells"][0].lattice.abc,
+        result["disp_supercells"][0].lattice.abc,
         (
             3 * result["final_structure"].lattice.abc[0],
             3 * result["final_structure"].lattice.abc[1],
             3 * result["final_structure"].lattice.abc[2],
         ),
     )
-    pytest.approx(result["supercells"][0].volume, result["supercells"][-1].volume)
+    pytest.approx(result["disp_supercells"][0].volume, result["disp_supercells"][-1].volume)
 
 
 def test_phonon_calc_imaginary_freq_tol(
