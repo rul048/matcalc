@@ -199,6 +199,8 @@ class PhononCalc(PropCalc):
         """
         result = super().calc(structure)
         structure_in: Structure = to_pmg_structure(result["final_structure"])
+        if self.supercell_matrix and self.min_length is None:
+            raise ValueError("min_length must be set when supercell_matrix is None.")
 
         if self.relax_structure:
             relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
@@ -208,9 +210,7 @@ class PhononCalc(PropCalc):
             result |= relaxer.calc(structure_in)
             structure_in = to_pmg_structure(result["final_structure"])
 
-        if self.supercell_matrix is None:
-            if self.min_length is None:
-                raise ValueError("min_length must be set when supercell_matrix is None.")
+        if self.supercell_matrix:
             supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure_in.lattice.abc)).astype(int))
         else:
             supercell_matrix = np.array(self.supercell_matrix, dtype=int)
