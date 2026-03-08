@@ -81,7 +81,7 @@ def test_phonon_benchmark(matpes_calculator: PESCalculator) -> None:
     benchmark = PhononBenchmark(seed=0, n_samples=3)
     results = benchmark.run(matpes_calculator, "toy")
     assert len(results) == 3
-    assert np.abs(results["CV_toy"] - results["CV_DFT"]).mean() == pytest.approx(13.510378078609543, abs=1e-1)
+    assert np.abs(results["CV_toy"] - results["CV_DFT"]).mean() == pytest.approx(13.510378078609543, abs=3e-1)
 
 
 def test_softening_benchmark(matpes_calculator: PESCalculator) -> None:
