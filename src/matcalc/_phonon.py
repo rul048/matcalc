@@ -211,9 +211,7 @@ class PhononCalc(PropCalc):
         if self.supercell_matrix is None:
             if self.min_length is None:
                 raise ValueError("min_length must be set when supercell_matrix is None.")
-            supercell_matrix = np.diag(
-                np.ceil(self.min_length / np.array(structure_in.lattice.abc)).astype(int)
-            )
+            supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure_in.lattice.abc)).astype(int))
         else:
             supercell_matrix = np.array(self.supercell_matrix, dtype=int)
 
