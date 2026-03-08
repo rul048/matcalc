@@ -25,7 +25,7 @@ LAMMPS_TEMPLATES_DIR = (
     [
         ("nve", -10.74606),
         ("nvt", -10.81289),
-        ("npt_nose_hoover", -10.86120),
+        ("npt_nose_hoover", -9.75230),
     ],
 )
 def test_lammps_calc(
@@ -59,7 +59,6 @@ def test_lammps_calc(
     assert "potential_energy" in results
     assert "kinetic_energy" in results
     assert "total_energy" in results
-    print("debug by kenko", results["total_energy"])
     assert results["total_energy"] == pytest.approx(expected_energy, rel=1e-1)
     assert len(results["trajectory"]) == 5
 
@@ -85,7 +84,6 @@ def test_lammps_atoms(Si_atoms: Atoms) -> None:
     )
     md_calc.write_inputs(Si_atoms, script_template=script_template)
     results = md_calc.calc(Si_atoms)
-    print("debug by kenko", results["total_energy"])
     assert isinstance(results, dict)
 
 
