@@ -17,7 +17,7 @@ from .utils import to_pmg_structure
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Literal
+    from typing import Any
 
     from ase import Atoms
     from ase.calculators.calculator import Calculator
