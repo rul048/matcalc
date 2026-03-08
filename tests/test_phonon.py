@@ -6,6 +6,7 @@ import inspect
 import os
 from typing import TYPE_CHECKING
 
+import numpy as np
 import pytest
 
 from matcalc import PhononCalc
@@ -99,7 +100,7 @@ def test_phonon_calc_atoms(
     ind = thermal_props["temperatures"].tolist().index(300)
     assert thermal_props["heat_capacity"][ind] == pytest.approx(43.3138042001517, rel=1e-1)
 
-
+    
 def test_phonon_calc_lattice(
     Si_atoms: Atoms,
     matpes_calculator: PESCalculator,
@@ -115,3 +116,46 @@ def test_phonon_calc_lattice(
     assert result["final_structure"].lattice.abc[0] == pytest.approx(15.3607917348)
     assert result["final_structure"].lattice.abc[1] == pytest.approx(15.360795977376975)
     assert result["final_structure"].lattice.abc[2] == pytest.approx(15.360791734871095)
+
+    
+def test_phonon_calc_imaginary_freq_tol(
+    Si_atoms: Atoms,
+    matpes_calculator: PESCalculator,
+) -> None:
+    """Test that imaginary frequency tolerance check works correctly."""
+    # Stable structure with tolerance should pass without error
+    phonon_calc = PhononCalc(
+        calculator=matpes_calculator,
+        supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
+        fmax=0.1,
+        imaginary_freq_tol=0.1,
+    )
+    result = phonon_calc.calc(Si_atoms)
+    assert "frequencies" in result
+    assert np.min(result["frequencies"]) >= -0.1
+
+    # Distort the structure to create imaginary modes, then check that
+    # the tolerance check raises ValueError
+    distorted_si_atoms = Si_atoms.copy()
+    distorted_si_atoms.cell += 0.5
+    phonon_calc = PhononCalc(
+        calculator=matpes_calculator,
+        supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
+        fmax=100.0,
+        imaginary_freq_tol=0.1,
+    )
+    with pytest.raises(ValueError, match=r"are imaginary"):
+        phonon_calc.calc(distorted_si_atoms)
+
+    # Distort the structure to create imaginary modes, but it's okay
+    distorted_si_atoms = Si_atoms.copy()
+    distorted_si_atoms.cell += 0.5
+    phonon_calc = PhononCalc(
+        calculator=matpes_calculator,
+        supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
+        fmax=100.0,
+        imaginary_freq_tol=None,
+    )
+    result = phonon_calc.calc(distorted_si_atoms)
+    assert "frequencies" in result
+    assert np.min(result["frequencies"]) < -0.1
