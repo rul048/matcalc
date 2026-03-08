@@ -216,7 +216,7 @@ class PhononCalc(PropCalc):
             supercell_matrix = np.array(self.supercell_matrix, dtype=int)
 
         cell = get_phonopy_structure(structure_in)
-        phonon = phonopy.Phonopy(cell, supercell_matrix)
+        phonon = phonopy.Phonopy(cell, supercell_matrix=supercell_matrix)
         phonon.generate_displacements(distance=self.atom_disp)
         supercells = [
             get_pmg_structure(supercell)
