@@ -219,12 +219,12 @@ class PhononCalc(PropCalc):
         cell = get_phonopy_structure(structure_in)
         phonon = phonopy.Phonopy(cell, supercell_matrix=supercell_matrix)
         phonon.generate_displacements(distance=self.atom_disp)
-        supercells = [
+        disp_supercells = [
             get_pmg_structure(supercell)
             for supercell in phonon.supercells_with_displacements  # type:ignore[union-attr]
             if supercell is not None
         ]
-        phonon.forces = [run_pes_calc(supercell, self.calculator).forces for supercell in supercells]
+        phonon.forces = [run_pes_calc(supercell, self.calculator).forces for supercell in disp_supercells]
         phonon.produce_force_constants()
         phonon.run_mesh()
         mesh_dict_results = phonon.get_mesh_dict()
@@ -256,5 +256,5 @@ class PhononCalc(PropCalc):
             "phonon": phonon,
             "thermal_properties": phonon.get_thermal_properties_dict(),
             "frequencies": frequencies,
-            "supercells": supercells,
+            "disp_supercells": disp_supercells,
         }
