@@ -216,16 +216,14 @@ class PhononCalc(PropCalc):
             supercell_matrix = np.array(self.supercell_matrix, dtype=int)
 
         cell = get_phonopy_structure(structure_in)
-        phonon = phonopy.Phonopy(cell, supercell_matrix)  # type: ignore[arg-type]
+        phonon = phonopy.Phonopy(cell, supercell_matrix)
         phonon.generate_displacements(distance=self.atom_disp)
         supercells = [
             get_pmg_structure(supercell)
             for supercell in phonon.supercells_with_displacements  # type:ignore[union-attr]
             if supercell is not None
         ]
-        phonon.forces = [  # type: ignore[assignment]
-            run_pes_calc(supercell, self.calculator).forces for supercell in supercells
-        ]
+        phonon.forces = [run_pes_calc(supercell, self.calculator).forces for supercell in supercells]
         phonon.produce_force_constants()
         phonon.run_mesh()
         mesh_dict_results = phonon.get_mesh_dict()
