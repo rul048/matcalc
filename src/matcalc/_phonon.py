@@ -161,6 +161,8 @@ class PhononCalc(PropCalc):
 
         if supercell_matrix is None and min_length is None:
             raise ValueError("min_length must be set when supercell_matrix is None.")
+        if supercell_matrix is not None and min_length is not None:
+            raise ValueError("Only one of supercell_matrix and min_length can be set.")
 
         # Set default paths for output files.
         for key, val, default_path in (
@@ -209,12 +211,12 @@ class PhononCalc(PropCalc):
             )
             relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
             result |= relaxer.calc(structure_in)
-            structure_in = to_pmg_structure(result["final_structure"])
+            structure_in = result["final_structure"]
 
         if self.supercell_matrix:
-            supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure_in.lattice.abc)).astype(int))
-        else:
             supercell_matrix = np.array(self.supercell_matrix, dtype=int)
+        else:
+            supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure_in.lattice.abc)).astype(int))
 
         cell = get_phonopy_structure(structure_in)
         phonon = phonopy.Phonopy(cell, supercell_matrix=supercell_matrix)
