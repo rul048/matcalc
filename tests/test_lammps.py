@@ -15,7 +15,12 @@ if TYPE_CHECKING:
     from ase import Atoms
     from pymatgen.core import Structure
 
-LAMMPS_TEMPLATES_DIR = Path(__file__).parent.parent / "src" / "matcalc" / "lammps_templates"
+LAMMPS_TEMPLATES_DIR = (
+    Path(__file__).parent.parent / "src" / "matcalc" / "lammps_templates"
+)
+
+# set PYG backend for TensorNet
+matgl.set_backend("PYG")
 
 
 @pytest.mark.parametrize(
