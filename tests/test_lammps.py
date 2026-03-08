@@ -19,11 +19,6 @@ LAMMPS_TEMPLATES_DIR = (
     Path(__file__).parent.parent / "src" / "matcalc" / "lammps_templates"
 )
 
-import matgl
-
-# set PYG backend for TensorNet
-matgl.set_backend("PYG")
-
 
 @pytest.mark.parametrize(
     ("ensemble", "expected_energy"),
@@ -46,7 +41,7 @@ def test_lammps_calc(
     traj_file = f"{ensemble}.lammpstrj"
 
     md_calc = LAMMPSMDCalc(
-        calculator="TensorNet",
+        calculator="M3GNet",
         ensemble=ensemble,
         temperature=300,
         taut=0.1,
@@ -64,7 +59,7 @@ def test_lammps_calc(
     assert "potential_energy" in results
     assert "kinetic_energy" in results
     assert "total_energy" in results
-
+    print("debug by kenko", results["total_energy"])
     assert results["total_energy"] == pytest.approx(expected_energy, rel=1e-1)
     assert len(results["trajectory"]) == 5
 
@@ -81,7 +76,7 @@ def test_lammps_atoms(Si_atoms: Atoms) -> None:
         script_template = f.read()
 
     md_calc = LAMMPSMDCalc(
-        calculator="TensorNet",
+        calculator="M3GNet",
         temperature=300,
         taut=0.1,
         taup=0.1,
@@ -90,6 +85,7 @@ def test_lammps_atoms(Si_atoms: Atoms) -> None:
     )
     md_calc.write_inputs(Si_atoms, script_template=script_template)
     results = md_calc.calc(Si_atoms)
+    print("debug by kenko", results["total_energy"])
     assert isinstance(results, dict)
 
 
@@ -103,7 +99,7 @@ def test_invalid_ensemble(Si: Structure) -> None:
         ),
     ):
         LAMMPSMDCalc(
-            calculator="TensorNet",
+            calculator="M3GNet",
             ensemble="you_know_who",
             temperature=300,
             taut=0.1,
