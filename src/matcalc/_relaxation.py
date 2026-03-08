@@ -56,6 +56,9 @@ class RelaxCalc(PropCalc):
     :ivar cell_filter: ASE filter used for modifying the cell during relaxation.
     :type cell_filter: Filter
 
+    :ivar cell_filter_kwargs: The keyword arguments to pass to the cell_filter.
+    :type cell_filter_kwargs: dict | None
+
     :ivar perturb_distance: Distance (Å) for random perturbation to break symmetry.
     :type perturb_distance: float | None
     """
@@ -72,6 +75,7 @@ class RelaxCalc(PropCalc):
         relax_atoms: bool = True,
         relax_cell: bool = True,
         cell_filter: Filter = FrechetCellFilter,  # type: ignore[assignment]
+        cell_filter_kwargs: dict | None = None,
         perturb_distance: float | None = None,
     ) -> None:
         """
@@ -104,6 +108,7 @@ class RelaxCalc(PropCalc):
         :param cell_filter: The filter to apply when relaxing the simulation cell.
             This determines constraints or allowed degrees of freedom during
             cell relaxation. Defaults to FrechetCellFilter.
+        :param cell_filter_kwargs: The keyword arguments to pass to the cell_filter.
         :param perturb_distance: A perturbation distance used for initializing
             the system configuration before relaxation. If None, no perturbation
             is applied. Defaults to None.
@@ -118,6 +123,7 @@ class RelaxCalc(PropCalc):
         self.relax_cell = relax_cell
         self.relax_atoms = relax_atoms
         self.cell_filter = cell_filter
+        self.cell_filter_kwargs = cell_filter_kwargs
         self.perturb_distance = perturb_distance
 
     def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict:
@@ -156,6 +162,7 @@ class RelaxCalc(PropCalc):
             interval=self.interval,
             fmax=self.fmax,
             cell_filter=self.cell_filter,
+            cell_filter_kwargs=self.cell_filter_kwargs,
         )
 
         lattice = r.structure.lattice

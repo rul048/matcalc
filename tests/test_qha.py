@@ -7,6 +7,7 @@ import os
 from typing import TYPE_CHECKING
 
 import pytest
+from numpy.testing import assert_allclose
 
 from matcalc import QHACalc
 
@@ -118,6 +119,11 @@ def test_qha_calc(
     assert result["bulk_modulus_P"][ind] == pytest.approx(54.25954, rel=1e-1)
     assert result["heat_capacity_P"][ind] == pytest.approx(62.27455, rel=1e-1)
     assert result["gruneisen_parameters"][ind] == pytest.approx(1.688877575687573, rel=1e-1)
+    assert len(result["scaled_structures"]) == len(result["volumes"])
+    scaled_structure_volumes = [scaled_structure.volume for scaled_structure in result["scaled_structures"]]
+    assert_allclose(scaled_structure_volumes, result["volumes"])
+    assert result["volumes"][0] < result["volumes"][-1]
+    assert result["temperatures"][0] < result["temperatures"][-1]
 
     qha_calc_params = inspect.signature(QHACalc).parameters
     # get all keywords starting with write_ and their default values
@@ -141,6 +147,7 @@ def test_qha_pressure(
         calculator=matpes_calculator,
         t_step=50,
         t_max=1000,
+        fmax=0.05,
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         pressure=10.0,
     )
@@ -191,3 +198,56 @@ def test_qha_calc_atoms(
     # Test values at 300 K
     ind = result["temperatures"].tolist().index(300)
     assert result["thermal_expansion_coefficients"][ind] == pytest.approx(5.191273165438463e-06, rel=1e-1)
+
+
+def test_phonon_calc_imaginary_freq_tol(
+    Si_atoms: Atoms,
+    matpes_calculator: PESCalculator,
+) -> None:
+
+    # Initialize QHACalc
+    qha_calc = QHACalc(
+        calculator=matpes_calculator,
+        t_step=50,
+        t_max=1000,
+        scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
+        fmax=0.1,
+        imaginary_freq_tol=0.1,
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
+    )
+
+    result = qha_calc.calc(Si_atoms)
+
+    ind = result["temperatures"].tolist().index(300)
+    assert result["thermal_expansion_coefficients"][ind] == pytest.approx(5.191273165438463e-06, rel=1e-1)
+
+    # Distorted
+    distorted_si_atoms = Si_atoms.copy()
+    distorted_si_atoms.cell += 0.5
+    qha_calc = QHACalc(
+        calculator=matpes_calculator,
+        t_step=50,
+        t_max=1000,
+        scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
+        fmax=100,
+        imaginary_freq_tol=0.1,
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
+    )
+
+    with pytest.raises(ValueError, match="are imaginary"):
+        qha_calc.calc(distorted_si_atoms)
+
+    # Distorted no check
+    distorted_si_atoms = Si_atoms.copy()
+    distorted_si_atoms.cell += 0.5
+    qha_calc = QHACalc(
+        calculator=matpes_calculator,
+        t_step=50,
+        t_max=1000,
+        scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
+        fmax=100,
+        imaginary_freq_tol=None,
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
+    )
+
+    assert qha_calc.calc(distorted_si_atoms)
