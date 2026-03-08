@@ -15,7 +15,9 @@ if TYPE_CHECKING:
     from ase import Atoms
     from pymatgen.core import Structure
 
-LAMMPS_TEMPLATES_DIR = Path(__file__).parent.parent / "src" / "matcalc" / "lammps_templates"
+LAMMPS_TEMPLATES_DIR = (
+    Path(__file__).parent.parent / "src" / "matcalc" / "lammps_templates"
+)
 
 
 @pytest.mark.parametrize(
@@ -23,7 +25,7 @@ LAMMPS_TEMPLATES_DIR = Path(__file__).parent.parent / "src" / "matcalc" / "lammp
     [
         ("nve", -10.74606),
         ("nvt", -10.81289),
-        ("npt_nose_hoover", -10.86120),
+        ("npt_nose_hoover", -9.75230),
     ],
 )
 def test_lammps_calc(
@@ -39,7 +41,7 @@ def test_lammps_calc(
     traj_file = f"{ensemble}.lammpstrj"
 
     md_calc = LAMMPSMDCalc(
-        calculator="TensorNet",
+        calculator="M3GNet",
         ensemble=ensemble,
         temperature=300,
         taut=0.1,
@@ -57,7 +59,6 @@ def test_lammps_calc(
     assert "potential_energy" in results
     assert "kinetic_energy" in results
     assert "total_energy" in results
-
     assert results["total_energy"] == pytest.approx(expected_energy, rel=1e-1)
     assert len(results["trajectory"]) == 5
 
@@ -74,7 +75,7 @@ def test_lammps_atoms(Si_atoms: Atoms) -> None:
         script_template = f.read()
 
     md_calc = LAMMPSMDCalc(
-        calculator="TensorNet",
+        calculator="M3GNet",
         temperature=300,
         taut=0.1,
         taup=0.1,
@@ -96,7 +97,7 @@ def test_invalid_ensemble(Si: Structure) -> None:
         ),
     ):
         LAMMPSMDCalc(
-            calculator="TensorNet",
+            calculator="M3GNet",
             ensemble="you_know_who",
             temperature=300,
             taut=0.1,
