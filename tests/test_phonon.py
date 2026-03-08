@@ -62,9 +62,12 @@ def test_phonon_calc(
     assert thermal_props["heat_capacity"][ind] == pytest.approx(58.42898, rel=1e-1)
     assert thermal_props["entropy"][ind] == pytest.approx(49.37746, rel=1e-1)
     assert thermal_props["free_energy"][ind] == pytest.approx(13.24547, rel=1e-1)
-    assert result["final_structure"].lattice.abc[0] == pytest.approx(6.582143584719512)
-    assert result["final_structure"].lattice.abc[1] == pytest.approx(6.582143799250172)
-    assert result["final_structure"].lattice.abc[2] == pytest.approx(6.5821441137115775)
+    assert result["final_structure"].lattice.abc[0] == pytest.approx(3.291071792359756)
+    assert result["final_structure"].lattice.abc[1] == pytest.approx(3.291071792359756)
+    assert result["final_structure"].lattice.abc[2] == pytest.approx(3.291071792359756)
+    assert result["supercells"][0].lattice.abc[0] == pytest.approx(6.582143584719512)
+    assert result["supercells"][1].lattice.abc[1] == pytest.approx(6.582143584719512)
+    assert result["supercells"][2].lattice.abc[2] == pytest.approx(6.582143584719512)
 
     results = list(phonon_calc.calc_many([Li2O, Li2O]))
     assert len(results) == 2
@@ -100,7 +103,7 @@ def test_phonon_calc_atoms(
     ind = thermal_props["temperatures"].tolist().index(300)
     assert thermal_props["heat_capacity"][ind] == pytest.approx(43.3138042001517, rel=1e-1)
 
-    
+
 def test_phonon_calc_lattice(
     Si_atoms: Atoms,
     matpes_calculator: PESCalculator,
@@ -113,11 +116,12 @@ def test_phonon_calc_lattice(
         t_max=1000,
     )
     result = phonon_calc.calc(Si_atoms)
-    assert result["final_structure"].lattice.abc[0] == pytest.approx(15.3607917348)
-    assert result["final_structure"].lattice.abc[1] == pytest.approx(15.360795977376975)
-    assert result["final_structure"].lattice.abc[2] == pytest.approx(15.360791734871095)
+    assert result["final_structure"].lattice.abc[0] == pytest.approx(3.8401979337)
+    assert result["supercells"][0].lattice.abc[0] == pytest.approx(11.520593801099999)
+    assert result["supercells"][0].lattice.abc[1] == pytest.approx(11.520593801099999)
+    assert result["supercells"][0].lattice.abc[2] == pytest.approx(11.520593801099999)
 
-    
+
 def test_phonon_calc_imaginary_freq_tol(
     Si_atoms: Atoms,
     matpes_calculator: PESCalculator,
