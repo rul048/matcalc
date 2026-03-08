@@ -19,6 +19,8 @@ LAMMPS_TEMPLATES_DIR = (
     Path(__file__).parent.parent / "src" / "matcalc" / "lammps_templates"
 )
 
+import matgl
+
 # set PYG backend for TensorNet
 matgl.set_backend("PYG")
 
