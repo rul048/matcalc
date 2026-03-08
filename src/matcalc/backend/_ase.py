@@ -192,6 +192,7 @@ def run_ase(
     interval: int = 1,
     fmax: float = 0.1,
     cell_filter: Filter = FrechetCellFilter,  # type:ignore[assignment]
+    cell_filter_kwargs: dict | None = None,
 ) -> SimulationResult:
     """
     Run ASE static calculation using the given structure and calculator.
@@ -205,12 +206,13 @@ def run_ase(
     """
     atoms = to_ase_atoms(structure)
     atoms.calc = calculator
+    cell_filter_kwargs = cell_filter_kwargs or {}
     if relax_atoms:
         stream = io.StringIO()
         with contextlib.redirect_stdout(stream):
             obs = TrajectoryObserver(atoms)
             if relax_cell:
-                atoms = cell_filter(atoms)  # type:ignore[operator]
+                atoms = cell_filter(atoms, **cell_filter_kwargs)  # type:ignore[operator]
             opt = get_ase_optimizer(optimizer)(atoms)  # type:ignore[operator]
             opt.attach(obs, interval=interval)
             opt.run(fmax=fmax, steps=max_steps)

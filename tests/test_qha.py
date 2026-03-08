@@ -7,6 +7,7 @@ import os
 from typing import TYPE_CHECKING
 
 import pytest
+from numpy.testing import assert_allclose
 
 from matcalc import QHACalc
 
@@ -118,6 +119,11 @@ def test_qha_calc(
     assert result["bulk_modulus_P"][ind] == pytest.approx(54.25954, rel=1e-1)
     assert result["heat_capacity_P"][ind] == pytest.approx(62.27455, rel=1e-1)
     assert result["gruneisen_parameters"][ind] == pytest.approx(1.688877575687573, rel=1e-1)
+    assert len(result["scaled_structures"]) == len(result["volumes"])
+    scaled_structure_volumes = [scaled_structure.volume for scaled_structure in result["scaled_structures"]]
+    assert_allclose(scaled_structure_volumes, result["volumes"])
+    assert result["volumes"][0] < result["volumes"][-1]
+    assert result["temperatures"][0] < result["temperatures"][-1]
 
     qha_calc_params = inspect.signature(QHACalc).parameters
     # get all keywords starting with write_ and their default values

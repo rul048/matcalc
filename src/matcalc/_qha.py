@@ -242,7 +242,9 @@ class QHACalc(PropCalc):
             structure_in = result["final_structure"]
 
         temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
-        volumes, electronic_energies, free_energies, entropies, heat_capacities = self._collect_properties(structure_in)
+        volumes, electronic_energies, free_energies, entropies, heat_capacities, scaled_structures = (
+            self._collect_properties(structure_in)
+        )
 
         qha = self._create_qha(
             volumes,
@@ -256,9 +258,9 @@ class QHACalc(PropCalc):
 
         self._write_output_files(qha)
 
-        return result | self._generate_output_dict(qha, volumes, electronic_energies, temperatures)  # type: ignore[arg-type]
+        return result | self._generate_output_dict(qha, volumes, electronic_energies, temperatures, scaled_structures)  # type: ignore[arg-type]
 
-    def _collect_properties(self, structure: Structure) -> tuple[list, list, list, list, list]:
+    def _collect_properties(self, structure: Structure) -> tuple[list, list, list, list, list, list]:
         """Helper to collect properties like volumes, electronic energies, and thermal properties.
 
         Args:
@@ -273,16 +275,29 @@ class QHACalc(PropCalc):
         free_energies = []
         entropies = []
         heat_capacities = []
+        scaled_structures = []
         for scale_factor in self.scale_factors:
+            # Apply linear strain
             struct = self._scale_structure(structure, scale_factor)
             volumes.append(struct.volume)
-            phonon_result = self._calculate_thermal_properties(struct)
-            electronic_energies.append(phonon_result["energy"])
+
+            # Relax at fixed volume
+            relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
+                self.relax_calc_kwargs or {}
+            )
+            relax_calc_kwargs["cell_filter_kwargs"] = {"constant_volume": True}
+            relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
+            relaxed_result = relaxer.calc(struct)
+            electronic_energies.append(relaxed_result["energy"])
+            scaled_structures.append(relaxed_result["final_structure"])
+
+            # Calculate thermal properties from phonon calculation
+            phonon_result = self._calculate_thermal_properties(relaxed_result["final_structure"])
             thermal_properties = phonon_result["thermal_properties"]
             free_energies.append(thermal_properties["free_energy"])
             entropies.append(thermal_properties["entropy"])
             heat_capacities.append(thermal_properties["heat_capacity"])
-        return volumes, electronic_energies, free_energies, entropies, heat_capacities
+        return volumes, electronic_energies, free_energies, entropies, heat_capacities, scaled_structures
 
     def _scale_structure(self, structure: Structure, scale_factor: float) -> Structure:
         """Helper to scale the lattice of a structure.
@@ -313,17 +328,9 @@ class QHACalc(PropCalc):
             "t_step": self.t_step,
             "t_max": self.t_max,
             "t_min": self.t_min,
-            "fmax": self.fmax,
-            "optimizer": self.optimizer,
-            "max_steps": self.max_steps,
-            "relax_structure": True,
+            "relax_structure": False,
             "write_phonon": False,
         } | (self.phonon_calc_kwargs or {})
-        # relax_cell=False is mandatory for QHA: merge user's relax_calc_kwargs but
-        # always enforce fixed cell so the volume scan is not collapsed.
-        phonon_calc_kwargs["relax_calc_kwargs"] = (phonon_calc_kwargs.get("relax_calc_kwargs") or {}) | {
-            "relax_cell": False
-        }
         phonon_calc = PhononCalc(
             self.calculator,
             **phonon_calc_kwargs,
@@ -390,7 +397,12 @@ class QHACalc(PropCalc):
             qha.write_gruneisen_temperature(filename=self.write_gruneisen_temperature)
 
     def _generate_output_dict(
-        self, qha: PhonopyQHA, volumes: list, electronic_energies: list, temperatures: list
+        self,
+        qha: PhonopyQHA,
+        volumes: list,
+        electronic_energies: list,
+        temperatures: list,
+        scaled_structures: list[Structure],
     ) -> dict:
         """Helper to generate the output dictionary after QHA calculation.
 
@@ -399,6 +411,7 @@ class QHACalc(PropCalc):
             volumes: List of volumes corresponding to different scale factors.
             electronic_energies: List of electronic energies corresponding to different volumes.
             temperatures: List of temperatures in ascending order (in Kelvin).
+            scaled_structures: List of fixed-volume relaxed structures
 
         Returns:
             Dictionary containing the results of QHA calculation.
@@ -407,6 +420,7 @@ class QHACalc(PropCalc):
             "qha": qha,
             "scale_factors": self.scale_factors,
             "volumes": volumes,
+            "scaled_structures": scaled_structures,
             "electronic_energies": electronic_energies,
             "temperatures": temperatures,
             "thermal_expansion_coefficients": qha.thermal_expansion,
