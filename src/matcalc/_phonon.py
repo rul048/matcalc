@@ -159,6 +159,9 @@ class PhononCalc(PropCalc):
         self.write_total_dos = write_total_dos
         self.write_phonon = write_phonon
 
+        if supercell_matrix and min_length is None:
+            raise ValueError("min_length must be set when supercell_matrix is None.")
+
         # Set default paths for output files.
         for key, val, default_path in (
             ("write_force_constants", self.write_force_constants, "force_constants"),
@@ -199,8 +202,6 @@ class PhononCalc(PropCalc):
         """
         result = super().calc(structure)
         structure_in: Structure = to_pmg_structure(result["final_structure"])
-        if self.supercell_matrix and self.min_length is None:
-            raise ValueError("min_length must be set when supercell_matrix is None.")
 
         if self.relax_structure:
             relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
