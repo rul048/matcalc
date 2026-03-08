@@ -254,17 +254,15 @@ class QHACalc(PropCalc):
             structure_in = result["final_structure"]
 
         temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
-        volumes, electronic_energies, free_energies, entropies, heat_capacities, scaled_structures = (
-            self._collect_properties(structure_in)
-        )
+        properties = self._collect_properties(structure_in)
 
         qha = PhonopyQHA(
-            volumes=volumes,
-            electronic_energies=electronic_energies,
+            volumes=properties["volumes"],
+            electronic_energies=properties["electronic_energies"],
             temperatures=temperatures,
-            free_energy=np.transpose(free_energies),
-            cv=np.transpose(heat_capacities),
-            entropy=np.transpose(entropies),
+            free_energy=np.transpose(properties["free_energies"]),
+            cv=np.transpose(properties["heat_capacities"]),
+            entropy=np.transpose(properties["entropies"]),
             pressure=self.pressure,
             eos=self.eos,
             t_max=self.t_max,
@@ -274,9 +272,9 @@ class QHACalc(PropCalc):
         output_dict = {
             "qha": qha,
             "scale_factors": self.scale_factors,
-            "volumes": volumes,
-            "scaled_structures": scaled_structures,
-            "electronic_energies": electronic_energies,
+            "volumes": properties["volumes"],
+            "scaled_structures": properties["scaled_structures"],
+            "electronic_energies": properties["electronic_energies"],
             "temperatures": temperatures,
             "thermal_expansion_coefficients": qha.thermal_expansion,
             "gibbs_free_energies": qha.gibbs_temperature,
@@ -287,7 +285,7 @@ class QHACalc(PropCalc):
 
         return result | output_dict
 
-    def _collect_properties(self, structure: Structure) -> tuple[list, list, list, list, list, list]:
+    def _collect_properties(self, structure: Structure) -> dict[str, list]:
         """Helper to collect properties like volumes, electronic energies, and thermal properties.
 
         Args:
@@ -324,7 +322,14 @@ class QHACalc(PropCalc):
             free_energies.append(thermal_properties["free_energy"])
             entropies.append(thermal_properties["entropy"])
             heat_capacities.append(thermal_properties["heat_capacity"])
-        return volumes, electronic_energies, free_energies, entropies, heat_capacities, scaled_structures
+        return {
+            "volumes": volumes,
+            "electronic_energies": electronic_energies,
+            "free_energies": free_energies,
+            "entropies": entropies,
+            "heat_capacities": heat_capacities,
+            "scaled_structures": scaled_structures,
+        }
 
     def _scale_structure(self, structure: Structure, scale_factor: float) -> Structure:
         """Helper to scale the lattice of a structure.
