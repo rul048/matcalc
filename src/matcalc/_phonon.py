@@ -159,7 +159,7 @@ class PhononCalc(PropCalc):
         self.write_total_dos = write_total_dos
         self.write_phonon = write_phonon
 
-        if supercell_matrix and min_length is None:
+        if supercell_matrix is None and min_length is None:
             raise ValueError("min_length must be set when supercell_matrix is None.")
 
         # Set default paths for output files.
