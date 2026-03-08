@@ -15,9 +15,7 @@ if TYPE_CHECKING:
     from ase import Atoms
     from pymatgen.core import Structure
 
-LAMMPS_TEMPLATES_DIR = (
-    Path(__file__).parent.parent / "src" / "matcalc" / "lammps_templates"
-)
+LAMMPS_TEMPLATES_DIR = Path(__file__).parent.parent / "src" / "matcalc" / "lammps_templates"
 
 
 @pytest.mark.parametrize(
@@ -93,7 +91,7 @@ def test_invalid_ensemble(Si: Structure) -> None:
         ValueError,
         match=(
             "The specified ensemble is not supported, choose from 'nve', 'nvt',"
-            " 'nvt_nose_hoover', 'npt', 'npt_nose_hoover'."
+            r" 'nvt_nose_hoover', 'npt', 'npt_nose_hoover'."
         ),
     ):
         LAMMPSMDCalc(

@@ -8,6 +8,7 @@ from __future__ import annotations
 import contextlib
 import io
 import pickle
+import warnings
 from dataclasses import dataclass, field
 from inspect import isclass
 from typing import TYPE_CHECKING
@@ -214,6 +215,8 @@ def run_ase(
             opt = get_ase_optimizer(optimizer)(atoms)  # type:ignore[operator]
             opt.attach(obs, interval=interval)
             opt.run(fmax=fmax, steps=max_steps)
+            if opt.nsteps >= max_steps:
+                warnings.warn("Maximum steps reached in structure relaxation.", UserWarning, stacklevel=2)
             if traj_file is not None:
                 obs()
                 obs.save(traj_file)
