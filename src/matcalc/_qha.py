@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -56,11 +57,14 @@ class QHACalc(PropCalc):
     :ivar scale_factors: List of scale factors for lattice scaling.
     :type scale_factors: Sequence[float]
     :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection
-        in THz. Passed through to the internal PhononCalc instances. If set
-        to a float value, the calculator will raise a ValueError when
-        imaginary frequencies with magnitude exceeding this threshold are
-        found. A value of None (default) disables the check.
+        in THz. Passed through to the internal PhononCalc instances. If set to a float value, the
+        calculator will raise a ValueError when frequencies have a value below this threshold. A value of
+        None (default) disables the check.
     :type imaginary_freq_tol: float | None
+    :ivar exclude_imaginaries_from_fit: If there is an imaginary frequency with a value
+        below imaginary_freq_tol, then exclude it from the EOS fit if True; otherwise,
+        if False then include in fit.
+    :type exclude_imaginaries_from_fit: bool
     :ivar write_helmholtz_volume: Path or boolean to control saving Helmholtz free energy vs. volume data.
     :type write_helmholtz_volume: bool | str | Path
     :ivar write_volume_temperature: Path or boolean to control saving volume vs. temperature data.
@@ -98,6 +102,7 @@ class QHACalc(PropCalc):
         phonon_calc_kwargs: dict | None = None,
         scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01)),
         imaginary_freq_tol: float | None = None,
+        exclude_imaginaries_from_fit: bool = False,
         write_helmholtz_volume: bool | str | Path = False,
         write_volume_temperature: bool | str | Path = False,
         write_thermal_expansion: bool | str | Path = False,
@@ -134,9 +139,11 @@ class QHACalc(PropCalc):
         :param scale_factors: A sequence of scale factors for volume scaling during
             thermodynamic and phononic calculations.
         :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz.
-            Passed through to internal PhononCalc instances. If a positive float, a ValueError
-            is raised when any imaginary frequency with magnitude exceeding this value is found.
-            Defaults to None, which means no check will be carried out.
+            Passed through to internal PhononCalc instances. If a frequency is below this value,
+            it is flagged as imaginary. Defaults to None, such that all checks are ignored.
+        :param exclude_imaginaries_from_fit: If there is an imaginary frequency with magnitude
+            below imaginary_freq_tol, then exclude it from the EOS fit if True; otherwise,
+            if False then include in fit.
         :param write_helmholtz_volume: Path, boolean, or string to indicate whether and where
             to save Helmholtz energy as a function of volume.
         :param write_volume_temperature: Path, boolean, or string to indicate whether and where
@@ -169,6 +176,7 @@ class QHACalc(PropCalc):
         self.phonon_calc_kwargs = phonon_calc_kwargs
         self.scale_factors = scale_factors
         self.imaginary_freq_tol = imaginary_freq_tol
+        self.exclude_imaginaries_from_fit = exclude_imaginaries_from_fit
         self.write_helmholtz_volume = write_helmholtz_volume
         self.write_volume_temperature = write_volume_temperature
         self.write_thermal_expansion = write_thermal_expansion
@@ -291,7 +299,6 @@ class QHACalc(PropCalc):
         for scale_factor in self.scale_factors:
             # Apply linear strain
             struct = self._scale_structure(structure, scale_factor)
-            volumes.append(struct.volume)
 
             # Relax at fixed volume
             relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
@@ -300,12 +307,26 @@ class QHACalc(PropCalc):
             relax_calc_kwargs["cell_filter_kwargs"] = {"constant_volume": True}
             relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
             relaxed_result = relaxer.calc(struct)
-            electronic_energies.append(relaxed_result["energy"])
-            scaled_structures.append(relaxed_result["final_structure"])
 
             # Calculate thermal properties from phonon calculation
             phonon_result = self._calculate_thermal_properties(relaxed_result["final_structure"])
             thermal_properties = phonon_result["thermal_properties"]
+
+            # Skip contribution if there are imaginaries
+            if (
+                self.imaginary_freq_tol is not None
+                and np.min(phonon_result["frequencies"]) < self.imaginary_freq_tol
+                and self.exclude_imaginaries_from_fit
+            ):
+                warnings.warn(
+                    f"Excluding {scale_factor} scale factor from fit due to imaginary modes.", UserWarning, stacklevel=2
+                )
+                continue
+
+            # Store results
+            volumes.append(struct.volume)
+            electronic_energies.append(relaxed_result["energy"])
+            scaled_structures.append(relaxed_result["final_structure"])
             free_energies.append(thermal_properties["free_energy"])
             entropies.append(thermal_properties["entropy"])
             heat_capacities.append(thermal_properties["heat_capacity"])
@@ -343,6 +364,7 @@ class QHACalc(PropCalc):
             "relax_structure": False,
             "write_phonon": False,
             "imaginary_freq_tol": self.imaginary_freq_tol,
+            "error_on_imaginaries": not self.exclude_imaginaries_from_fit,
         } | (self.phonon_calc_kwargs or {})
         phonon_calc = PhononCalc(
             self.calculator,
