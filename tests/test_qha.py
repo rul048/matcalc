@@ -216,7 +216,8 @@ def test_phonon_calc_imaginary_freq_tol(
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         fmax=0.1,
         imaginary_freq_tol=-0.1,
-        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2)), "on_imaginary_modes": "error"},
+        on_imaginary_modes="error",
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
     )
 
     result = qha_calc.calc(Si_atoms)
@@ -236,7 +237,8 @@ def test_phonon_calc_imaginary_freq_tol(
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         fmax=100,
         imaginary_freq_tol=-0.1,
-        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2)), "on_imaginary_modes": "error"},
+        on_imaginary_modes="error",
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
     )
 
     with pytest.raises(ValueError, match="modes are imaginary"):
@@ -252,7 +254,8 @@ def test_phonon_calc_imaginary_freq_tol(
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         fmax=100,
         imaginary_freq_tol=0.0,
-        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2)), "on_imaginary_modes": "ignore"},
+        on_imaginary_modes="ignore",
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
     )
     assert qha_calc.calc(distorted_si_atoms)
     assert len(result["volumes"]) == 7

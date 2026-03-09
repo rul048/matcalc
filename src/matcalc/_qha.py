@@ -42,23 +42,27 @@ class QHACalc(PropCalc):
     :ivar t_min: Minimum temperature in Kelvin.
     :type t_min: float
     :type pressure: float | None
+    :ivar scale_factors: List of scale factors for lattice scaling.
+    :type scale_factors: Sequence[float]
+    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
+            a value below imaginary_freq_tol, it is considered imaginary.
+    :type imaginary_freq_tol: float
+    :ivar on_imaginary_modes: If there is an frequency with a value below
+        imaginary_freq_tol, then either raise a ValueError, UserWarning, or
+        ignore.
+    :ivar eos: Equation of state used for fitting energy vs. volume data.
+    :type eos: Literal["vinet", "birch_murnaghan", "murnaghan"]
     :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
     :type fmax: float
     :ivar optimizer: Type of optimizer used for structural relaxation.
     :type optimizer: str
-    :ivar eos: Equation of state used for fitting energy vs. volume data.
-    :type eos: Literal["vinet", "birch_murnaghan", "murnaghan"]
     :ivar relax_structure: Whether to perform structure relaxation before phonon calculations.
     :type relax_structure: bool
     :ivar relax_calc_kwargs: Additional keyword arguments for structure relaxation calculations.
     :type relax_calc_kwargs: dict | None
     :ivar phonon_calc_kwargs: Additional keyword arguments for phonon calculations.
     :type phonon_calc_kwargs: dict | None
-    :ivar scale_factors: List of scale factors for lattice scaling.
-    :type scale_factors: Sequence[float]
-    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
-            a value below imaginary_freq_tol, it is considered imaginary.
-    :type imaginary_freq_tol: float
+    :type on_imaginary_modes: Literal["error", "ignore", "warn"]
     :ivar write_helmholtz_volume: Path or boolean to control saving Helmholtz free energy vs. volume data.
     :type write_helmholtz_volume: bool | str | Path
     :ivar write_volume_temperature: Path or boolean to control saving volume vs. temperature data.
@@ -87,15 +91,16 @@ class QHACalc(PropCalc):
         t_max: float = 1000,
         t_min: float = 0,
         pressure: None | float = None,
+        scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01)),
+        imaginary_freq_tol: float = 0.0,
+        on_imaginary_modes: Literal["error", "ignore", "warn"] = "ignore",
+        eos: Literal["vinet", "birch_murnaghan", "murnaghan"] = "vinet",
         fmax: float = 1e-5,
         max_steps: int = 5000,
         optimizer: str = "FIRE",
-        eos: Literal["vinet", "birch_murnaghan", "murnaghan"] = "vinet",
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
-        scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01)),
-        imaginary_freq_tol: float = 0.0,
         write_helmholtz_volume: bool | str | Path = False,
         write_volume_temperature: bool | str | Path = False,
         write_thermal_expansion: bool | str | Path = False,
@@ -117,22 +122,25 @@ class QHACalc(PropCalc):
         :param t_max: Maximum temperature for the calculations, given in units of K.
         :param t_min: Minimum temperature for the calculations, given in units of K.
         :param pressure: Pressure to calculate thermochemistry at, given in units of GPa.
-        :param fmax: Maximum force convergence criterion for structure relaxation, in force units.
-        :param max_steps: The maximum number of optimization steps during the relaxation.
-        :param optimizer: Name of the optimizer to use for structure optimization, default is
-            "FIRE".
-        :param eos: Equation of state to use for calculating energy vs. volume relationships.
-            Default is "vinet".
-        :param relax_structure: A boolean flag indicating whether the atomic structure should be
-            relaxed as part of the computation workflow.
-        :param relax_calc_kwargs: A dictionary containing additional keyword arguments to pass to
-            the relax calculation.
-        :param phonon_calc_kwargs: A dictionary containing additional parameters to pass to the
-            phonon calculation routine.
         :param scale_factors: A sequence of scale factors for volume scaling during
             thermodynamic and phononic calculations.
         :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
             a value below imaginary_freq_tol, it is considered imaginary.
+        :param on_imaginary_modes: If there is an frequency with a value below imaginary_freq_tol, then
+            raise a ValueError ("error"), UserWarning ("warn"), or do nothing ("ignore").
+        :param eos: Equation of state to use for calculating energy vs. volume relationships.
+            Default is "vinet".
+        :param fmax: Maximum force convergence criterion for structure relaxation, in force units.
+        :param max_steps: The maximum number of optimization steps during the relaxation.
+        :param optimizer: Name of the optimizer to use for structure optimization, default is
+            "FIRE".
+        :param relax_structure: A boolean flag indicating whether the initial atomic structure should be
+            relaxed as part of the computation workflow. Note that subsequent relaxations on the
+            volume-scaled structures will be carried out regardless.
+        :param relax_calc_kwargs: A dictionary containing additional keyword arguments to pass to
+            all relaxations in the workflow.
+        :param phonon_calc_kwargs: A dictionary containing additional parameters to pass to the
+            phonon calculation routine.
         :param write_helmholtz_volume: Path, boolean, or string to indicate whether and where
             to save Helmholtz energy as a function of volume.
         :param write_volume_temperature: Path, boolean, or string to indicate whether and where
@@ -156,15 +164,16 @@ class QHACalc(PropCalc):
         self.t_max = t_max
         self.t_min = t_min
         self.pressure = pressure
+        self.scale_factors = scale_factors
+        self.imaginary_freq_tol = imaginary_freq_tol
+        self.on_imaginary_modes = on_imaginary_modes
+        self.eos = eos
         self.fmax = fmax
         self.max_steps = max_steps
         self.optimizer = optimizer
-        self.eos = eos
         self.relax_structure = relax_structure
         self.relax_calc_kwargs = relax_calc_kwargs
         self.phonon_calc_kwargs = phonon_calc_kwargs
-        self.scale_factors = scale_factors
-        self.imaginary_freq_tol = imaginary_freq_tol
         self.write_helmholtz_volume = write_helmholtz_volume
         self.write_volume_temperature = write_volume_temperature
         self.write_thermal_expansion = write_thermal_expansion
@@ -359,6 +368,7 @@ class QHACalc(PropCalc):
             "relax_structure": False,
             "write_phonon": False,
             "imaginary_freq_tol": self.imaginary_freq_tol,
+            "on_imaginary_modes": self.on_imaginary_modes,
         } | (self.phonon_calc_kwargs or {})
         phonon_calc = PhononCalc(
             self.calculator,
