@@ -185,8 +185,8 @@ def test_phonon_calc_imaginary_freq_tol(
         calculator=matpes_calculator,
         supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
         fmax=100.0,
-        imaginary_freq_tol=None,
-        on_imaginary_modes="error",
+        imaginary_freq_tol=0.0,
+        on_imaginary_modes="ignore",
     )
     result = phonon_calc.calc(distorted_si_atoms)
     assert "frequencies" in result
