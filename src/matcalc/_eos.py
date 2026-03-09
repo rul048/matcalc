@@ -142,13 +142,16 @@ class EOSCalc(PropCalc):
             structure_in = result["final_structure"]
 
         volumes, energies = [], []
+
+        relax_calc_kwargs = {
+            "optimizer": self.optimizer,
+            "fmax": self.fmax,
+            "max_steps": self.max_steps,
+            "cell_filter_kwargs": {"constant_volume": True},
+        } | (self.relax_calc_kwargs or {})
         relaxer = RelaxCalc(
             self.calculator,
-            optimizer=self.optimizer,
-            fmax=self.fmax,
-            max_steps=self.max_steps,
-            relax_cell=False,
-            **(self.relax_calc_kwargs or {}),
+            **relax_calc_kwargs,
         )
 
         temp_structure = to_pmg_structure(structure_in).copy()

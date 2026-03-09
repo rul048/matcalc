@@ -307,10 +307,12 @@ class QHACalc(PropCalc):
             volumes.append(struct.volume)
 
             # Relax at fixed volume
-            relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
-                self.relax_calc_kwargs or {}
-            )
-            relax_calc_kwargs["cell_filter_kwargs"] = {"constant_volume": True}
+            relax_calc_kwargs = {
+                "optimizer": self.optimizer,
+                "fmax": self.fmax,
+                "max_steps": self.max_steps,
+                "cell_filter_kwargs": {"constant_volume": True},
+            } | (self.relax_calc_kwargs or {})
             relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
             relaxed_result = relaxer.calc(struct)
             electronic_energies.append(relaxed_result["energy"])
