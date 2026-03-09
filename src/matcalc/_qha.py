@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from phonopy import PhonopyQHA
+from tqdm import tqdm
 
 from ._base import PropCalc
 from ._phonon import PhononCalc
@@ -301,7 +302,7 @@ class QHACalc(PropCalc):
         entropies = []
         heat_capacities = []
         scaled_structures = []
-        for scale_factor in self.scale_factors:
+        for scale_factor in tqdm(self.scale_factors, desc="Performing analysis on scale factors"):
             # Apply linear strain
             struct = self._scale_structure(structure, scale_factor)
             volumes.append(struct.volume)
