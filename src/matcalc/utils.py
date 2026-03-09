@@ -183,10 +183,19 @@ class PESCalculator(Calculator):
         :rtype: Calculator
         """
         import matgl
-        from matgl.ext.ase import PESCalculator as PESCalculator_
 
         model = matgl.load_model(path=path)  # type:ignore[arg-type]
         kwargs.setdefault("stress_unit", "eV/A3")
+
+        if path in (
+            "TensorNet-MatPES-PBE-v2025.1-PES",
+            "TensorNet-MatPES-r2SCAN-v2025.1-PES",
+        ):
+            from matgl.ext._ase_pyg import PESCalculator as PESCalculator_pyg
+
+            return PESCalculator_pyg(potential=model, **kwargs)
+        from matgl.ext.ase import PESCalculator as PESCalculator_
+
         return PESCalculator_(potential=model, **kwargs)
 
     @staticmethod
@@ -237,7 +246,10 @@ class PESCalculator(Calculator):
 
     @staticmethod
     def load_nnp(
-        input_filename: str | Path, scaling_filename: str | Path, weights_filenames: list, **kwargs: Any
+        input_filename: str | Path,
+        scaling_filename: str | Path,
+        weights_filenames: list,
+        **kwargs: Any,
     ) -> Calculator:
         """
         Loads a neural network potential (NNP) from specified configuration files and
@@ -288,7 +300,8 @@ class PESCalculator(Calculator):
 
     @staticmethod
     def load_ace(  # pragma: no cover
-        basis_set: str | Path | ACEBBasisSet | ACECTildeBasisSet | BBasisConfiguration, **kwargs: Any
+        basis_set: str | Path | ACEBBasisSet | ACECTildeBasisSet | BBasisConfiguration,
+        **kwargs: Any,
     ) -> Calculator:
         """
         Load an ACE (Atomic Cluster Expansion) calculator using the specified basis set.

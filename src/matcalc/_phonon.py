@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
 import phonopy
 from phonopy.file_IO import write_FORCE_CONSTANTS as write_force_constants
 from pymatgen.io.phonopy import get_phonopy_structure, get_pmg_structure
@@ -40,9 +41,13 @@ class PhononCalc(PropCalc):
     :ivar atom_disp: Magnitude of atomic displacements for phonon
         calculations.
     :type atom_disp: float
+    :ivar min_length: Minimum length of lattice dimensions, used to
+        automatically set supercell_matrix.
+    :type min_length: float | None
     :ivar supercell_matrix: Array defining the transformation matrix to
-        construct supercells for phonon calculations.
-    :type supercell_matrix: ArrayLike
+        construct supercells for phonon calculations. Takes precedence
+        over min_length.
+    :type supercell_matrix: ArrayLike | None
     :ivar t_step: Temperature step for thermal property calculations in
         Kelvin.
     :type t_step: float
@@ -63,6 +68,13 @@ class PhononCalc(PropCalc):
     :ivar relax_calc_kwargs: Optional dictionary containing additional
         arguments for the structural relaxation calculation.
     :type relax_calc_kwargs: dict | None
+    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection
+        in THz. If set to a float value, the calculator will raise a
+        ValueError when imaginary frequencies with magnitude exceeding this
+        threshold are found. Imaginary frequencies are represented as
+        negative values in phonopy. A value of None (default) disables
+        the check.
+    :type imaginary_freq_tol: float | None
     :ivar write_force_constants: Path, boolean, or string specifying whether
         to write the calculated force constants to an output file, and the
         path or name of the file if applicable.
@@ -86,14 +98,17 @@ class PhononCalc(PropCalc):
         calculator: Calculator | str,
         *,
         atom_disp: float = 0.015,
-        supercell_matrix: ArrayLike = ((2, 0, 0), (0, 2, 0), (0, 0, 2)),
+        min_length: float | None = 20.0,
+        supercell_matrix: ArrayLike | None = None,
         t_step: float = 10,
         t_max: float = 1000,
         t_min: float = 0,
-        fmax: float = 0.05,
+        fmax: float = 1e-5,
+        max_steps: int = 5000,
         optimizer: str = "FIRE",
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
+        imaginary_freq_tol: float | None = None,
         write_force_constants: bool | str | Path = False,
         write_band_structure: bool | str | Path = False,
         write_total_dos: bool | str | Path = False,
@@ -106,14 +121,20 @@ class PhononCalc(PropCalc):
 
         :param calculator: The calculator object or string name specifying the calculation backend to use.
         :param atom_disp: Atom displacement to be used for finite difference calculation of force constants.
-        :param supercell_matrix: Transformation matrix to define the supercell for the calculation.
+        :param min_length: Minimum length of lattice dimensions, used to automatically set supercell_matrix.
+        :param supercell_matrix: Transformation matrix to define the supercell for the calculation. Takes
+            precedence over min_length
         :param t_step: Temperature step for thermal property calculations.
         :param t_max: Maximum temperature for thermal property calculations.
         :param t_min: Minimum temperature for thermal property calculations.
         :param fmax: Maximum force during structure relaxation, used as a convergence criterion.
+        :param max_steps: The maximum number of optimization steps to perform during the relaxation process.
         :param optimizer: Name of the optimization algorithm for structural relaxation.
         :param relax_structure: Flag to indicate whether structure relaxation should be performed before calculations.
         :param relax_calc_kwargs: Additional keyword arguments for relaxation phase calculations.
+        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz.
+            If a positive float, a ValueError is raised when any imaginary frequency with
+            magnitude exceeding this value is found. Defaults to None (no check).
         :param write_force_constants: File path or boolean flag to write force constants.
             Defaults to "force_constants".
         :param write_band_structure: File path or boolean flag to write band structure data.
@@ -124,18 +145,24 @@ class PhononCalc(PropCalc):
         """
         self.calculator = calculator  # type: ignore[assignment]
         self.atom_disp = atom_disp
+        self.min_length = min_length
         self.supercell_matrix = supercell_matrix
         self.t_step = t_step
         self.t_max = t_max
         self.t_min = t_min
         self.fmax = fmax
+        self.max_steps = max_steps
         self.optimizer = optimizer
         self.relax_structure = relax_structure
         self.relax_calc_kwargs = relax_calc_kwargs
+        self.imaginary_freq_tol = imaginary_freq_tol
         self.write_force_constants = write_force_constants
         self.write_band_structure = write_band_structure
         self.write_total_dos = write_total_dos
         self.write_phonon = write_phonon
+
+        if supercell_matrix is None and min_length is None:
+            raise ValueError("min_length must be set when supercell_matrix is None.")
 
         # Set default paths for output files.
         for key, val, default_path in (
@@ -176,25 +203,48 @@ class PhononCalc(PropCalc):
         }
         """
         result = super().calc(structure)
-        structure_in: Structure = result["final_structure"]
+        structure_in: Structure = to_pmg_structure(result["final_structure"])
 
         if self.relax_structure:
-            relaxer = RelaxCalc(
-                self.calculator, fmax=self.fmax, optimizer=self.optimizer, **(self.relax_calc_kwargs or {})
+            relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
+                self.relax_calc_kwargs or {}
             )
+            relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
             result |= relaxer.calc(structure_in)
             structure_in = result["final_structure"]
-        cell = get_phonopy_structure(to_pmg_structure(structure_in))
-        phonon = phonopy.Phonopy(cell, self.supercell_matrix)  # type: ignore[arg-type]
+
+        cell = get_phonopy_structure(structure_in)
+        if self.supercell_matrix:
+            supercell_matrix = np.array(self.supercell_matrix, dtype=int)
+        else:
+            supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure_in.lattice.abc)).astype(int))
+
+        phonon = phonopy.Phonopy(cell, supercell_matrix=supercell_matrix)
         phonon.generate_displacements(distance=self.atom_disp)
-        disp_supercells = phonon.supercells_with_displacements
-        phonon.forces = [  # type: ignore[assignment]
-            run_pes_calc(get_pmg_structure(supercell), self.calculator).forces
-            for supercell in disp_supercells  # type:ignore[union-attr]
+        disp_supercells = [
+            get_pmg_structure(supercell)
+            for supercell in phonon.supercells_with_displacements  # type:ignore[union-attr]
             if supercell is not None
         ]
+        phonon.forces = [run_pes_calc(supercell, self.calculator).forces for supercell in disp_supercells]
         phonon.produce_force_constants()
         phonon.run_mesh()
+        mesh_dict_results = phonon.get_mesh_dict()
+        frequencies = mesh_dict_results["frequencies"]
+
+        if self.imaginary_freq_tol is not None:
+            # In phonopy, imaginary frequencies are represented as negative values.
+            imag_freq_mask = frequencies < -self.imaginary_freq_tol
+            n_freqs = len(frequencies)
+            if np.any(imag_freq_mask):
+                n_imag = np.sum(imag_freq_mask)
+                min_mode = np.min(frequencies)
+                raise ValueError(
+                    f"{n_imag}/{n_freqs} are imaginary (below -{self.imaginary_freq_tol:.4f} THz). "
+                    f"Most negative: {min_mode:.4f} THz. This indicates a dynamically unstable structure. "
+                    f"Thermal properties may not be reliable."
+                )
+
         phonon.run_thermal_properties(t_step=self.t_step, t_max=self.t_max, t_min=self.t_min)
         if self.write_force_constants:
             write_force_constants(phonon.force_constants, filename=self.write_force_constants)  # type: ignore[arg-type]
@@ -204,4 +254,9 @@ class PhononCalc(PropCalc):
             phonon.auto_total_dos(write_dat=True, filename=self.write_total_dos)
         if self.write_phonon:
             phonon.save(filename=self.write_phonon)  # type: ignore[arg-type]
-        return result | {"phonon": phonon, "thermal_properties": phonon.get_thermal_properties_dict()}
+        return result | {
+            "phonon": phonon,
+            "thermal_properties": phonon.get_thermal_properties_dict(),
+            "frequencies": frequencies,
+            "disp_supercells": disp_supercells,
+        }

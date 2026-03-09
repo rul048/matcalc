@@ -173,6 +173,7 @@ class NEBCalc(PropCalc):
         interval: int = 1,
         climb: bool = True,
         fmax: float = 0.1,
+        method: str = "improvedtangent",
         max_steps: int = 1000,
         **kwargs: Any,
     ) -> None:
@@ -199,6 +200,7 @@ class NEBCalc(PropCalc):
         self.climb = climb
         self.optimizer = get_ase_optimizer(optimizer)
         self.fmax = fmax
+        self.method = method
         self.max_steps = max_steps
         self.kwargs = kwargs
 
@@ -258,7 +260,7 @@ class NEBCalc(PropCalc):
             atoms.calc = self.calculator
             images.append(atoms)
 
-        self.neb = NEB(images, climb=self.climb, allow_shared_calculator=True, **self.kwargs)
+        self.neb = NEB(images, climb=self.climb, method=self.method, allow_shared_calculator=True, **self.kwargs)
         optimizer = self.optimizer(self.neb)  # type:ignore[operator]
         if self.traj_folder is not None:
             os.makedirs(self.traj_folder, exist_ok=True)
