@@ -72,7 +72,7 @@ class PhononCalc(PropCalc):
     :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in
         THz. If a frequency is found with a value below imaginary_freq_tol,
         it is considered imaginary.
-    :type imaginary_freq_tol: float | None
+    :type imaginary_freq_tol: float
     :ivar on_imaginary_modes: If there is an frequency with a value below
         imaginary_freq_tol, then either raise a ValueError, UserWarning, or
         ignore.
@@ -111,7 +111,7 @@ class PhononCalc(PropCalc):
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
         imaginary_freq_tol: float = 0.0,
-        on_imaginary_modes: Literal["error", "ignore", "warn"] = "error",
+        on_imaginary_modes: Literal["error", "ignore", "warn"] = "ignore",
         write_force_constants: bool | str | Path = False,
         write_band_structure: bool | str | Path = False,
         write_total_dos: bool | str | Path = False,

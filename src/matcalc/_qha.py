@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -58,8 +57,8 @@ class QHACalc(PropCalc):
     :ivar scale_factors: List of scale factors for lattice scaling.
     :type scale_factors: Sequence[float]
     :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
-        a value below imaginary_freq_tol, a ValueError is raised. Defaults to None (no check).
-    :type imaginary_freq_tol: float | None
+            a value below imaginary_freq_tol, it is considered imaginary.
+    :type imaginary_freq_tol: float
     :ivar write_helmholtz_volume: Path or boolean to control saving Helmholtz free energy vs. volume data.
     :type write_helmholtz_volume: bool | str | Path
     :ivar write_volume_temperature: Path or boolean to control saving volume vs. temperature data.
@@ -96,7 +95,7 @@ class QHACalc(PropCalc):
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
         scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01)),
-        imaginary_freq_tol: float | None = None,
+        imaginary_freq_tol: float = 0.0,
         write_helmholtz_volume: bool | str | Path = False,
         write_volume_temperature: bool | str | Path = False,
         write_thermal_expansion: bool | str | Path = False,
@@ -132,9 +131,8 @@ class QHACalc(PropCalc):
             phonon calculation routine.
         :param scale_factors: A sequence of scale factors for volume scaling during
             thermodynamic and phononic calculations.
-        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a
-            frequency is found with a value below imaginary_freq_tol, a ValueError is raised.
-            Defaults to None (no check).
+        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
+            a value below imaginary_freq_tol, it is considered imaginary.
         :param write_helmholtz_volume: Path, boolean, or string to indicate whether and where
             to save Helmholtz energy as a function of volume.
         :param write_volume_temperature: Path, boolean, or string to indicate whether and where
@@ -320,7 +318,6 @@ class QHACalc(PropCalc):
             free_energies.append(thermal_properties["free_energy"])
             entropies.append(thermal_properties["entropy"])
             heat_capacities.append(thermal_properties["heat_capacity"])
-
         return {
             "volumes": volumes,
             "electronic_energies": electronic_energies,
