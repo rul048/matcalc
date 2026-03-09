@@ -143,7 +143,7 @@ def test_phonon_calc_imaginary_freq_tol(
         supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
         fmax=0.1,
         imaginary_freq_tol=-0.1,
-        error_on_imaginaries=True,
+        on_imaginary_modes="error",
     )
     result = phonon_calc.calc(Si_atoms)
     assert "frequencies" in result
@@ -158,7 +158,7 @@ def test_phonon_calc_imaginary_freq_tol(
         supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
         fmax=100.0,
         imaginary_freq_tol=-0.1,
-        error_on_imaginaries=True,
+        on_imaginary_modes="error",
     )
     with pytest.raises(ValueError, match="modes are imaginary"):
         phonon_calc.calc(distorted_si_atoms)
@@ -172,7 +172,7 @@ def test_phonon_calc_imaginary_freq_tol(
         supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
         fmax=100.0,
         imaginary_freq_tol=-0.1,
-        error_on_imaginaries=False,
+        on_imaginary_modes="warn",
     )
     with pytest.warns(UserWarning, match="modes are imaginary"):
         phonon_calc.calc(distorted_si_atoms)
@@ -186,7 +186,7 @@ def test_phonon_calc_imaginary_freq_tol(
         supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
         fmax=100.0,
         imaginary_freq_tol=None,
-        error_on_imaginaries=True,
+        on_imaginary_modes="error",
     )
     result = phonon_calc.calc(distorted_si_atoms)
     assert "frequencies" in result

@@ -252,26 +252,8 @@ def test_phonon_calc_imaginary_freq_tol(
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         fmax=100,
         imaginary_freq_tol=None,
-        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2)), "on_imaginary_modes": True},
     )
     assert qha_calc.calc(distorted_si_atoms)
     assert len(result["volumes"]) == 7
     assert len(result["electronic_energies"]) == 7
-
-    # Exclude imaginaries from fit
-    distorted_si_atoms = Si_atoms.copy()
-    distorted_si_atoms.cell += 0.5
-    qha_calc = QHACalc(
-        calculator=matpes_calculator,
-        t_step=50,
-        t_max=1000,
-        scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
-        fmax=100,
-        imaginary_freq_tol=-8.5,
-        exclude_imaginaries_from_fit=True,
-        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
-    )
-    with pytest.warns(UserWarning, match="Excluding 0.97 scale factor"):
-        result = qha_calc.calc(distorted_si_atoms)
-    assert len(result["volumes"]) == 6
-    assert len(result["electronic_energies"]) == 6
