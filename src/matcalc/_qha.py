@@ -256,11 +256,6 @@ class QHACalc(PropCalc):
             relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
                 self.relax_calc_kwargs or {}
             )
-            if self.allow_shape_change:
-                relax_calc_kwargs["relax_cell"] = True
-                relax_calc_kwargs["cell_filter_kwargs"] = {"constant_volume": True}
-            else:
-                relax_calc_kwargs["relax_cell"] = False
             relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
             result |= relaxer.calc(structure_in)
             structure_in = result["final_structure"]
@@ -319,12 +314,14 @@ class QHACalc(PropCalc):
             volumes.append(struct.volume)
 
             # Relax at fixed volume
-            relax_calc_kwargs = {
-                "optimizer": self.optimizer,
-                "fmax": self.fmax,
-                "max_steps": self.max_steps,
-                "relax_cell": False,
-            } | (self.relax_calc_kwargs or {})
+            relax_calc_kwargs = {"optimizer": self.optimizer, "fmax": self.fmax, "max_steps": self.max_steps} | (
+                self.relax_calc_kwargs or {}
+            )
+            if self.allow_shape_change:
+                relax_calc_kwargs["relax_cell"] = True
+                relax_calc_kwargs["cell_filter_kwargs"] = {"constant_volume": True}
+            else:
+                relax_calc_kwargs["relax_cell"] = False
             relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
             relaxed_result = relaxer.calc(struct)
             electronic_energies.append(relaxed_result["energy"])
