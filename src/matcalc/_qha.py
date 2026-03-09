@@ -311,7 +311,7 @@ class QHACalc(PropCalc):
                 "optimizer": self.optimizer,
                 "fmax": self.fmax,
                 "max_steps": self.max_steps,
-                "cell_filter_kwargs": {"constant_volume": True},
+                "relax_cell": False,
             } | (self.relax_calc_kwargs or {})
             relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
             relaxed_result = relaxer.calc(struct)

@@ -147,7 +147,7 @@ class EOSCalc(PropCalc):
             "optimizer": self.optimizer,
             "fmax": self.fmax,
             "max_steps": self.max_steps,
-            "cell_filter_kwargs": {"constant_volume": True},
+            "relax_cell": False,
         } | (self.relax_calc_kwargs or {})
         relaxer = RelaxCalc(
             self.calculator,
