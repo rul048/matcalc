@@ -208,7 +208,7 @@ def test_phonon_calc_imaginary_freq_tol(
     matpes_calculator: PESCalculator,
 ) -> None:
 
-    # Initialize QHACalc
+    # Initialize QHACalc and ensure no imaginaries
     qha_calc = QHACalc(
         calculator=matpes_calculator,
         t_step=50,
@@ -216,7 +216,7 @@ def test_phonon_calc_imaginary_freq_tol(
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         fmax=0.1,
         imaginary_freq_tol=-0.1,
-        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2)), "on_imaginary_modes": "error"},
     )
 
     result = qha_calc.calc(Si_atoms)
@@ -236,7 +236,7 @@ def test_phonon_calc_imaginary_freq_tol(
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         fmax=100,
         imaginary_freq_tol=-0.1,
-        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2)), "on_imaginary_modes": "error"},
     )
 
     with pytest.raises(ValueError, match="modes are imaginary"):
