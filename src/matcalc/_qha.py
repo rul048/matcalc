@@ -50,6 +50,7 @@ class QHACalc(PropCalc):
     :ivar on_imaginary_modes: If there is an frequency with a value below
         imaginary_freq_tol, then either raise a ValueError, UserWarning, or
         ignore.
+    :type on_imaginary_modes: Literal["error", "ignore", "warn"]
     :ivar eos: Equation of state used for fitting energy vs. volume data.
     :type eos: Literal["vinet", "birch_murnaghan", "murnaghan"]
     :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
@@ -62,7 +63,6 @@ class QHACalc(PropCalc):
     :type relax_calc_kwargs: dict | None
     :ivar phonon_calc_kwargs: Additional keyword arguments for phonon calculations.
     :type phonon_calc_kwargs: dict | None
-    :type on_imaginary_modes: Literal["error", "ignore", "warn"]
     :ivar write_helmholtz_volume: Path or boolean to control saving Helmholtz free energy vs. volume data.
     :type write_helmholtz_volume: bool | str | Path
     :ivar write_volume_temperature: Path or boolean to control saving volume vs. temperature data.
@@ -365,10 +365,10 @@ class QHACalc(PropCalc):
             "t_step": self.t_step,
             "t_max": self.t_max,
             "t_min": self.t_min,
-            "relax_structure": False,
-            "write_phonon": False,
             "imaginary_freq_tol": self.imaginary_freq_tol,
             "on_imaginary_modes": self.on_imaginary_modes,
+            "relax_structure": False,
+            "write_phonon": False,
         } | (self.phonon_calc_kwargs or {})
         phonon_calc = PhononCalc(
             self.calculator,
