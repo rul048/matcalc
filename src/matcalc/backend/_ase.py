@@ -7,13 +7,14 @@ from __future__ import annotations
 
 import contextlib
 import io
+import logging
 import pickle
-import warnings
 from dataclasses import dataclass, field
 from inspect import isclass
 from typing import TYPE_CHECKING
 
 import ase
+import numpy as np
 from ase.filters import FrechetCellFilter
 from ase.optimize.optimize import Optimizer
 
@@ -22,12 +23,13 @@ from matcalc.utils import to_ase_atoms, to_pmg_structure
 from ._base import SimulationResult
 
 if TYPE_CHECKING:
-    import numpy as np
     from ase import Atoms
     from ase.calculators.calculator import Calculator
     from ase.filters import Filter
     from numpy.typing import NDArray
     from pymatgen.core.structure import Structure
+
+logger = logging.getLogger(__name__)
 
 
 def is_ase_optimizer(key: str | Optimizer) -> bool:
@@ -217,13 +219,18 @@ def run_ase(
             opt = get_ase_optimizer(optimizer)(atoms)  # type:ignore[operator]
             opt.attach(obs, interval=interval)
             opt.run(fmax=fmax, steps=max_steps)
-            if opt.nsteps >= max_steps:
-                warnings.warn("Maximum steps reached in structure relaxation.", UserWarning, stacklevel=2)
             if traj_file is not None:
                 obs()
                 obs.save(traj_file)
         if relax_cell:
             atoms = atoms.atoms  # type:ignore[attr-defined]
+        if opt.nsteps >= max_steps:
+            max_force = np.linalg.norm(obs.forces[-1], axis=1).max()
+            logger.warning(
+                "Maximum steps reached in structure relaxation. Max|F| = %s",
+                max_force,
+            )
+
         return SimulationResult(
             to_pmg_structure(atoms),
             obs.potential_energies[-1],
