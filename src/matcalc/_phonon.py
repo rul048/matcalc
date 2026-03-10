@@ -363,12 +363,15 @@ class PhononCalc(PropCalc):
             )
         return phonon, frequencies, disp_supercells, relax_result
 
-    def _get_imaginary_mode_atom_indices(self, phonon: phonopy.Phonopy, structure_in: Structure) -> np.ndarray:
+    def _get_imaginary_mode_atom_indices(
+        self, phonon: phonopy.Phonopy, structure_in: Structure, cutoff: float = 0.1
+    ) -> np.ndarray:
         """Return indices of primitive-cell atoms with significant amplitude in imaginary modes.
 
         Args:
             phonon: Phonopy object with force constants already computed.
             structure_in: Pymatgen structure (primitive cell).
+            cutoff: Atoms with total amplitude >= cutoff * max amplitude are selected.
 
         Returns:
             Array of atom indices involved in imaginary modes.
@@ -378,26 +381,27 @@ class PhononCalc(PropCalc):
         eigenvectors = mesh_dict["eigenvectors"]  # shape (nqpoints, nbands, nbands) complex
         freqs = mesh_dict["frequencies"]  # shape (nqpoints, nbands)
 
-        # Select imaginary-mode eigenvectors and reshape to (n_imag, natoms, 3),
-        # then sum squared amplitudes over all imaginary modes and Cartesian directions
+        # Compute total displacement amplitude per atom across all imaginary modes.
+        # Select atoms whose amplitude exceeds `cutoff` times the maximum atomic amplitude.
         natoms = len(structure_in)
         imag_evecs = eigenvectors[freqs < self.imaginary_freq_tol]  # (n_imag, 3*natoms)
         atom_amplitudes = np.sum(np.abs(imag_evecs.reshape(-1, natoms, 3)) ** 2, axis=(0, 2))
-        return np.where(atom_amplitudes >= 0.1 * atom_amplitudes.max())[0]
+        return np.where(atom_amplitudes >= cutoff * atom_amplitudes.max())[0]
 
-    def _rattle_structure(self, structure_in: Structure, involved_atoms: np.ndarray) -> Structure:
+    def _rattle_structure(self, structure_in: Structure, involved_atoms: np.ndarray, stdev: float = 0.01) -> Structure:
         """Rattle only the involved atoms using ASE rattle (stdev=0.01 Å).
 
         Args:
             structure_in: Pymatgen structure.
             involved_atoms: Indices of atoms to rattle.
+            stdev: standard deviation in angstrom for the rattle.
 
         Returns:
             Pymatgen structure with rattled atomic positions.
         """
         atoms = to_ase_atoms(structure_in)
         original_positions = atoms.positions.copy()
-        atoms.rattle(stdev=0.01)
+        atoms.rattle(stdev=stdev)
         uninvolved = np.setdiff1d(np.arange(len(atoms)), involved_atoms)
         atoms.positions[uninvolved] = original_positions[uninvolved]
         return to_pmg_structure(atoms)
@@ -411,11 +415,9 @@ class PhononCalc(PropCalc):
         Returns:
             Full result dict from RelaxCalc.
         """
-        relaxer = RelaxCalc(
-            self.calculator,
-            fmax=self.fmax,
-            optimizer=self.optimizer,
-            max_steps=self.max_steps,
-            relax_cell=False,  # changing this to True will break QHACalc
+        relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
+            self.relax_calc_kwargs or {}
         )
+        relax_calc_kwargs["relax_cell"] = False  # warning: changing this to True will break QHACalc
+        relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
         return relaxer.calc(structure_in)
