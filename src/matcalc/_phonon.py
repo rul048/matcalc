@@ -9,7 +9,6 @@ import numpy as np
 import phonopy
 from phonopy.file_IO import write_FORCE_CONSTANTS as write_force_constants
 from pymatgen.io.phonopy import get_phonopy_structure, get_pmg_structure
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from ._base import PropCalc
 from ._relaxation import RelaxCalc
@@ -258,6 +257,89 @@ class PhononCalc(PropCalc):
             "disp_supercells": disp_supercells,
         }
 
+    def _run_phonopy(self, structure: Structure) -> tuple[phonopy.Phonopy, np.ndarray, list[Structure]]:
+        """Build a Phonopy object, run force calculations, and return (phonon, frequencies, disp_supercells).
+
+        Args:
+            structure: Pymatgen structure.
+
+        Returns:
+            Tuple of (phonon, frequencies, disp_supercells).
+        """
+        cell = get_phonopy_structure(structure)
+        if self.supercell_matrix:
+            supercell_matrix = np.array(self.supercell_matrix, dtype=int)
+        else:
+            supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure.lattice.abc)).astype(int))
+
+        phonon = phonopy.Phonopy(cell, supercell_matrix=supercell_matrix)
+        phonon.generate_displacements(distance=self.atom_disp)
+        disp_supercells = [
+            get_pmg_structure(supercell)
+            for supercell in phonon.supercells_with_displacements  # type:ignore[union-attr]
+            if supercell is not None
+        ]
+        logger.info("Computing forces on %d displaced supercells", len(disp_supercells))
+        phonon.forces = [run_pes_calc(supercell, self.calculator).forces for supercell in disp_supercells]
+        phonon.produce_force_constants()
+        phonon.run_mesh()
+        frequencies = phonon.get_mesh_dict()["frequencies"]
+        return phonon, frequencies, disp_supercells
+
+    def _resolve_imaginary_modes(
+        self,
+        structure_in: Structure,
+        phonon: phonopy.Phonopy,
+        frequencies: np.ndarray,
+        disp_supercells: list,
+    ) -> tuple[phonopy.Phonopy, np.ndarray, list[Structure], dict]:
+        """Attempt to resolve imaginary modes by rattling and re-relaxing.
+
+        Args:
+            structure_in: Current primitive-cell structure.
+            phonon: Phonopy object from the most recent build.
+            frequencies: Frequencies from the most recent mesh run.
+            disp_supercells: Displaced supercells from the most recent build.
+
+        Returns:
+            Updated (phonon, frequencies, disp_supercells, relax_result).
+        """
+        logger.warning(
+            "Imaginary modes detected (min freq: %.1f THz). Attempting to resolve over %d attempt(s).",
+            np.min(frequencies),
+            self.fix_imaginary_attempts,
+        )
+        relax_result: dict = {}
+        for attempt in range(self.fix_imaginary_attempts):
+            logger.info("Imaginary mode correction attempt %d/%d", attempt + 1, self.fix_imaginary_attempts)
+            involved = self._get_imaginary_mode_atom_indices(phonon, structure_in)
+
+            logger.info("Rattling %d/%d atoms involved in imaginary modes", len(involved), len(structure_in))
+            structure_in = self._rattle_structure(structure_in, involved)
+
+            logger.info("Re-relaxing structure at fixed cell volume")
+            relax_result = self._relax_fixed_cell(structure_in)
+            structure_in = relax_result["final_structure"]
+
+            logger.info("Recomputing phonons after correction attempt %d", attempt + 1)
+            phonon, frequencies, disp_supercells = self._run_phonopy(structure_in)
+
+            if not np.any(frequencies < self.imaginary_freq_tol):
+                logger.info("Imaginary modes resolved after %d attempt(s)", attempt + 1)
+                break
+            logger.info(
+                "Imaginary modes persist after attempt %d (min freq: %.1f THz).",
+                attempt + 1,
+                np.min(frequencies),
+            )
+        else:
+            logger.warning(
+                "Imaginary modes not resolved after %d attempt(s) (min freq: %.1f THz).",
+                self.fix_imaginary_attempts,
+                np.min(frequencies),
+            )
+        return phonon, frequencies, disp_supercells, relax_result
+
     def _check_imaginary_modes(self, frequencies: np.ndarray) -> None:
         """Warn or raise if imaginary modes are present, based on on_imaginary_modes setting.
 
@@ -280,86 +362,6 @@ class PhononCalc(PropCalc):
                 logger.warning(msg)
             else:
                 raise ValueError(msg)
-
-    def _resolve_imaginary_modes(
-        self,
-        structure_in: Structure,
-        phonon: phonopy.Phonopy,
-        frequencies: np.ndarray,
-        disp_supercells: list,
-    ) -> tuple[phonopy.Phonopy, np.ndarray, list[Structure], dict]:
-        """Attempt to resolve imaginary modes by rattling, re-relaxing, and running NVE MD.
-
-        Args:
-            structure_in: Current primitive-cell structure.
-            phonon: Phonopy object from the most recent build.
-            frequencies: Frequencies from the most recent mesh run.
-            disp_supercells: Displaced supercells from the most recent build.
-
-        Returns:
-            Updated (phonon, frequencies, disp_supercells, relax_result).
-        """
-        logger.warning(
-            "Imaginary modes detected (min freq: %.1f THz). Attempting to resolve over %d attempt(s).",
-            np.min(frequencies),
-            self.fix_imaginary_attempts,
-        )
-        relax_result: dict = {}
-        for attempt in range(self.fix_imaginary_attempts):
-            logger.info("Imaginary mode correction attempt %d/%d", attempt + 1, self.fix_imaginary_attempts)
-            involved = self._get_imaginary_mode_atom_indices(phonon, structure_in)
-            logger.info("Rattling %d/%d atoms involved in imaginary modes", len(involved), len(structure_in))
-            structure_in = self._rattle_structure(structure_in, involved)
-            logger.info("Re-relaxing structure at fixed cell volume")
-            relax_result = self._relax_fixed_cell(structure_in)
-            structure_in = relax_result["final_structure"]
-            logger.info("Recomputing phonons after correction attempt %d", attempt + 1)
-            phonon, frequencies, disp_supercells = self._run_phonopy(structure_in)
-            if not np.any(frequencies < self.imaginary_freq_tol):
-                logger.info("Imaginary modes resolved after %d attempt(s)", attempt + 1)
-                break
-            logger.info(
-                "Imaginary modes persist after attempt %d (min freq: %.1f THz).",
-                attempt + 1,
-                np.min(frequencies),
-            )
-        else:
-            logger.warning(
-                "Imaginary modes not resolved after %d attempt(s) (min freq: %.1f THz).",
-                self.fix_imaginary_attempts,
-                np.min(frequencies),
-            )
-        return phonon, frequencies, disp_supercells, relax_result
-
-    def _run_phonopy(self, structure_in: Structure) -> tuple[phonopy.Phonopy, np.ndarray, list[Structure]]:
-        """Build a Phonopy object, run force calculations, and return (phonon, frequencies, disp_supercells).
-
-        Args:
-            structure_in: Pymatgen structure.
-
-        Returns:
-            Tuple of (phonon, frequencies, disp_supercells).
-        """
-        structure_in = SpacegroupAnalyzer(structure_in, symprec=1e-5).get_symmetrized_structure()
-        cell = get_phonopy_structure(structure_in)
-        if self.supercell_matrix:
-            supercell_matrix = np.array(self.supercell_matrix, dtype=int)
-        else:
-            supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure_in.lattice.abc)).astype(int))
-
-        phonon = phonopy.Phonopy(cell, supercell_matrix=supercell_matrix)
-        phonon.generate_displacements(distance=self.atom_disp)
-        disp_supercells = [
-            get_pmg_structure(supercell)
-            for supercell in phonon.supercells_with_displacements  # type:ignore[union-attr]
-            if supercell is not None
-        ]
-        logger.info("Computing forces on %d displaced supercells", len(disp_supercells))
-        phonon.forces = [run_pes_calc(supercell, self.calculator).forces for supercell in disp_supercells]
-        phonon.produce_force_constants()
-        phonon.run_mesh()
-        frequencies = phonon.get_mesh_dict()["frequencies"]
-        return phonon, frequencies, disp_supercells
 
     def _get_imaginary_mode_atom_indices(self, phonon: phonopy.Phonopy, structure_in: Structure) -> np.ndarray:
         """Return indices of primitive-cell atoms with significant amplitude in imaginary modes.
