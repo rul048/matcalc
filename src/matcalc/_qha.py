@@ -52,9 +52,6 @@ class QHACalc(PropCalc):
     :type optimizer: str
     :ivar eos: Equation of state used for fitting energy vs. volume data.
     :type eos: Literal["vinet", "birch_murnaghan", "murnaghan"]
-    :ivar allow_shape_change: Whether or not to allow the unit cell shape to
-        change at fixed cell volume during the EOS calculations. Default is True.
-    :type allow_shape_change: bool
     :ivar relax_structure: Whether to perform structure relaxation before phonon calculations.
     :type relax_structure: bool
     :ivar relax_calc_kwargs: Additional keyword arguments for structure relaxation calculations.
@@ -105,7 +102,6 @@ class QHACalc(PropCalc):
         max_steps: int = 5000,
         optimizer: str = "FIRE",
         eos: Literal["vinet", "birch_murnaghan", "murnaghan"] = "vinet",
-        allow_shape_change: bool = True,
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
@@ -140,8 +136,6 @@ class QHACalc(PropCalc):
             "FIRE".
         :param eos: Equation of state to use for calculating energy vs. volume relationships.
             Default is "vinet".
-        :param allow_shape_change: Whether or not to allow the unit cell shape to
-            change at fixed cell volume during the EOS calculations. Default is True.
         :param relax_structure: A boolean flag indicating whether the initial atomic structure should be
             relaxed as part of the computation workflow. Note that subsequent relaxations on the
             volume-scaled structures will be carried out regardless.
@@ -184,7 +178,6 @@ class QHACalc(PropCalc):
         self.max_steps = max_steps
         self.optimizer = optimizer
         self.eos = eos
-        self.allow_shape_change = allow_shape_change
         self.relax_structure = relax_structure
         self.relax_calc_kwargs = relax_calc_kwargs
         self.phonon_calc_kwargs = phonon_calc_kwargs
