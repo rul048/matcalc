@@ -151,7 +151,7 @@ class EOSCalc(PropCalc):
             **(self.relax_calc_kwargs or {}),
         )
 
-        temp_structure = structure_in.copy()
+        temp_structure = to_pmg_structure(structure_in).copy()
         for idx in np.linspace(-self.max_abs_strain, self.max_abs_strain, self.n_points)[self.n_points // 2 :]:
             structure_strained = temp_structure.copy()
             structure_strained.apply_strain(
