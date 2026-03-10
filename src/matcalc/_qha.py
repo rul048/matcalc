@@ -279,11 +279,10 @@ class QHACalc(PropCalc):
         properties = self._collect_properties(structure_in)
 
         logger.info("Fitting equation of state and computing QHA thermal properties")
-        temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
         qha = PhonopyQHA(
             volumes=properties["volumes"],
             electronic_energies=properties["electronic_energies"],
-            temperatures=temperatures,
+            temperatures=np.arange(self.t_min, self.t_max + self.t_step, self.t_step),
             free_energy=np.transpose(properties["free_energies"]),
             cv=np.transpose(properties["heat_capacities"]),
             entropy=np.transpose(properties["entropies"]),
