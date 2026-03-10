@@ -103,7 +103,7 @@ class QHACalc(PropCalc):
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
-        scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01)),
+        scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01).tolist()),
         imaginary_freq_tol: float | None = None,
         write_helmholtz_volume: bool | str | Path = False,
         write_volume_temperature: bool | str | Path = False,
