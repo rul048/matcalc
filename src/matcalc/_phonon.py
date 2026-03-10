@@ -282,7 +282,7 @@ class PhononCalc(PropCalc):
         logger.info("Computing forces on %d displaced supercells", len(disp_supercells))
         phonon.forces = [run_pes_calc(supercell, self.calculator).forces for supercell in disp_supercells]
         phonon.produce_force_constants()
-        phonon.run_mesh()
+        phonon.run_mesh(with_eigenvectors=True)
         frequencies = phonon.get_mesh_dict()["frequencies"]
         return phonon, frequencies, disp_supercells
 
@@ -376,7 +376,6 @@ class PhononCalc(PropCalc):
         Returns:
             Array of atom indices involved in imaginary modes.
         """
-        phonon.run_mesh(with_eigenvectors=True)
         mesh_dict = phonon.get_mesh_dict()
         eigenvectors = mesh_dict["eigenvectors"]  # shape (nqpoints, nbands, nbands) complex
         freqs = mesh_dict["frequencies"]  # shape (nqpoints, nbands)
