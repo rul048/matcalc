@@ -225,7 +225,7 @@ def run_ase(
         if relax_cell:
             atoms = atoms.atoms  # type:ignore[attr-defined]
         if opt.nsteps >= max_steps:
-            max_force = np.linalg.norm(obs.forces[-1], axis=1).max()
+            max_force = np.linalg.norm(atoms.get_forces(), axis=1).max()
             logger.warning(
                 "Maximum steps reached in structure relaxation. Max|F| = %s eV/Å",
                 max_force,
