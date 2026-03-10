@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 from phonopy import PhonopyQHA
-from tqdm import tqdm
 
 from ._base import PropCalc
 from ._phonon import PhononCalc
@@ -64,10 +66,13 @@ class QHACalc(PropCalc):
     :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
             a value below imaginary_freq_tol, it is considered imaginary.
     :type imaginary_freq_tol: float
-    :ivar on_imaginary_modes: If there is an frequency with a value below
-        imaginary_freq_tol, then either raise a ValueError, UserWarning, or
-        silent.
-    :type on_imaginary_modes: Literal["error", "silent", "warn"]
+    :ivar on_imaginary_modes: If there is a frequency with a value below
+        imaginary_freq_tol, then either raise a ValueError ("error") or log a
+        warning ("warn").
+    :type on_imaginary_modes: Literal["error", "warn"]
+    :ivar fix_imaginary_attempts: Number of attempts passed to PhononCalc to resolve imaginary modes
+        at each scale factor. 0 disables correction.
+    :type fix_imaginary_attempts: int
     :ivar write_helmholtz_volume: Path or boolean to control saving Helmholtz free energy vs. volume data.
     :type write_helmholtz_volume: bool | str | Path
     :ivar write_volume_temperature: Path or boolean to control saving volume vs. temperature data.
@@ -105,8 +110,9 @@ class QHACalc(PropCalc):
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
         scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01)),
-        imaginary_freq_tol: float = 0.0,
-        on_imaginary_modes: Literal["error", "silent", "warn"] = "silent",
+        imaginary_freq_tol: float = -0.01,
+        on_imaginary_modes: Literal["error", "warn"] = "warn",
+        fix_imaginary_attempts: int = 0,
         write_helmholtz_volume: bool | str | Path = False,
         write_volume_temperature: bool | str | Path = False,
         write_thermal_expansion: bool | str | Path = False,
@@ -145,8 +151,10 @@ class QHACalc(PropCalc):
             thermodynamic and phononic calculations.
         :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
             a value below imaginary_freq_tol, it is considered imaginary.
-        :param on_imaginary_modes: If there is an frequency with a value below imaginary_freq_tol, then
-            raise a ValueError ("error"), UserWarning ("warn"), or do nothing ("silent").
+        :param on_imaginary_modes: If there is a frequency with a value below imaginary_freq_tol, then
+            raise a ValueError ("error") or log a warning ("warn"). Defaults to "warn".
+        :param fix_imaginary_attempts: Number of attempts passed to PhononCalc to resolve imaginary modes
+            at each scale factor. 0 disables correction.
         :param phonon_calc_kwargs: A dictionary containing additional parameters to pass to the
             phonon calculation routine.
         :param write_helmholtz_volume: Path, boolean, or string to indicate whether and where
@@ -183,6 +191,7 @@ class QHACalc(PropCalc):
         self.scale_factors = scale_factors
         self.imaginary_freq_tol = imaginary_freq_tol
         self.on_imaginary_modes = on_imaginary_modes
+        self.fix_imaginary_attempts = fix_imaginary_attempts
         self.write_helmholtz_volume = write_helmholtz_volume
         self.write_volume_temperature = write_volume_temperature
         self.write_thermal_expansion = write_thermal_expansion
@@ -260,6 +269,7 @@ class QHACalc(PropCalc):
         structure_in: Structure = to_pmg_structure(result["final_structure"])
 
         if self.relax_structure:
+            logger.info("Relaxing input structure before QHA")
             relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
                 self.relax_calc_kwargs or {}
             )
@@ -267,9 +277,15 @@ class QHACalc(PropCalc):
             result |= relaxer.calc(structure_in)
             structure_in = result["final_structure"]
 
-        temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
+        logger.info(
+            "Starting QHA calculation over %d scale factors: %s",
+            len(self.scale_factors),
+            list(self.scale_factors),
+        )
         properties = self._collect_properties(structure_in)
 
+        logger.info("Fitting equation of state and computing QHA thermal properties")
+        temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
         qha = PhonopyQHA(
             volumes=properties["volumes"],
             electronic_energies=properties["electronic_energies"],
@@ -315,27 +331,35 @@ class QHACalc(PropCalc):
         entropies = []
         heat_capacities = []
         scaled_structures = []
-        for scale_factor in tqdm(self.scale_factors, desc="Performing analysis on scale factors"):
+        for scale_factor in self.scale_factors:
             # Apply linear strain
             struct = self._scale_structure(structure, scale_factor)
 
             # Relax at fixed volume
+            logger.info("Scale factor %.3f: relaxing at fixed volume", scale_factor)
             relaxer = RelaxCalc(
                 self.calculator,
                 optimizer=self.optimizer,
                 fmax=self.fmax,
                 max_steps=self.max_steps,
-                relax_cell=bool(self.allow_shape_change),
-                cell_filter_kwargs={"constant_volume": True} if self.allow_shape_change else {},
+                relax_cell=False,
                 **(self.relax_calc_kwargs or {}),
             )
             relaxed_result = relaxer.calc(struct)
-            electronic_energies.append(relaxed_result["energy"])
-            scaled_structures.append(relaxed_result["final_structure"])
-            volumes.append(relaxed_result["final_structure"].volume)
 
-            # Calculate thermal properties from phonon calculation
+            # Calculate thermal properties from phonon calculation and tabulate results.
+            # We must store the energy, structure, etc. from the phonon calculation if
+            # available in case there are any correction attempts made to resolve imaginary modes,
+            # which would update the relaxation output.
+            logger.info(
+                "Scale factor %.3f: computing phonon thermal properties (V=%.1f Å³)",
+                scale_factor,
+                relaxed_result["final_structure"].volume,
+            )
             phonon_result = self._calculate_thermal_properties(relaxed_result["final_structure"])
+            volumes.append(phonon_result["final_structure"].volume)
+            electronic_energies.append(phonon_result.get("energy", relaxed_result.get("energy")))
+            scaled_structures.append(phonon_result["final_structure"])
             thermal_properties = phonon_result["thermal_properties"]
             free_energies.append(thermal_properties["free_energy"])
             entropies.append(thermal_properties["entropy"])
@@ -381,6 +405,7 @@ class QHACalc(PropCalc):
             "relax_structure": False,
             "imaginary_freq_tol": self.imaginary_freq_tol,
             "on_imaginary_modes": self.on_imaginary_modes,
+            "fix_imaginary_attempts": self.fix_imaginary_attempts,
             "write_phonon": False,
         } | (self.phonon_calc_kwargs or {})
         phonon_calc = PhononCalc(

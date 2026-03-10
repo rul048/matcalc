@@ -155,8 +155,7 @@ class EOSCalc(PropCalc):
             optimizer=self.optimizer,
             fmax=self.fmax,
             max_steps=self.max_steps,
-            relax_cell=bool(self.allow_shape_change),
-            cell_filter_kwargs={"constant_volume": True} if self.allow_shape_change else {},
+            relax_cell=False,
             **(self.relax_calc_kwargs or {}),
         )
 
