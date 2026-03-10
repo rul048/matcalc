@@ -319,6 +319,7 @@ class QHACalc(PropCalc):
         for scale_factor in self.scale_factors:
             # Apply linear strain
             struct = self._scale_structure(structure, scale_factor)
+            volumes.append(vstruct.olume)
 
             # Relax at fixed volume
             logger.info("Scale factor %.3f: relaxing at fixed volume", scale_factor)
@@ -331,20 +332,16 @@ class QHACalc(PropCalc):
                 **(self.relax_calc_kwargs or {}),
             )
             relaxed_result = relaxer.calc(struct)
+            electronic_energies.append(relaxed_result["energy"])
+            scaled_structures.append(relaxed_result["final_structure"])
 
-            # Calculate thermal properties from phonon calculation and tabulate results.
-            # We must store the energy, structure, etc. from the phonon calculation if
-            # available in case there are any correction attempts made to resolve imaginary modes,
-            # which would update the relaxation output.
+            # Calculate thermal properties from phonon calculation
             logger.info(
                 "Scale factor %.3f: computing phonon thermal properties (V=%.1f Å³)",
                 scale_factor,
                 relaxed_result["final_structure"].volume,
             )
             phonon_result = self._calculate_thermal_properties(relaxed_result["final_structure"])
-            volumes.append(phonon_result["final_structure"].volume)
-            electronic_energies.append(phonon_result.get("energy", relaxed_result.get("energy")))
-            scaled_structures.append(phonon_result["final_structure"])
             thermal_properties = phonon_result["thermal_properties"]
             free_energies.append(thermal_properties["free_energy"])
             entropies.append(thermal_properties["entropy"])
