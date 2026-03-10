@@ -46,6 +46,7 @@ class QHACalc(PropCalc):
     :type t_min: float
     :ivar pressure: Pressure in GPa
     :type pressure: float | None
+    :ivar pressure: Pressure in GPa
     :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
     :type fmax: float
     :ivar optimizer: Type of optimizer used for structural relaxation.
