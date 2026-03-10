@@ -150,7 +150,6 @@ class EOSCalc(PropCalc):
             structure_in = result["final_structure"]
 
         volumes, energies = [], []
-
         relaxer = RelaxCalc(
             self.calculator,
             optimizer=self.optimizer,
