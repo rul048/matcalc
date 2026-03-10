@@ -49,8 +49,8 @@ class QHACalc(PropCalc):
     :type imaginary_freq_tol: float
     :ivar on_imaginary_modes: If there is an frequency with a value below
         imaginary_freq_tol, then either raise a ValueError, UserWarning, or
-        ignore.
-    :type on_imaginary_modes: Literal["error", "ignore", "warn"]
+        silent.
+    :type on_imaginary_modes: Literal["error", "silent", "warn"]
     :ivar eos: Equation of state used for fitting energy vs. volume data.
     :type eos: Literal["vinet", "birch_murnaghan", "murnaghan"]
     :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
@@ -93,7 +93,7 @@ class QHACalc(PropCalc):
         pressure: None | float = None,
         scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01)),
         imaginary_freq_tol: float = 0.0,
-        on_imaginary_modes: Literal["error", "ignore", "warn"] = "ignore",
+        on_imaginary_modes: Literal["error", "silent", "warn"] = "silent",
         eos: Literal["vinet", "birch_murnaghan", "murnaghan"] = "vinet",
         fmax: float = 1e-5,
         max_steps: int = 5000,
@@ -127,7 +127,7 @@ class QHACalc(PropCalc):
         :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
             a value below imaginary_freq_tol, it is considered imaginary.
         :param on_imaginary_modes: If there is an frequency with a value below imaginary_freq_tol, then
-            raise a ValueError ("error"), UserWarning ("warn"), or do nothing ("ignore").
+            raise a ValueError ("error"), UserWarning ("warn"), or do nothing ("silent").
         :param eos: Equation of state to use for calculating energy vs. volume relationships.
             Default is "vinet".
         :param fmax: Maximum force convergence criterion for structure relaxation, in force units.

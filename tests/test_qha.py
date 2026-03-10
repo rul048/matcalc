@@ -254,7 +254,7 @@ def test_phonon_calc_imaginary_freq_tol(
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         fmax=100,
         imaginary_freq_tol=0.0,
-        on_imaginary_modes="ignore",
+        on_imaginary_modes="silent",
         phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
     )
     assert qha_calc.calc(distorted_si_atoms)

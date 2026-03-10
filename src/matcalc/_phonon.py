@@ -64,8 +64,8 @@ class PhononCalc(PropCalc):
     :type imaginary_freq_tol: float
     :ivar on_imaginary_modes: If there is an frequency with a value below
         imaginary_freq_tol, then either raise a ValueError, UserWarning, or
-        ignore.
-    :type on_imaginary_modes: Literal["error", "ignore", "warn"]
+        silent.
+    :type on_imaginary_modes: Literal["error", "silent", "warn"]
     :ivar fmax: Maximum force convergence criterion for structural relaxation.
     :type fmax: float
     :ivar optimizer: String specifying the optimizer type to be used for
@@ -106,7 +106,7 @@ class PhononCalc(PropCalc):
         t_max: float = 1000,
         t_min: float = 0,
         imaginary_freq_tol: float = 0.0,
-        on_imaginary_modes: Literal["error", "ignore", "warn"] = "ignore",
+        on_imaginary_modes: Literal["error", "silent", "warn"] = "silent",
         fmax: float = 1e-5,
         max_steps: int = 5000,
         optimizer: str = "FIRE",
@@ -133,7 +133,7 @@ class PhononCalc(PropCalc):
         :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
             a value below imaginary_freq_tol, it is considered imaginary.
         :param on_imaginary_modes: If there is an frequency with a value below imaginary_freq_tol, then
-            raise a ValueError ("error"), UserWarning ("warn"), or do nothing ("ignore").
+            raise a ValueError ("error"), UserWarning ("warn"), or do nothing ("silent").
         :param fmax: Maximum force during structure relaxation, used as a convergence criterion.
         :param max_steps: The maximum number of optimization steps to perform during the relaxation process.
         :param optimizer: Name of the optimization algorithm for structural relaxation.
@@ -237,7 +237,7 @@ class PhononCalc(PropCalc):
         mesh_dict_results = phonon.get_mesh_dict()
         frequencies = mesh_dict_results["frequencies"]
 
-        if self.on_imaginary_modes.lower() != "ignore":
+        if self.on_imaginary_modes.lower() != "silent":
             # In phonopy, imaginary frequencies are represented as negative values.
             imag_freq_mask = frequencies < self.imaginary_freq_tol
             if np.any(imag_freq_mask):
