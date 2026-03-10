@@ -258,6 +258,6 @@ def test_phonon_calc_imaginary_freq_tol(
         on_imaginary_modes="error",
         phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
     )
-    assert qha_calc.calc(distorted_si_atoms)
+    result = qha_calc.calc(distorted_si_atoms)
     assert len(result["volumes"]) == 7
     assert len(result["electronic_energies"]) == 7
