@@ -142,7 +142,8 @@ def test_phonon_calc_imaginary_freq_tol(
         calculator=matpes_calculator,
         supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
         fmax=0.1,
-        imaginary_freq_tol=0.1,
+        imaginary_freq_tol=-0.1,
+        on_imaginary_modes="error",
     )
     result = phonon_calc.calc(Si_atoms)
     assert "frequencies" in result
@@ -156,19 +157,36 @@ def test_phonon_calc_imaginary_freq_tol(
         calculator=matpes_calculator,
         supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
         fmax=100.0,
-        imaginary_freq_tol=0.1,
+        imaginary_freq_tol=-0.1,
+        on_imaginary_modes="error",
     )
-    with pytest.raises(ValueError, match=r"are imaginary"):
+    with pytest.raises(ValueError, match="modes are imaginary"):
         phonon_calc.calc(distorted_si_atoms)
 
-    # Distort the structure to create imaginary modes, but it's okay
+    # Distort the structure to create imaginary modes, then check that
+    # the tolerance check raises a UserWarning
     distorted_si_atoms = Si_atoms.copy()
     distorted_si_atoms.cell += 0.5
     phonon_calc = PhononCalc(
         calculator=matpes_calculator,
         supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
         fmax=100.0,
-        imaginary_freq_tol=None,
+        imaginary_freq_tol=-0.1,
+        on_imaginary_modes="warn",
+    )
+    with pytest.warns(UserWarning, match="modes are imaginary"):
+        phonon_calc.calc(distorted_si_atoms)
+
+    # Distort the structure to create imaginary modes, but it's okay
+    # because there is no tolerance set
+    distorted_si_atoms = Si_atoms.copy()
+    distorted_si_atoms.cell += 0.5
+    phonon_calc = PhononCalc(
+        calculator=matpes_calculator,
+        supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
+        fmax=100.0,
+        imaginary_freq_tol=0.0,
+        on_imaginary_modes="silent",
     )
     result = phonon_calc.calc(distorted_si_atoms)
     assert "frequencies" in result
