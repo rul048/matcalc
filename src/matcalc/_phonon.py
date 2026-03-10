@@ -58,13 +58,6 @@ class PhononCalc(PropCalc):
     :ivar t_min: Minimum temperature for thermal property calculations in
         Kelvin.
     :type t_min: float
-    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in
-        THz. If a frequency is found with a value below imaginary_freq_tol,
-        it is considered imaginary.
-    :type imaginary_freq_tol: float
-    :ivar on_imaginary_modes: If there is an frequency with a value below
-        imaginary_freq_tol, then either raise a ValueError, UserWarning, or
-        silent.
     :type on_imaginary_modes: Literal["error", "silent", "warn"]
     :ivar fmax: Maximum force convergence criterion for structural relaxation.
     :type fmax: float
@@ -77,6 +70,13 @@ class PhononCalc(PropCalc):
     :ivar relax_calc_kwargs: Optional dictionary containing additional
         arguments for the structural relaxation calculation.
     :type relax_calc_kwargs: dict | None
+    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in
+        THz. If a frequency is found with a value below imaginary_freq_tol,
+        it is considered imaginary.
+    :type imaginary_freq_tol: float
+    :ivar on_imaginary_modes: If there is an frequency with a value below
+        imaginary_freq_tol, then either raise a ValueError, UserWarning, or
+        silent.
     :ivar write_force_constants: Path, boolean, or string specifying whether
         to write the calculated force constants to an output file, and the
         path or name of the file if applicable.
@@ -105,13 +105,13 @@ class PhononCalc(PropCalc):
         t_step: float = 10,
         t_max: float = 1000,
         t_min: float = 0,
-        imaginary_freq_tol: float = 0.0,
-        on_imaginary_modes: Literal["error", "silent", "warn"] = "silent",
         fmax: float = 1e-5,
         max_steps: int = 5000,
         optimizer: str = "FIRE",
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
+        imaginary_freq_tol: float = 0.0,
+        on_imaginary_modes: Literal["error", "silent", "warn"] = "silent",
         write_force_constants: bool | str | Path = False,
         write_band_structure: bool | str | Path = False,
         write_total_dos: bool | str | Path = False,
@@ -130,15 +130,15 @@ class PhononCalc(PropCalc):
         :param t_step: Temperature step for thermal property calculations.
         :param t_max: Maximum temperature for thermal property calculations.
         :param t_min: Minimum temperature for thermal property calculations.
-        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
-            a value below imaginary_freq_tol, it is considered imaginary.
-        :param on_imaginary_modes: If there is an frequency with a value below imaginary_freq_tol, then
-            raise a ValueError ("error"), UserWarning ("warn"), or do nothing ("silent").
         :param fmax: Maximum force during structure relaxation, used as a convergence criterion.
         :param max_steps: The maximum number of optimization steps to perform during the relaxation process.
         :param optimizer: Name of the optimization algorithm for structural relaxation.
         :param relax_structure: Flag to indicate whether structure relaxation should be performed before calculations.
         :param relax_calc_kwargs: Additional keyword arguments for relaxation phase calculations.
+        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
+            a value below imaginary_freq_tol, it is considered imaginary.
+        :param on_imaginary_modes: If there is an frequency with a value below imaginary_freq_tol, then
+            raise a ValueError ("error"), UserWarning ("warn"), or do nothing ("silent").
         :param write_force_constants: File path or boolean flag to write force constants.
             Defaults to "force_constants".
         :param write_band_structure: File path or boolean flag to write band structure data.
@@ -154,13 +154,13 @@ class PhononCalc(PropCalc):
         self.t_step = t_step
         self.t_max = t_max
         self.t_min = t_min
-        self.imaginary_freq_tol = imaginary_freq_tol
-        self.on_imaginary_modes = on_imaginary_modes
         self.fmax = fmax
         self.max_steps = max_steps
         self.optimizer = optimizer
         self.relax_structure = relax_structure
         self.relax_calc_kwargs = relax_calc_kwargs
+        self.imaginary_freq_tol = imaginary_freq_tol
+        self.on_imaginary_modes = on_imaginary_modes
         self.write_force_constants = write_force_constants
         self.write_band_structure = write_band_structure
         self.write_total_dos = write_total_dos
