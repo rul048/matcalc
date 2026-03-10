@@ -227,7 +227,7 @@ def run_ase(
         if opt.nsteps >= max_steps:
             max_force = np.linalg.norm(obs.forces[-1], axis=1).max()
             logger.warning(
-                "Maximum steps reached in structure relaxation. Max|F| = %s",
+                "Maximum steps reached in structure relaxation. Max|F| = %s eV/Å",
                 max_force,
             )
 
