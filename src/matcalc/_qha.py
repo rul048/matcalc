@@ -351,9 +351,10 @@ class QHACalc(PropCalc):
                 relaxed_result["final_structure"].volume,
             )
             phonon_result = self._calculate_thermal_properties(relaxed_result["final_structure"])
+            scaled_structures.append(phonon_result["final_structure"])
             volumes.append(phonon_result["final_structure"].volume)
             electronic_energies.append(phonon_result.get("energy", relaxed_result.get("energy")))
-            scaled_structures.append(phonon_result["final_structure"])
+
             thermal_properties = phonon_result["thermal_properties"]
             free_energies.append(thermal_properties["free_energy"])
             entropies.append(thermal_properties["entropy"])
