@@ -11,6 +11,7 @@ from tqdm import tqdm
 from ._base import PropCalc
 from ._phonon import PhononCalc
 from ._relaxation import RelaxCalc
+from .utils import to_pmg_structure
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -41,6 +42,7 @@ class QHACalc(PropCalc):
     :type t_max: float
     :ivar t_min: Minimum temperature in Kelvin.
     :type t_min: float
+    :ivar pressure: Pressure in GPa
     :type pressure: float | None
     :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
     :type fmax: float
@@ -251,7 +253,7 @@ class QHACalc(PropCalc):
         }
         """
         result = super().calc(structure)
-        structure_in: Structure = result["final_structure"]
+        structure_in: Structure = to_pmg_structure(result["final_structure"])
 
         if self.relax_structure:
             relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
