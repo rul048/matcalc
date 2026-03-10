@@ -286,6 +286,29 @@ class PhononCalc(PropCalc):
         frequencies = phonon.get_mesh_dict()["frequencies"]
         return phonon, frequencies, disp_supercells
 
+    def _check_imaginary_modes(self, frequencies: np.ndarray) -> None:
+        """Warn or raise if imaginary modes are present, based on on_imaginary_modes setting.
+
+        Args:
+            frequencies: Frequencies array from the mesh run.
+        """
+        # In phonopy, imaginary frequencies are represented as negative values.
+        imag_freq_mask = frequencies < self.imaginary_freq_tol
+        if np.any(imag_freq_mask):
+            n_imag = np.sum(imag_freq_mask)
+            n_freqs = frequencies.size
+            min_mode = np.min(frequencies)
+            pct = 100 * n_imag / n_freqs
+            msg = (
+                f"{n_imag}/{n_freqs} ({pct:.12}%) modes are imaginary (below {self.imaginary_freq_tol:.4f} THz). "
+                f"Most negative: {min_mode:.2f} THz. This indicates a dynamically unstable structure. "
+                f"Thermal properties may not be reliable."
+            )
+            if self.on_imaginary_modes.lower() == "warn":
+                logger.warning(msg)
+            else:
+                raise ValueError(msg)
+
     def _resolve_imaginary_modes(
         self,
         structure_in: Structure,
@@ -339,29 +362,6 @@ class PhononCalc(PropCalc):
                 np.min(frequencies),
             )
         return phonon, frequencies, disp_supercells, relax_result
-
-    def _check_imaginary_modes(self, frequencies: np.ndarray) -> None:
-        """Warn or raise if imaginary modes are present, based on on_imaginary_modes setting.
-
-        Args:
-            frequencies: Frequencies array from the mesh run.
-        """
-        # In phonopy, imaginary frequencies are represented as negative values.
-        imag_freq_mask = frequencies < self.imaginary_freq_tol
-        if np.any(imag_freq_mask):
-            n_imag = np.sum(imag_freq_mask)
-            n_freqs = frequencies.size
-            min_mode = np.min(frequencies)
-            pct = 100 * n_imag / n_freqs
-            msg = (
-                f"{n_imag}/{n_freqs} ({pct:.12}%) modes are imaginary (below {self.imaginary_freq_tol:.4f} THz). "
-                f"Most negative: {min_mode:.2f} THz. This indicates a dynamically unstable structure. "
-                f"Thermal properties may not be reliable."
-            )
-            if self.on_imaginary_modes.lower() == "warn":
-                logger.warning(msg)
-            else:
-                raise ValueError(msg)
 
     def _get_imaginary_mode_atom_indices(self, phonon: phonopy.Phonopy, structure_in: Structure) -> np.ndarray:
         """Return indices of primitive-cell atoms with significant amplitude in imaginary modes.
