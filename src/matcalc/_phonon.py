@@ -328,7 +328,7 @@ class PhononCalc(PropCalc):
             Updated (phonon, frequencies, disp_supercells, relax_result).
         """
         logger.warning(
-            "Imaginary modes detected (min freq: %.1f THz). Attempting to resolve over %d attempt(s).",
+            "Imaginary modes detected (min freq: %.2f THz). Attempting to resolve over %d attempt(s).",
             np.min(frequencies),
             self.fix_imaginary_attempts,
         )
