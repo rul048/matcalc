@@ -45,9 +45,6 @@ class EOSCalc(PropCalc):
     :type fmax: float
     :ivar max_steps: Maximum number of optimization steps during relaxation. Defaults to 500.
     :type max_steps: int
-    :ivar allow_shape_change: Whether or not to allow the unit cell shape to
-        change at fixed cell volume during the EOS calculations. Default is True.
-    :type allow_shape_change: bool
     :ivar relax_calc_kwargs: Additional keyword arguments for relaxation calculations. Defaults to None.
     :type relax_calc_kwargs: dict | None
     """
@@ -61,7 +58,6 @@ class EOSCalc(PropCalc):
         max_abs_strain: float = 0.1,
         n_points: int = 11,
         fmax: float = 0.1,
-        allow_shape_change: bool = True,
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
     ) -> None:
@@ -90,9 +86,6 @@ class EOSCalc(PropCalc):
         :param fmax: The force convergence criterion, specifying the maximum force
             threshold (per atom) for stopping relaxations. Default is 0.1.
         :type fmax: float, optional
-        :param allow_shape_change: Whether or not to allow the unit cell shape to
-            change at fixed cell volume during the EOS calculations. Default is True.
-        :type allow_shape_change: bool
         :param relax_structure: A flag indicating whether structural relaxation
             should be performed before proceeding with further steps. Default is True.
         :type relax_structure: bool, optional
@@ -102,12 +95,11 @@ class EOSCalc(PropCalc):
         """
         self.calculator = calculator  # type: ignore[assignment]
         self.optimizer = optimizer
-        self.max_steps = max_steps
-        self.max_abs_strain = max_abs_strain
-        self.n_points = n_points
-        self.fmax = fmax
-        self.allow_shape_change = allow_shape_change
         self.relax_structure = relax_structure
+        self.n_points = n_points
+        self.max_abs_strain = max_abs_strain
+        self.fmax = fmax
+        self.max_steps = max_steps
         self.relax_calc_kwargs = relax_calc_kwargs
 
     def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict:
