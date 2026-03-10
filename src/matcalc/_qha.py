@@ -11,7 +11,6 @@ from tqdm import tqdm
 from ._base import PropCalc
 from ._phonon import PhononCalc
 from ._relaxation import RelaxCalc
-from .utils import to_pmg_structure
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -42,7 +41,6 @@ class QHACalc(PropCalc):
     :type t_max: float
     :ivar t_min: Minimum temperature in Kelvin.
     :type t_min: float
-    :ivar pressure: Pressure in GPa
     :type pressure: float | None
     :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
     :type fmax: float
@@ -103,7 +101,7 @@ class QHACalc(PropCalc):
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
-        scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01).tolist()),
+        scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01)),
         imaginary_freq_tol: float | None = None,
         write_helmholtz_volume: bool | str | Path = False,
         write_volume_temperature: bool | str | Path = False,
@@ -253,7 +251,7 @@ class QHACalc(PropCalc):
         }
         """
         result = super().calc(structure)
-        structure_in: Structure = to_pmg_structure(result["final_structure"])
+        structure_in: Structure = result["final_structure"]
 
         if self.relax_structure:
             relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
@@ -314,21 +312,23 @@ class QHACalc(PropCalc):
         for scale_factor in tqdm(self.scale_factors, desc="Performing analysis on scale factors"):
             # Apply linear strain
             struct = self._scale_structure(structure, scale_factor)
+            volumes.append(struct.volume)
 
             # Relax at fixed volume
-            relaxer = RelaxCalc(
-                self.calculator,
-                optimizer=self.optimizer,
-                fmax=self.fmax,
-                max_steps=self.max_steps,
-                relax_cell=bool(self.allow_shape_change),
-                cell_filter_kwargs={"constant_volume": True} if self.allow_shape_change else {},
-                **(self.relax_calc_kwargs or {}),
-            )
+            relax_calc_kwargs = {
+                "optimizer": self.optimizer,
+                "fmax": self.fmax,
+                "max_steps": self.max_steps,
+            } | (self.relax_calc_kwargs or {})
+            if self.allow_shape_change:
+                relax_calc_kwargs["relax_cell"] = True
+                relax_calc_kwargs["cell_filter_kwargs"] = {"constant_volume": True}
+            else:
+                relax_calc_kwargs["relax_cell"] = False
+            relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
             relaxed_result = relaxer.calc(struct)
             electronic_energies.append(relaxed_result["energy"])
             scaled_structures.append(relaxed_result["final_structure"])
-            volumes.append(relaxed_result["final_structure"].volume)
 
             # Calculate thermal properties from phonon calculation
             phonon_result = self._calculate_thermal_properties(relaxed_result["final_structure"])
