@@ -11,7 +11,6 @@ from phonopy import PhonopyQHA
 from ._base import PropCalc
 from ._phonon import PhononCalc
 from ._relaxation import RelaxCalc
-from .utils import to_pmg_structure
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
