@@ -58,7 +58,6 @@ class PhononCalc(PropCalc):
     :ivar t_min: Minimum temperature for thermal property calculations in
         Kelvin.
     :type t_min: float
-    :type on_imaginary_modes: Literal["error", "silent", "warn"]
     :ivar fmax: Maximum force convergence criterion for structural relaxation.
     :type fmax: float
     :ivar optimizer: String specifying the optimizer type to be used for
@@ -73,6 +72,7 @@ class PhononCalc(PropCalc):
     :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in
         THz. If a frequency is found with a value below imaginary_freq_tol,
         it is considered imaginary.
+    :type on_imaginary_modes: Literal["error", "silent", "warn"]
     :type imaginary_freq_tol: float
     :ivar on_imaginary_modes: If there is an frequency with a value below
         imaginary_freq_tol, then either raise a ValueError, UserWarning, or
