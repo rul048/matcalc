@@ -79,9 +79,6 @@ class PhononCalc(PropCalc):
         imaginary_freq_tol, then either raise a ValueError ("error") or log a
         warning ("warn").
     :type on_imaginary_modes: Literal["error", "warn"]
-    :ivar fix_imaginary_attempts: Number of attempts to resolve imaginary modes by rattling
-        the involved atoms (ASE rattle, stdev=0.01 Å) and re-optimizing at fixed cell volume.
-        0 disables correction.
     :ivar write_force_constants: Path, boolean, or string specifying whether
         to write the calculated force constants to an output file, and the
         path or name of the file if applicable.

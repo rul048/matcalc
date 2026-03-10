@@ -44,7 +44,6 @@ class QHACalc(PropCalc):
     :type t_max: float
     :ivar t_min: Minimum temperature in Kelvin.
     :type t_min: float
-    :ivar pressure: Pressure in GPa
     :type pressure: float | None
     :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
     :type fmax: float
@@ -145,8 +144,6 @@ class QHACalc(PropCalc):
             a value below imaginary_freq_tol, it is considered imaginary.
         :param on_imaginary_modes: If there is a frequency with a value below imaginary_freq_tol, then
             raise a ValueError ("error") or log a warning ("warn"). Defaults to "warn".
-        :param fix_imaginary_attempts: Number of attempts passed to PhononCalc to resolve imaginary modes
-            at each scale factor. 0 disables correction.
         :param write_helmholtz_volume: Path, boolean, or string to indicate whether and where
             to save Helmholtz energy as a function of volume.
         :param write_volume_temperature: Path, boolean, or string to indicate whether and where
@@ -254,7 +251,7 @@ class QHACalc(PropCalc):
         }
         """
         result = super().calc(structure)
-        structure_in: Structure = to_pmg_structure(result["final_structure"])
+        structure_in: Structure = result["final_structure"]
 
         if self.relax_structure:
             logger.info("Relaxing input structure before QHA")
