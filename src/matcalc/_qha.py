@@ -5,8 +5,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-logger = logging.getLogger(__name__)
-
 import numpy as np
 from phonopy import PhonopyQHA
 
@@ -23,6 +21,8 @@ if TYPE_CHECKING:
     from ase import Atoms
     from ase.calculators.calculator import Calculator
     from pymatgen.core import Structure
+
+logger = logging.getLogger(__name__)
 
 
 class QHACalc(PropCalc):
