@@ -314,23 +314,21 @@ class QHACalc(PropCalc):
         for scale_factor in tqdm(self.scale_factors, desc="Performing analysis on scale factors"):
             # Apply linear strain
             struct = self._scale_structure(structure, scale_factor)
-            volumes.append(struct.volume)
 
             # Relax at fixed volume
-            relax_calc_kwargs = {
-                "optimizer": self.optimizer,
-                "fmax": self.fmax,
-                "max_steps": self.max_steps,
-            } | (self.relax_calc_kwargs or {})
-            if self.allow_shape_change:
-                relax_calc_kwargs["relax_cell"] = True
-                relax_calc_kwargs["cell_filter_kwargs"] = {"constant_volume": True}
-            else:
-                relax_calc_kwargs["relax_cell"] = False
-            relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
+            relaxer = RelaxCalc(
+                self.calculator,
+                optimizer=self.optimizer,
+                fmax=self.fmax,
+                max_steps=self.max_steps,
+                relax_cell=bool(self.allow_shape_change),
+                cell_filter_kwargs={"constant_volume": True} if self.allow_shape_change else {},
+                **(self.relax_calc_kwargs or {}),
+            )
             relaxed_result = relaxer.calc(struct)
             electronic_energies.append(relaxed_result["energy"])
             scaled_structures.append(relaxed_result["final_structure"])
+            volumes.append(relaxed_result["final_structure"].volume)
 
             # Calculate thermal properties from phonon calculation
             phonon_result = self._calculate_thermal_properties(relaxed_result["final_structure"])
