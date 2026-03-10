@@ -319,7 +319,7 @@ class QHACalc(PropCalc):
         for scale_factor in self.scale_factors:
             # Apply linear strain
             struct = self._scale_structure(structure, scale_factor)
-            volumes.append(vstruct.olume)
+            volumes.append(struct.olume)
 
             # Relax at fixed volume
             logger.info("Scale factor %.3f: relaxing at fixed volume", scale_factor)
