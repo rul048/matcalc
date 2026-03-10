@@ -105,7 +105,7 @@ class QHACalc(PropCalc):
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
-        scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01)),
+        scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01).tolist()),
         imaginary_freq_tol: float = -0.01,
         on_imaginary_modes: Literal["error", "warn"] = "warn",
         fix_imaginary_attempts: int = 0,
