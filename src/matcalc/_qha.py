@@ -44,7 +44,7 @@ class QHACalc(PropCalc):
     :type t_max: float
     :ivar t_min: Minimum temperature in Kelvin.
     :type t_min: float
-    :ivar pressure: Pressure in GPa
+    :ivar pressure: Pressure in GPa.
     :type pressure: float | None
     :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
     :type fmax: float
