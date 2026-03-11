@@ -80,8 +80,7 @@ class PhononCalc(PropCalc):
         warning ("warn").
     :type on_imaginary_modes: Literal["error", "warn"]
     :ivar fix_imaginary_attempts: Number of attempts to resolve imaginary modes by rattling
-        the involved atoms (ASE rattle, stdev=0.01 Å) and re-optimizing at fixed cell volume.
-        0 disables correction.
+        the atoms and re-optimizing at fixed cell volume. 0 disables correction.
     :type fix_imaginary_attempts: int
     :ivar write_force_constants: Path, boolean, or string specifying whether
         to write the calculated force constants to an output file, and the
@@ -147,8 +146,8 @@ class PhononCalc(PropCalc):
         :param on_imaginary_modes: If there is a frequency with a value below imaginary_freq_tol, then
             raise a ValueError ("error") or log a warning ("warn"). Defaults to "warn".
         :param fix_imaginary_attempts: Number of attempts to resolve imaginary modes. For each attempt, atoms
-            involved in imaginary modes are rattled (ASE rattle, stdev=0.01 Å), the structure is re-optimized
-            at fixed cell volume, and phonons are recalculated. 0 disables correction.
+            are rattled (ASE rattle, stdev=0.01 Å), the structure is re-optimized at fixed cell volume, and phonons
+            are recalculated. 0 disables correction.
         :param write_force_constants: File path or boolean flag to write force constants.
             Defaults to "force_constants".
         :param write_band_structure: File path or boolean flag to write band structure data.
