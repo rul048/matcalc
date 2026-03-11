@@ -232,7 +232,7 @@ class PhononCalc(PropCalc):
         phonon, frequencies, disp_supercells = self._run_phonopy(structure_in)
 
         if self.fix_imaginary_attempts > 0 and np.any(frequencies < self.imaginary_freq_tol):
-            phonon, frequencies, disp_supercells, relax_result = self._resolve_imaginary_modes(
+            relax_result, phonon, frequencies, disp_supercells = self._resolve_imaginary_modes(
                 structure_in, phonon, frequencies, disp_supercells
             )
             result |= relax_result
@@ -314,7 +314,7 @@ class PhononCalc(PropCalc):
         phonon: phonopy.Phonopy,
         frequencies: np.ndarray,
         disp_supercells: list,
-    ) -> tuple[phonopy.Phonopy, np.ndarray, list[Structure], dict]:
+    ) -> tuple[dict, phonopy.Phonopy, np.ndarray, list[Structure]]:
         """Attempt to resolve imaginary modes by rattling and re-relaxing.
 
         Args:
@@ -324,7 +324,7 @@ class PhononCalc(PropCalc):
             disp_supercells: Displaced supercells from the most recent build.
 
         Returns:
-            Updated (phonon, frequencies, disp_supercells, relax_result).
+            Updated (RelaxCalc dictionary, phonon, frequencies, disp_supercells).
         """
         logger.warning(
             "Imaginary modes detected (min freq: %.2f THz). Attempting to resolve over %d attempt(s).",
@@ -357,7 +357,7 @@ class PhononCalc(PropCalc):
                 self.fix_imaginary_attempts,
                 np.min(frequencies),
             )
-        return phonon, frequencies, disp_supercells, relax_result
+        return relax_result, phonon, frequencies, disp_supercells
 
     def _rattle_structure(self, structure_in: Structure, stdev: float = 0.01) -> Structure:
         """Rattle the atoms to bump out of stationary point (stdev=0.01 Å).
