@@ -310,14 +310,11 @@ class QHACalc(PropCalc):
 
             # Relax at fixed volume
             logger.info("Scale factor %.3f: relaxing at fixed volume", scale_factor)
-            relaxer = RelaxCalc(
-                self.calculator,
-                optimizer=self.optimizer,
-                fmax=self.fmax,
-                max_steps=self.max_steps,
-                relax_cell=False,
-                **(self.relax_calc_kwargs or {}),
+            relax_kwargs = {"optimizer": self.optimizer, "fmax": self.fmax, "max_steps": self.max_steps} | (
+                self.relax_calc_kwargs or {}
             )
+            relax_kwargs["relax_cell"] = False
+            relaxer = RelaxCalc(self.calculator, **relax_kwargs)
             relaxed_result = relaxer.calc(struct)
 
             # Calculate thermal properties from phonon calculation and tabulate results.
@@ -376,12 +373,12 @@ class QHACalc(PropCalc):
             "t_step": self.t_step,
             "t_max": self.t_max,
             "t_min": self.t_min,
-            "relax_structure": False,
             "imaginary_freq_tol": self.imaginary_freq_tol,
             "on_imaginary_modes": self.on_imaginary_modes,
             "fix_imaginary_attempts": self.fix_imaginary_attempts,
             "write_phonon": False,
         } | (self.phonon_calc_kwargs or {})
+        phonon_calc_kwargs["relax_structure"] = False  # always required for QHA fixed-volume phonons
         phonon_calc = PhononCalc(
             self.calculator,
             **phonon_calc_kwargs,
