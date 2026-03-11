@@ -330,8 +330,7 @@ class QHACalc(PropCalc):
 
             # Relax at fixed volume
             logger.info("Scale factor %.3f: relaxing at fixed volume", scale_factor)
-            relax_kwargs = self._fixed_cell_relax_calc_kwargs
-            relaxer = RelaxCalc(self.calculator, **relax_kwargs)
+            relaxer = RelaxCalc(self.calculator, **self._fixed_cell_relax_calc_kwargs)
             relaxed_result = relaxer.calc(scaled_structure)
 
             # Calculate thermal properties from phonon calculation and tabulate results.
