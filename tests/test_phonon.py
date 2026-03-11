@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import logging
 import os
 from typing import TYPE_CHECKING
 
@@ -135,6 +136,7 @@ def test_phonon_calc_lattice(
 def test_phonon_calc_imaginary_freq_tol(
     Si_atoms: Atoms,
     matpes_calculator: PESCalculator,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test that imaginary frequency tolerance check works correctly."""
     # Stable structure with tolerance should pass without error
@@ -142,7 +144,8 @@ def test_phonon_calc_imaginary_freq_tol(
         calculator=matpes_calculator,
         supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
         fmax=0.1,
-        imaginary_freq_tol=0.1,
+        imaginary_freq_tol=-0.1,
+        on_imaginary_modes="error",
     )
     result = phonon_calc.calc(Si_atoms)
     assert "frequencies" in result
@@ -156,19 +159,36 @@ def test_phonon_calc_imaginary_freq_tol(
         calculator=matpes_calculator,
         supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
         fmax=100.0,
-        imaginary_freq_tol=0.1,
+        imaginary_freq_tol=-0.1,
+        on_imaginary_modes="error",
     )
-    with pytest.raises(ValueError, match=r"are imaginary"):
+    with pytest.raises(ValueError, match="modes are imaginary"):
         phonon_calc.calc(distorted_si_atoms)
 
-    # Distort the structure to create imaginary modes, but it's okay
+    # Distort the structure to create imaginary modes, then check that
+    # the tolerance check logs a warning
     distorted_si_atoms = Si_atoms.copy()
     distorted_si_atoms.cell += 0.5
     phonon_calc = PhononCalc(
         calculator=matpes_calculator,
         supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
         fmax=100.0,
-        imaginary_freq_tol=None,
+        imaginary_freq_tol=-0.1,
+        on_imaginary_modes="warn",
+    )
+    with caplog.at_level(logging.WARNING, logger="matcalc"):
+        phonon_calc.calc(distorted_si_atoms)
+    assert any("modes are imaginary" in r.message for r in caplog.records)
+
+    # Distort the structure and use a very negative tol so no imaginary modes are flagged
+    distorted_si_atoms = Si_atoms.copy()
+    distorted_si_atoms.cell += 0.5
+    phonon_calc = PhononCalc(
+        calculator=matpes_calculator,
+        supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
+        fmax=100.0,
+        imaginary_freq_tol=-100.0,
+        on_imaginary_modes="warn",
     )
     result = phonon_calc.calc(distorted_si_atoms)
     assert "frequencies" in result
