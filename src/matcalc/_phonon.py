@@ -222,11 +222,7 @@ class PhononCalc(PropCalc):
 
         if self.relax_structure:
             logger.info("Relaxing input structure before phonon calculation")
-            relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
-                self.relax_calc_kwargs or {}
-            )
-            relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
-            result |= relaxer.calc(structure_in)
+            result |= self._relax_structure(structure_in)
             structure_in = result["final_structure"]
 
         phonon, frequencies, disp_supercells = self._run_phonopy(structure_in)
@@ -297,9 +293,9 @@ class PhononCalc(PropCalc):
             n_imag = np.sum(imag_freq_mask)
             n_freqs = frequencies.size
             min_mode = np.min(frequencies)
-            pct = 100 * n_imag / n_freqs
+            percent_imaginary = 100 * n_imag / n_freqs
             msg = (
-                f"{n_imag}/{n_freqs} ({pct:.12}%) modes are imaginary (below {self.imaginary_freq_tol:.4f} THz). "
+                f"{n_imag}/{n_freqs} ({percent_imaginary:.12}%) modes are imaginary (below {self.imaginary_freq_tol:.4f} THz). "
                 f"Most negative: {min_mode:.2f} THz. This indicates a dynamically unstable structure. "
                 f"Thermal properties may not be reliable."
             )
@@ -337,7 +333,7 @@ class PhononCalc(PropCalc):
             structure_in = self._rattle_structure(structure_in)
 
             logger.info("Re-relaxing structure at fixed cell volume following rattle.")
-            relax_result = self._relax_fixed_cell(structure_in)
+            relax_result = self._relax_structure(structure_in)
             structure_in = relax_result["final_structure"]
 
             logger.info("Recomputing phonons after correction attempt %d", attempt + 1)
@@ -347,8 +343,9 @@ class PhononCalc(PropCalc):
                 logger.info("Imaginary modes resolved after %d attempt(s)", attempt + 1)
                 break
             logger.info(
-                "Imaginary modes persist after attempt %d (min freq: %.2f THz).",
+                "Imaginary modes persist after attempt %d (percent imaginary = %.2f%, min freq: %.2f THz).",
                 attempt + 1,
+                100 * np.sum(frequencies < self.imaginary_freq_tol) / len(frequencies),
                 np.min(frequencies),
             )
         else:
@@ -374,8 +371,8 @@ class PhononCalc(PropCalc):
         atoms.wrap()
         return to_pmg_structure(atoms)
 
-    def _relax_fixed_cell(self, structure_in: Structure) -> dict:
-        """Relax atomic positions at fixed cell.
+    def _relax_structure(self, structure_in: Structure) -> dict:
+        """Relax a structure.
 
         Args:
             structure_in: Pymatgen structure.
@@ -386,6 +383,5 @@ class PhononCalc(PropCalc):
         relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
             self.relax_calc_kwargs or {}
         )
-        relax_calc_kwargs["relax_cell"] = False  # warning: changing this to True will break QHACalc
         relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
         return relaxer.calc(structure_in)

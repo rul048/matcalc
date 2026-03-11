@@ -52,6 +52,9 @@ class QHACalc(PropCalc):
     :type optimizer: str
     :ivar eos: Equation of state used for fitting energy vs. volume data.
     :type eos: Literal["vinet", "birch_murnaghan", "murnaghan"]
+    :ivar allow_shape_change: Whether or not to allow the unit cell shape to
+        change at fixed cell volume during the EOS calculations. Default is True.
+    :type allow_shape_change: bool
     :ivar relax_structure: Whether to perform structure relaxation before phonon calculations.
     :type relax_structure: bool
     :ivar relax_calc_kwargs: Additional keyword arguments for structure relaxation calculations.
@@ -102,6 +105,7 @@ class QHACalc(PropCalc):
         max_steps: int = 5000,
         optimizer: str = "FIRE",
         eos: Literal["vinet", "birch_murnaghan", "murnaghan"] = "vinet",
+        allow_shape_change: bool = True,
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
@@ -136,6 +140,8 @@ class QHACalc(PropCalc):
             "FIRE".
         :param eos: Equation of state to use for calculating energy vs. volume relationships.
             Default is "vinet".
+        :param allow_shape_change: Whether or not to allow the unit cell shape to
+            change at fixed cell volume during the EOS calculations. Default is True.
         :param relax_structure: A boolean flag indicating whether the initial atomic structure should be
             relaxed as part of the computation workflow. Note that subsequent relaxations on the
             volume-scaled structures will be carried out regardless.
@@ -178,6 +184,7 @@ class QHACalc(PropCalc):
         self.max_steps = max_steps
         self.optimizer = optimizer
         self.eos = eos
+        self.allow_shape_change = allow_shape_change
         self.relax_structure = relax_structure
         self.relax_calc_kwargs = relax_calc_kwargs
         self.phonon_calc_kwargs = phonon_calc_kwargs
@@ -185,6 +192,17 @@ class QHACalc(PropCalc):
         self.imaginary_freq_tol = imaginary_freq_tol
         self.on_imaginary_modes = on_imaginary_modes
         self.fix_imaginary_attempts = fix_imaginary_attempts
+
+        # Needed to make sure the volume doesn't change during scaling
+        self._fixed_cell_relax_calc_kwargs = {
+            "optimizer": self.optimizer,
+            "fmax": self.fmax,
+            "max_steps": self.max_steps,
+            **(self.relax_calc_kwargs or {}),
+            # The following must come at the end to make sure they are not overwritten
+            "relax_cell": bool(self.allow_shape_change),
+            "cell_filter_kwargs": {"constant_volume": True} if self.allow_shape_change else {},
+        }
 
         # Normalize write_* inputs to Optional[str | os.PathLike]:
         # - True  -> default filename (meaning "write to default file")
@@ -243,11 +261,13 @@ class QHACalc(PropCalc):
 
         if self.relax_structure:
             logger.info("Relaxing input structure before QHA")
-            relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
-                self.relax_calc_kwargs or {}
-            )
-            relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
-            result |= relaxer.calc(structure_in)
+            result |= RelaxCalc(
+                self.calculator,
+                fmax=self.fmax,
+                optimizer=self.optimizer,
+                max_steps=self.max_steps,
+                **(self.relax_calc_kwargs or {}),
+            ).calc(structure_in)
             structure_in = result["final_structure"]
 
         logger.info(
@@ -306,16 +326,13 @@ class QHACalc(PropCalc):
         scaled_structures = []
         for scale_factor in self.scale_factors:
             # Apply linear strain
-            struct = self._scale_structure(structure, scale_factor)
+            scaled_structure = self._scale_structure(structure, scale_factor)
 
             # Relax at fixed volume
             logger.info("Scale factor %.3f: relaxing at fixed volume", scale_factor)
-            relax_kwargs = {"optimizer": self.optimizer, "fmax": self.fmax, "max_steps": self.max_steps} | (
-                self.relax_calc_kwargs or {}
-            )
-            relax_kwargs["relax_cell"] = False
+            relax_kwargs = self._fixed_cell_relax_calc_kwargs
             relaxer = RelaxCalc(self.calculator, **relax_kwargs)
-            relaxed_result = relaxer.calc(struct)
+            relaxed_result = relaxer.calc(scaled_structure)
 
             # Calculate thermal properties from phonon calculation and tabulate results.
             # We must store the energy, structure, etc. from the phonon calculation if
@@ -327,6 +344,13 @@ class QHACalc(PropCalc):
                 relaxed_result["final_structure"].volume,
             )
             phonon_result = self._calculate_thermal_properties(relaxed_result["final_structure"])
+
+            if np.abs(scaled_structure.volume - phonon_result["final_structure"].volume) > 1e-4:  # noqa: PLR2004
+                raise ValueError(
+                    f"Somehow the volume changed during relaxation. This is a bug! Before: {scaled_structure.volume}. "
+                    f"After: {phonon_result['final_structure'].volume}"
+                )
+
             scaled_structures.append(phonon_result["final_structure"])
             volumes.append(phonon_result["final_structure"].volume)
             electronic_energies.append(phonon_result.get("energy", relaxed_result.get("energy")))
@@ -373,6 +397,7 @@ class QHACalc(PropCalc):
             "t_step": self.t_step,
             "t_max": self.t_max,
             "t_min": self.t_min,
+            "relax_calc_kwargs": self._fixed_cell_relax_calc_kwargs,  # needed for _resolve_imaginary_modes
             "imaginary_freq_tol": self.imaginary_freq_tol,
             "on_imaginary_modes": self.on_imaginary_modes,
             "fix_imaginary_attempts": self.fix_imaginary_attempts,
