@@ -137,29 +137,24 @@ class EOSCalc(PropCalc):
         """
         result = super().calc(structure)
         structure_in: Structure = to_pmg_structure(result["final_structure"])
+        relax_calc_kwargs = {
+            "optimizer": self.optimizer,
+            "fmax": self.fmax,
+            "max_steps": self.max_steps,
+            **(self.relax_calc_kwargs or {}),
+        }
 
         if self.relax_structure:
-            relaxer = RelaxCalc(
-                self.calculator,
-                optimizer=self.optimizer,
-                fmax=self.fmax,
-                max_steps=self.max_steps,
-                **(self.relax_calc_kwargs or {}),
-            )
+            relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
             result |= relaxer.calc(structure_in)
             structure_in = result["final_structure"]
 
         volumes, energies = [], []
-        relaxer = RelaxCalc(
-            self.calculator,
-            optimizer=self.optimizer,
-            fmax=self.fmax,
-            max_steps=self.max_steps,
-            **(self.relax_calc_kwargs or {}),
-            # These must come at the end to prevent them from being changed
-            relax_cell=bool(self.allow_shape_change),
-            cell_filter_kwargs={"constant_volume": True} if self.allow_shape_change else {},
-        )
+
+        # Don't relax the volume!
+        relax_calc_kwargs["relax_cell"] = bool(self.allow_shape_change)
+        relax_calc_kwargs["cell_filter_kwargs"] = {"constant_volume": True} if self.allow_shape_change else {}
+        relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
 
         temp_structure = structure_in.copy()
         for idx in np.linspace(-self.max_abs_strain, self.max_abs_strain, self.n_points)[self.n_points // 2 :]:
