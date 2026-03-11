@@ -267,7 +267,7 @@ class PhononCalc(PropCalc):
             Tuple of (phonon, frequencies, disp_supercells).
         """
         cell = get_phonopy_structure(structure)
-        if self.supercell_matrix:
+        if self.supercell_matrix is not None:
             supercell_matrix = np.array(self.supercell_matrix, dtype=int)
         else:
             supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure.lattice.abc)).astype(int))
@@ -383,7 +383,13 @@ class PhononCalc(PropCalc):
         # Compute total displacement amplitude per atom across all imaginary modes.
         # Select atoms whose amplitude exceeds `cutoff` times the maximum atomic amplitude.
         natoms = len(structure_in)
-        imag_evecs = eigenvectors[freqs < self.imaginary_freq_tol]  # (n_imag, 3*natoms)
+        # eigenvectors shape: (nqpoints, 3*natoms components, 3*natoms modes)
+        # phonopy convention: eigenvectors[:, :, i] is the i-th mode eigenvector.
+        # Use explicit fancy indexing so we select eigenvectors[q, :, mode] for each
+        # imaginary (q, mode) pair — boolean indexing on the 2D mask would wrongly
+        # apply to the (q, component) axes instead of (q, mode).
+        q_idx, mode_idx = np.where(freqs < self.imaginary_freq_tol)
+        imag_evecs = eigenvectors[q_idx, :, mode_idx]  # (n_imag, 3*natoms)
         atom_amplitudes = np.sum(np.abs(imag_evecs.reshape(-1, natoms, 3)) ** 2, axis=(0, 2))
         return np.where(atom_amplitudes >= cutoff * atom_amplitudes.max())[0]
 
