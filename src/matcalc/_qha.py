@@ -199,10 +199,11 @@ class QHACalc(PropCalc):
             "fmax": self.fmax,
             "max_steps": self.max_steps,
             **(self.relax_calc_kwargs or {}),
-            # The following must come at the end to make sure they are not overwritten
-            "relax_cell": bool(self.allow_shape_change),
-            "cell_filter_kwargs": {"constant_volume": True} if self.allow_shape_change else {},
         }
+        self._fixed_cell_relax_calc_kwargs["relax_cell"] = bool(self.allow_shape_change)
+        self._fixed_cell_relax_calc_kwargs["cell_filter_kwargs"] = (
+            {"constant_volume": True} if self.allow_shape_change else {},
+        )
 
         # Normalize write_* inputs to Optional[str | os.PathLike]:
         # - True  -> default filename (meaning "write to default file")
