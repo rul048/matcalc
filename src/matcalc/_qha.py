@@ -185,14 +185,20 @@ class QHACalc(PropCalc):
         self.imaginary_freq_tol = imaginary_freq_tol
         self.on_imaginary_modes = on_imaginary_modes
         self.fix_imaginary_attempts = fix_imaginary_attempts
-        self.write_helmholtz_volume = write_helmholtz_volume
-        self.write_volume_temperature = write_volume_temperature
-        self.write_thermal_expansion = write_thermal_expansion
-        self.write_gibbs_temperature = write_gibbs_temperature
-        self.write_bulk_modulus_temperature = write_bulk_modulus_temperature
-        self.write_heat_capacity_p_numerical = write_heat_capacity_p_numerical
-        self.write_heat_capacity_p_polyfit = write_heat_capacity_p_polyfit
-        self.write_gruneisen_temperature = write_gruneisen_temperature
+
+        # Normalize write_* inputs to Optional[str | os.PathLike]:
+        # - True  -> default filename (meaning "write to default file")
+        # - False -> None (disabled)
+        # - str/PathLike -> keep as-is (user-provided path)
+        self.write_helmholtz_volume: str | os.PathLike | None = None
+        self.write_volume_temperature: str | os.PathLike | None = None
+        self.write_thermal_expansion: str | os.PathLike | None = None
+        self.write_gibbs_temperature: str | os.PathLike | None = None
+        self.write_bulk_modulus_temperature: str | os.PathLike | None = None
+        self.write_heat_capacity_p_numerical: str | os.PathLike | None = None
+        self.write_heat_capacity_p_polyfit: str | os.PathLike | None = None
+        self.write_gruneisen_temperature: str | os.PathLike | None = None
+
         for key, val, default_path in (
             ("write_helmholtz_volume", write_helmholtz_volume, "helmholtz_volume.dat"),
             ("write_volume_temperature", write_volume_temperature, "volume_temperature.dat"),
