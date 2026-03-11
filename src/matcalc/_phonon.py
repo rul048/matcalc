@@ -323,7 +323,9 @@ class PhononCalc(PropCalc):
             Updated (RelaxCalc dictionary, phonon, frequencies, disp_supercells).
         """
         logger.warning(
-            "Imaginary modes detected (min freq: %.2f THz). Attempting to resolve over %d attempt(s).",
+            "Imaginary modes detected (percent imaginary = %.2f%%, min freq: %.2f THz). "
+            "Attempting to resolve over %d attempt(s).",
+            100 * np.sum(frequencies < self.imaginary_freq_tol) / frequencies.size,
             np.min(frequencies),
             self.fix_imaginary_attempts,
         )
@@ -343,9 +345,9 @@ class PhononCalc(PropCalc):
                 logger.info("Imaginary modes resolved after %d attempt(s)", attempt + 1)
                 break
             logger.info(
-                "Imaginary modes persist after attempt %d (percent imaginary = %.2f%, min freq: %.2f THz).",
+                "Imaginary modes persist after attempt %d (percent imaginary = %.2f%%, min freq: %.2f THz).",
                 attempt + 1,
-                100 * np.sum(frequencies < self.imaginary_freq_tol) / len(frequencies),
+                100 * np.sum(frequencies < self.imaginary_freq_tol) / frequencies.size,
                 np.min(frequencies),
             )
         else:
