@@ -378,7 +378,7 @@ class QHACalc(PropCalc):
             "fix_imaginary_attempts": self.fix_imaginary_attempts,
             "write_phonon": False,
         } | (self.phonon_calc_kwargs or {})
-        phonon_calc_kwargs["relax_structure"] = False  # always required for QHA fixed-volume phonons
+        phonon_calc_kwargs["relax_structure"] = False  # already relaxed
         phonon_calc = PhononCalc(
             self.calculator,
             **phonon_calc_kwargs,
