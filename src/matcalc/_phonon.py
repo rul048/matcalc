@@ -351,13 +351,13 @@ class PhononCalc(PropCalc):
                 logger.info("Imaginary modes resolved after %d attempt(s)", attempt + 1)
                 break
             logger.info(
-                "Imaginary modes persist after attempt %d (min freq: %.1f THz).",
+                "Imaginary modes persist after attempt %d (min freq: %.2f THz).",
                 attempt + 1,
                 np.min(frequencies),
             )
         else:
             logger.warning(
-                "Imaginary modes not resolved after %d attempt(s) (min freq: %.1f THz).",
+                "Imaginary modes not resolved after %d attempt(s) (min freq: %.2f THz).",
                 self.fix_imaginary_attempts,
                 np.min(frequencies),
             )
