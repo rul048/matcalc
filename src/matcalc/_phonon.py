@@ -335,12 +335,9 @@ class PhononCalc(PropCalc):
         relax_result: dict = {}
         for attempt in range(self.fix_imaginary_attempts):
             logger.info("Imaginary mode correction attempt %d/%d", attempt + 1, self.fix_imaginary_attempts)
-            involved = self._get_imaginary_mode_atom_indices(phonon, structure_in)
+            structure_in = self._rattle_structure(structure_in)
 
-            logger.info("Rattling %d/%d atoms involved in imaginary modes", len(involved), len(structure_in))
-            structure_in = self._rattle_structure(structure_in, involved)
-
-            logger.info("Re-relaxing structure at fixed cell volume")
+            logger.info("Re-relaxing structure at fixed cell volume following rattle.")
             relax_result = self._relax_fixed_cell(structure_in)
             structure_in = relax_result["final_structure"]
 
@@ -363,52 +360,19 @@ class PhononCalc(PropCalc):
             )
         return phonon, frequencies, disp_supercells, relax_result
 
-    def _get_imaginary_mode_atom_indices(
-        self, phonon: phonopy.Phonopy, structure_in: Structure, cutoff: float = 0.1
-    ) -> np.ndarray:
-        """Return indices of primitive-cell atoms with significant amplitude in imaginary modes.
-
-        Args:
-            phonon: Phonopy object with force constants already computed.
-            structure_in: Pymatgen structure (primitive cell).
-            cutoff: Atoms with total amplitude >= cutoff * max amplitude are selected.
-
-        Returns:
-            Array of atom indices involved in imaginary modes.
-        """
-        mesh_dict = phonon.get_mesh_dict()
-        eigenvectors = mesh_dict["eigenvectors"]  # shape (nqpoints, nbands, nbands) complex
-        freqs = mesh_dict["frequencies"]  # shape (nqpoints, nbands)
-
-        # Compute total displacement amplitude per atom across all imaginary modes.
-        # Select atoms whose amplitude exceeds `cutoff` times the maximum atomic amplitude.
-        natoms = len(structure_in)
-        # eigenvectors shape: (nqpoints, 3*natoms components, 3*natoms modes)
-        # phonopy convention: eigenvectors[:, :, i] is the i-th mode eigenvector.
-        # Use explicit fancy indexing so we select eigenvectors[q, :, mode] for each
-        # imaginary (q, mode) pair — boolean indexing on the 2D mask would wrongly
-        # apply to the (q, component) axes instead of (q, mode).
-        q_idx, mode_idx = np.where(freqs < self.imaginary_freq_tol)
-        imag_evecs = eigenvectors[q_idx, :, mode_idx]  # (n_imag, 3*natoms)
-        atom_amplitudes = np.sum(np.abs(imag_evecs.reshape(-1, natoms, 3)) ** 2, axis=(0, 2))
-        return np.where(atom_amplitudes >= cutoff * atom_amplitudes.max())[0]
-
-    def _rattle_structure(self, structure_in: Structure, involved_atoms: np.ndarray, stdev: float = 0.01) -> Structure:
-        """Rattle only the involved atoms using ASE rattle (stdev=0.01 Å).
+    def _rattle_structure(self, structure_in: Structure, stdev: float = 0.01) -> Structure:
+        """Rattle the atoms to bump out of stationary point (stdev=0.01 Å).
 
         Args:
             structure_in: Pymatgen structure.
-            involved_atoms: Indices of atoms to rattle.
             stdev: standard deviation in angstrom for the rattle.
 
         Returns:
             Pymatgen structure with rattled atomic positions.
         """
         atoms = to_ase_atoms(structure_in)
-        original_positions = atoms.positions.copy()
         atoms.rattle(stdev=stdev)
-        uninvolved = np.setdiff1d(np.arange(len(atoms)), involved_atoms)
-        atoms.positions[uninvolved] = original_positions[uninvolved]
+        atoms.wrap()
         return to_pmg_structure(atoms)
 
     def _relax_fixed_cell(self, structure_in: Structure) -> dict:
