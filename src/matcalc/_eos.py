@@ -155,9 +155,10 @@ class EOSCalc(PropCalc):
             optimizer=self.optimizer,
             fmax=self.fmax,
             max_steps=self.max_steps,
+            **(self.relax_calc_kwargs or {}),
+            # These must come at the end to prevent them from being changed
             relax_cell=bool(self.allow_shape_change),
             cell_filter_kwargs={"constant_volume": True} if self.allow_shape_change else {},
-            **(self.relax_calc_kwargs or {}),
         )
 
         temp_structure = structure_in.copy()
