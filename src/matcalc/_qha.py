@@ -109,14 +109,14 @@ class QHACalc(PropCalc):
         imaginary_freq_tol: float = -0.01,
         on_imaginary_modes: Literal["error", "warn"] = "warn",
         fix_imaginary_attempts: int = 0,
-        write_helmholtz_volume: bool | str | Path = False,
-        write_volume_temperature: bool | str | Path = False,
-        write_thermal_expansion: bool | str | Path = False,
-        write_gibbs_temperature: bool | str | Path = False,
-        write_bulk_modulus_temperature: bool | str | Path = False,
-        write_heat_capacity_p_numerical: bool | str | Path = False,
-        write_heat_capacity_p_polyfit: bool | str | Path = False,
-        write_gruneisen_temperature: bool | str | Path = False,
+        write_helmholtz_volume: bool | str | os.PathLike = False,
+        write_volume_temperature: bool | str | os.PathLike = False,
+        write_thermal_expansion: bool | str | os.PathLike = False,
+        write_gibbs_temperature: bool | str | os.PathLike = False,
+        write_bulk_modulus_temperature: bool | str | os.PathLike = False,
+        write_heat_capacity_p_numerical: bool | str | os.PathLike = False,
+        write_heat_capacity_p_polyfit: bool | str | os.PathLike = False,
+        write_gruneisen_temperature: bool | str | os.PathLike = False,
     ) -> None:
         """
         Initializes the class that handles thermal and structural calculations, including atomic
@@ -141,6 +141,8 @@ class QHACalc(PropCalc):
             volume-scaled structures will be carried out regardless.
         :param relax_calc_kwargs: A dictionary containing additional keyword arguments to pass to
             all relaxations in the workflow.
+        :param phonon_calc_kwargs: A dictionary containing additional parameters to pass to the
+            phonon calculation routine.
         :param scale_factors: A sequence of scale factors for volume scaling during
             thermodynamic and phononic calculations.
         :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
@@ -149,8 +151,6 @@ class QHACalc(PropCalc):
             raise a ValueError ("error") or log a warning ("warn"). Defaults to "warn".
         :param fix_imaginary_attempts: Number of attempts passed to PhononCalc to resolve imaginary modes
             at each scale factor. 0 disables correction.
-        :param phonon_calc_kwargs: A dictionary containing additional parameters to pass to the
-            phonon calculation routine.
         :param write_helmholtz_volume: Path, boolean, or string to indicate whether and where
             to save Helmholtz energy as a function of volume.
         :param write_volume_temperature: Path, boolean, or string to indicate whether and where
