@@ -14,8 +14,8 @@ from ._relaxation import RelaxCalc
 from .utils import to_pmg_structure
 
 if TYPE_CHECKING:
+    import os
     from collections.abc import Sequence
-    from pathlib import Path
     from typing import Any, Literal
 
     from ase import Atoms
@@ -46,7 +46,6 @@ class QHACalc(PropCalc):
     :type t_min: float
     :ivar pressure: Pressure in GPa
     :type pressure: float | None
-    :ivar pressure: Pressure in GPa
     :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
     :type fmax: float
     :ivar optimizer: Type of optimizer used for structural relaxation.
@@ -195,48 +194,22 @@ class QHACalc(PropCalc):
         self.write_heat_capacity_p_polyfit = write_heat_capacity_p_polyfit
         self.write_gruneisen_temperature = write_gruneisen_temperature
         for key, val, default_path in (
-            (
-                "write_helmholtz_volume",
-                self.write_helmholtz_volume,
-                "helmholtz_volume.dat",
-            ),
-            (
-                "write_volume_temperature",
-                self.write_volume_temperature,
-                "volume_temperature.dat",
-            ),
-            (
-                "write_thermal_expansion",
-                self.write_thermal_expansion,
-                "thermal_expansion.dat",
-            ),
-            (
-                "write_gibbs_temperature",
-                self.write_gibbs_temperature,
-                "gibbs_temperature.dat",
-            ),
-            (
-                "write_bulk_modulus_temperature",
-                self.write_bulk_modulus_temperature,
-                "bulk_modulus_temperature.dat",
-            ),
-            (
-                "write_heat_capacity_p_numerical",
-                self.write_heat_capacity_p_numerical,
-                "Cp_temperature.dat",
-            ),
-            (
-                "write_heat_capacity_p_polyfit",
-                self.write_heat_capacity_p_polyfit,
-                "Cp_temperature_polyfit.dat",
-            ),
-            (
-                "write_gruneisen_temperature",
-                self.write_gruneisen_temperature,
-                "gruneisen_temperature.dat",
-            ),
+            ("write_helmholtz_volume", write_helmholtz_volume, "helmholtz_volume.dat"),
+            ("write_volume_temperature", write_volume_temperature, "volume_temperature.dat"),
+            ("write_thermal_expansion", write_thermal_expansion, "thermal_expansion.dat"),
+            ("write_gibbs_temperature", write_gibbs_temperature, "gibbs_temperature.dat"),
+            ("write_bulk_modulus_temperature", write_bulk_modulus_temperature, "bulk_modulus_temperature.dat"),
+            ("write_heat_capacity_p_numerical", write_heat_capacity_p_numerical, "Cp_temperature.dat"),
+            ("write_heat_capacity_p_polyfit", write_heat_capacity_p_polyfit, "Cp_temperature_polyfit.dat"),
+            ("write_gruneisen_temperature", write_gruneisen_temperature, "gruneisen_temperature.dat"),
         ):
-            setattr(self, key, str({True: default_path, False: ""}.get(val, val)))  # type: ignore[arg-type]
+            if val is True:
+                normalized: str | os.PathLike | None = default_path
+            elif val is False:
+                normalized = None
+            else:
+                normalized = val
+            setattr(self, key, normalized)
 
     def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict:
         """Calculates thermal properties of Pymatgen structure with phonopy under quasi-harmonic approximation.
@@ -415,19 +388,20 @@ class QHACalc(PropCalc):
         Args:
             qha: Phonopy.qha object
         """
-        if self.write_helmholtz_volume:
+        # write_* now are Optional[str | os.PathLike]; None means "do not write".
+        if self.write_helmholtz_volume is not None:
             qha.write_helmholtz_volume(filename=self.write_helmholtz_volume)
-        if self.write_volume_temperature:
+        if self.write_volume_temperature is not None:
             qha.write_volume_temperature(filename=self.write_volume_temperature)
-        if self.write_thermal_expansion:
+        if self.write_thermal_expansion is not None:
             qha.write_thermal_expansion(filename=self.write_thermal_expansion)
-        if self.write_gibbs_temperature:
+        if self.write_gibbs_temperature is not None:
             qha.write_gibbs_temperature(filename=self.write_gibbs_temperature)
-        if self.write_bulk_modulus_temperature:
+        if self.write_bulk_modulus_temperature is not None:
             qha.write_bulk_modulus_temperature(filename=self.write_bulk_modulus_temperature)
-        if self.write_heat_capacity_p_numerical:
+        if self.write_heat_capacity_p_numerical is not None:
             qha.write_heat_capacity_P_numerical(filename=self.write_heat_capacity_p_numerical)
-        if self.write_heat_capacity_p_polyfit:
+        if self.write_heat_capacity_p_polyfit is not None:
             qha.write_heat_capacity_P_polyfit(filename=self.write_heat_capacity_p_polyfit)
-        if self.write_gruneisen_temperature:
+        if self.write_gruneisen_temperature is not None:
             qha.write_gruneisen_temperature(filename=self.write_gruneisen_temperature)
