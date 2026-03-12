@@ -202,7 +202,7 @@ class QHACalc(PropCalc):
         }
         self._fixed_cell_relax_calc_kwargs["relax_cell"] = bool(self.allow_shape_change)
         self._fixed_cell_relax_calc_kwargs["cell_filter_kwargs"] = (
-            {"constant_volume": True} if self.allow_shape_change else {},
+            {"constant_volume": True} if self.allow_shape_change else {}
         )
 
         # Normalize write_* inputs to Optional[str | os.PathLike]:
