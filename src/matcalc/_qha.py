@@ -193,7 +193,7 @@ class QHACalc(PropCalc):
         self.on_imaginary_modes = on_imaginary_modes
         self.fix_imaginary_attempts = fix_imaginary_attempts
 
-        # Needed to make sure the volume doesn't change during scaling
+        # Needed to make sure the volume doesn't change during relaxations on scaled structures
         self._fixed_cell_relax_calc_kwargs = {
             "optimizer": self.optimizer,
             "fmax": self.fmax,
