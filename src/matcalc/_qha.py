@@ -345,16 +345,18 @@ class QHACalc(PropCalc):
             )
             phonon_result = self._calculate_thermal_properties(relaxed_result["final_structure"])
 
-            if np.abs(scaled_structure.volume - phonon_result["final_structure"].volume) > 1e-4:  # noqa: PLR2004
+            # Collect properties
+            scaled_structures.append(phonon_result["final_structure"])
+            volume = phonon_result["final_structure"].volume
+            if (
+                np.abs(volume - scaled_structure.volume) / scaled_structure.volume > 1e-4  # noqa: PLR2004
+            ):
                 raise ValueError(
                     f"Somehow the volume changed during relaxation. This is a bug! Before: {scaled_structure.volume}. "
-                    f"After: {phonon_result['final_structure'].volume}"
+                    f"After: {volume}"
                 )
-
-            scaled_structures.append(phonon_result["final_structure"])
-            volumes.append(phonon_result["final_structure"].volume)
+            volumes.append(volume)
             electronic_energies.append(phonon_result.get("energy", relaxed_result.get("energy")))
-
             thermal_properties = phonon_result["thermal_properties"]
             free_energies.append(thermal_properties["free_energy"])
             entropies.append(thermal_properties["entropy"])

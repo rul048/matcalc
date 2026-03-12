@@ -341,21 +341,16 @@ class PhononCalc(PropCalc):
             logger.info("Recomputing phonons after correction attempt %d", attempt + 1)
             phonon, frequencies, disp_supercells = self._run_phonopy(structure_in)
 
-            if not np.any(frequencies < self.imaginary_freq_tol):
+            if np.any(frequencies < self.imaginary_freq_tol):
+                logger.info(
+                    "Imaginary modes persist after attempt %d (percent imaginary = %.2f%%, min freq: %.2f THz).",
+                    attempt + 1,
+                    100 * np.sum(frequencies < self.imaginary_freq_tol) / frequencies.size,
+                    np.min(frequencies),
+                )
+            else:
                 logger.info("Imaginary modes resolved after %d attempt(s)", attempt + 1)
                 break
-            logger.info(
-                "Imaginary modes persist after attempt %d (percent imaginary = %.2f%%, min freq: %.2f THz).",
-                attempt + 1,
-                100 * np.sum(frequencies < self.imaginary_freq_tol) / frequencies.size,
-                np.min(frequencies),
-            )
-        else:
-            logger.warning(
-                "Imaginary modes not resolved after %d attempt(s) (min freq: %.2f THz).",
-                self.fix_imaginary_attempts,
-                np.min(frequencies),
-            )
         return relax_result, phonon, frequencies, disp_supercells
 
     def _rattle_structure(self, structure_in: Structure, stdev: float = 0.01) -> Structure:
