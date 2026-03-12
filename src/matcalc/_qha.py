@@ -267,7 +267,7 @@ class QHACalc(PropCalc):
                 fmax=self.fmax,
                 optimizer=self.optimizer,
                 max_steps=self.max_steps,
-                **(self.relax_calc_kwargs or {}),
+                **self.relax_calc_kwargs or {},
             ).calc(structure_in)
             structure_in = result["final_structure"]
 
