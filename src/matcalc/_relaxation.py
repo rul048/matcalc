@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ase.constraints import FixAtoms, FixSymmetry
 from ase.filters import FrechetCellFilter
-from ase.constraints import FixSymmetry, FixAtoms
 
 from ._base import PropCalc
 from .backend import run_pes_calc
-from .utils import to_pmg_structure, to_ase_atoms
+from .utils import to_ase_atoms, to_pmg_structure
 
 if TYPE_CHECKING:
     from typing import Any
@@ -75,39 +75,60 @@ class RelaxCalc(PropCalc):
 
     def __init__(
         self,
-        calculator: "Calculator | str",
+        calculator: Calculator | str,
         *,
-        optimizer: "Optimizer | str" = "FIRE",
+        optimizer: Optimizer | str = "FIRE",
         max_steps: int = 500,
-        traj_file: "str | None" = None,
+        traj_file: str | None = None,
         interval: int = 1,
         fmax: float = 0.1,
         relax_atoms: bool = True,
         relax_cell: bool = True,
-        cell_filter: "Filter" = FrechetCellFilter,  # type: ignore[assignment]
-        cell_filter_kwargs: "dict | None" = None,
-        perturb_distance: "float | None" = None,
+        cell_filter: Filter = FrechetCellFilter,  # type: ignore[assignment]
+        cell_filter_kwargs: dict | None = None,
+        perturb_distance: float | None = None,
         fix_symmetry: bool = False,
-        fix_atoms: "bool | list[int]" = False,
+        fix_atoms: bool | list[int] = False,
         symprec: float = 1e-3,
     ) -> None:
         """
         Initializes the relaxation procedure for an atomic configuration system.
 
-        :param calculator: ASE Calculator used for force and energy evaluations.
-        :param optimizer: ASE optimizer name or class (e.g., "FIRE", BFGS).
-        :param max_steps: Maximum optimization steps.
-        :param traj_file: Trajectory file (optional).
-        :param interval: Interval for trajectory saving.
-        :param fmax: Force convergence threshold (eV/Å).
-        :param relax_atoms: Whether atomic positions are relaxed.
-        :param relax_cell: Whether cell parameters are relaxed.
-        :param cell_filter: ASE cell filter used when relaxing the cell.
-        :param cell_filter_kwargs: kwargs for the cell_filter.
-        :param perturb_distance: Optional random perturbation distance (Å).
-        :param fix_symmetry: Whether symmetry is preserved.
+        This constructor sets up the relaxation pipeline, configuring the required
+        calculator, optimizer, relaxation parameters, and logging options. The
+        relaxation process aims to find the minimum energy configuration, optionally
+        relaxing atoms and/or the simulation cell within the specified constraints.
+
+        :param calculator: An ASE calculator object used to perform energy and force
+            calculations. If string is provided, the corresponding universal calculator is loaded.
+        :type calculator: Calculator | str
+        :param optimizer: The optimization algorithm to use for relaxation. It can
+            either be an instance of an Optimizer class or a string identifier for
+            a recognized ASE optimizer. Defaults to "FIRE".
+        :param max_steps: The maximum number of optimization steps to perform
+            during the relaxation process. Defaults to 500.
+        :param traj_file: Path to a file for periodic trajectory output (if specified).
+            This file logs the atomic positions and cell configurations after a given
+            interval. Defaults to None.
+        :param interval: The interval (in steps) at which the trajectory file is
+            updated. Defaults to 1.
+        :param fmax: The force convergence threshold. Relaxation continues until the
+            maximum force on any atom falls below this value. Defaults to 0.1.
+        :param relax_atoms: A flag indicating whether the atomic positions are to
+            be relaxed. Defaults to True.
+        :param relax_cell: A flag indicating whether the simulation cell is to
+            be relaxed. Defaults to True.
+        :param cell_filter: The filter to apply when relaxing the simulation cell.
+            This determines constraints or allowed degrees of freedom during
+            cell relaxation. Defaults to FrechetCellFilter.
+        :param cell_filter_kwargs: The keyword arguments to pass to the cell_filter.
+        :param perturb_distance: A perturbation distance used for initializing
+            the system configuration before relaxation. If None, no perturbation
+            is applied. Defaults to None.
+        :param fix_symmetry: Whether symmetry is preserved. Default to None.
         :param fix_atoms: Whether all atoms are fixed; if list/tuple, fixes the given indices.
-        :param symprec: Tolerance for symmetry constraints.
+            Default to None.
+        :param symprec: Tolerance for symmetry constraints. Default to 1e-3.
         """
         self.calculator = calculator  # type: ignore[assignment]
 
@@ -125,7 +146,7 @@ class RelaxCalc(PropCalc):
         self.fix_atoms = fix_atoms
         self.symprec = symprec
 
-    def calc(self, structure: "Structure | Atoms | dict[str, Any]") -> dict:
+    def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict:
         """
         Calculate the final relaxed structure, energy, forces, and stress for a given
         structure and update the result dictionary with additional geometric properties.
@@ -145,30 +166,28 @@ class RelaxCalc(PropCalc):
         """
         result = super().calc(structure)
 
-        structure_in: "Structure | Atoms" = result["final_structure"]
+        structure_in: Structure | Atoms = result["final_structure"]
 
         if self.perturb_distance is not None:
-            structure_in = to_pmg_structure(structure_in).perturb(
-                distance=self.perturb_distance, seed=None
-            )
+            structure_in = to_pmg_structure(structure_in).perturb(distance=self.perturb_distance, seed=None)
 
-        structure_in = to_ase_atoms(structure_in)
-        constraints = []
+        atoms = to_ase_atoms(structure_in)
+        constraints: list[Any] = []
         if self.fix_atoms:
             if isinstance(self.fix_atoms, bool):
-                indices = list(range(len(structure_in)))
-            elif isinstance(self.fix_atoms, (list, tuple)):
+                indices = list(range(len(atoms)))
+            elif isinstance(self.fix_atoms, list | tuple):
                 indices = [int(i) for i in self.fix_atoms]
             constraints.append(FixAtoms(indices=indices))
 
         if self.fix_symmetry:
-            constraints.append(FixSymmetry(structure_in, symprec=self.symprec))
+            constraints.append(FixSymmetry(atoms, symprec=self.symprec))
 
         if constraints:
-            structure_in.set_constraint(constraints)
+            atoms.set_constraint(constraints)
 
         r = run_pes_calc(
-            structure_in,
+            atoms,
             self.calculator,
             relax_atoms=self.relax_atoms,
             relax_cell=self.relax_cell,
