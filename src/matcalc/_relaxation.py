@@ -125,9 +125,9 @@ class RelaxCalc(PropCalc):
         :param perturb_distance: A perturbation distance used for initializing
             the system configuration before relaxation. If None, no perturbation
             is applied. Defaults to None.
-        :param fix_symmetry: Whether symmetry is preserved. Default to None.
+        :param fix_symmetry: Whether symmetry is preserved. Default to False.
         :param fix_atoms: Whether all atoms are fixed; if list/tuple, fixes the given indices.
-            Default to None.
+            Default to False.
         :param symprec: Tolerance for symmetry constraints. Default to 1e-3.
         """
         self.calculator = calculator  # type: ignore[assignment]
