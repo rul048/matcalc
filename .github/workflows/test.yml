@@ -39,11 +39,6 @@ jobs:
           pip install -e '.[ci]'
           pip install "setuptools<82"  # Required by maml (pkg_resources)
 
-      - name: Clear MatGL cache
-        run: |
-          rm -rf ~/.cache/matgl
-          python -c "import matgl; matgl.clear_cache()" || true
-
       - name: pytest
         run: pytest --cov=matcalc --cov-report=xml tests --color=yes
 
