@@ -73,7 +73,7 @@ sevennet = [
     "sevenn>=0.10.4",
 ]
 matgl = [
-    "matgl>=2.0.1,<2.1.0",
+    "matgl>=2.0.1",
 ]
 ci = [
     "setuptools<82",  # Required by maml which uses pkg_resources
@@ -83,7 +83,7 @@ ci = [
     "ipython>=8.34.0",
     "jupyter>=1.1.1",
     "maml>=2025.4.3",
-    "matgl>=2.0.1,<2.1.0",
+    "matgl>=2.0.1",
     "matminer>=0.9.3",
     "scipy<1.17",
     "mp-api>=0.45.3",
@@ -119,7 +119,7 @@ dev = [
     "ipython>=8.34.0",
     "jupyter>=1.1.1",
     "maml>=2025.4.3",
-    "matgl>=2.0.1,<2.1.0",
+    "matgl>=2.0.1",
     "matminer>=0.9.3",
     "scipy<1.17",
     "mp-api>=0.45.3",
