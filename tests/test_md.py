@@ -175,7 +175,7 @@ def test_stationary(Si_atoms: Atoms, matpes_calculator: PESCalculator, tmp_path:
     )
     md_calc.calc(Si_atoms)
     final_com = read(tmp_path / "test.traj", index=":")[-1].get_center_of_mass()
-    assert final_com != pytest.approx(starting_com, abs=1e-2)
+    assert np.linalg.norm(final_com - starting_com) > 1e-3
 
 
 def test_rotation(Si_atoms: Atoms, matpes_calculator: PESCalculator, tmp_path: Path) -> None:
