@@ -52,6 +52,9 @@ class QHACalc(PropCalc):
     :type optimizer: str
     :ivar eos: Equation of state used for fitting energy vs. volume data.
     :type eos: Literal["vinet", "birch_murnaghan", "murnaghan"]
+    :ivar allow_shape_change: Whether or not to allow the unit cell shape to
+        change at fixed cell volume during the EOS calculations. Default is True.
+    :type allow_shape_change: bool
     :ivar relax_structure: Whether to perform structure relaxation before phonon calculations.
     :type relax_structure: bool
     :ivar relax_calc_kwargs: Additional keyword arguments for structure relaxation calculations.
@@ -67,6 +70,9 @@ class QHACalc(PropCalc):
         imaginary_freq_tol, then either raise a ValueError ("error") or log a
         warning ("warn").
     :type on_imaginary_modes: Literal["error", "warn"]
+    :ivar fix_imaginary_attempts: Number of attempts passed to PhononCalc to resolve imaginary modes
+        at each scale factor. 0 disables correction.
+    :type fix_imaginary_attempts: int
     :ivar write_helmholtz_volume: Path or boolean to control saving Helmholtz free energy vs. volume data.
     :type write_helmholtz_volume: bool | str | Path
     :ivar write_volume_temperature: Path or boolean to control saving volume vs. temperature data.
@@ -99,12 +105,14 @@ class QHACalc(PropCalc):
         max_steps: int = 5000,
         optimizer: str = "FIRE",
         eos: Literal["vinet", "birch_murnaghan", "murnaghan"] = "vinet",
+        allow_shape_change: bool = True,
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
-        scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01)),
+        scale_factors: Sequence[float] = (0.95, 0.96, 0.97, 0.98, 0.99, 1.0, 1.01, 1.02, 1.03, 1.04, 1.05),
         imaginary_freq_tol: float = -0.01,
         on_imaginary_modes: Literal["error", "warn"] = "warn",
+        fix_imaginary_attempts: int = 0,
         write_helmholtz_volume: bool | str | os.PathLike = False,
         write_volume_temperature: bool | str | os.PathLike = False,
         write_thermal_expansion: bool | str | os.PathLike = False,
@@ -132,6 +140,8 @@ class QHACalc(PropCalc):
             "FIRE".
         :param eos: Equation of state to use for calculating energy vs. volume relationships.
             Default is "vinet".
+        :param allow_shape_change: Whether or not to allow the unit cell shape to
+            change at fixed cell volume during the EOS calculations. Default is True.
         :param relax_structure: A boolean flag indicating whether the initial atomic structure should be
             relaxed as part of the computation workflow. Note that subsequent relaxations on the
             volume-scaled structures will be carried out regardless.
@@ -145,6 +155,8 @@ class QHACalc(PropCalc):
             a value below imaginary_freq_tol, it is considered imaginary.
         :param on_imaginary_modes: If there is a frequency with a value below imaginary_freq_tol, then
             raise a ValueError ("error") or log a warning ("warn"). Defaults to "warn".
+        :param fix_imaginary_attempts: Number of attempts passed to PhononCalc to resolve imaginary modes
+            at each scale factor. 0 disables correction.
         :param write_helmholtz_volume: Path, boolean, or string to indicate whether and where
             to save Helmholtz energy as a function of volume.
         :param write_volume_temperature: Path, boolean, or string to indicate whether and where
@@ -172,12 +184,26 @@ class QHACalc(PropCalc):
         self.max_steps = max_steps
         self.optimizer = optimizer
         self.eos = eos
+        self.allow_shape_change = allow_shape_change
         self.relax_structure = relax_structure
         self.relax_calc_kwargs = relax_calc_kwargs
         self.phonon_calc_kwargs = phonon_calc_kwargs
         self.scale_factors = scale_factors
         self.imaginary_freq_tol = imaginary_freq_tol
         self.on_imaginary_modes = on_imaginary_modes
+        self.fix_imaginary_attempts = fix_imaginary_attempts
+
+        # Needed to make sure the volume doesn't change during relaxations on scaled structures
+        self._fixed_cell_relax_calc_kwargs = {
+            "optimizer": self.optimizer,
+            "fmax": self.fmax,
+            "max_steps": self.max_steps,
+            **(self.relax_calc_kwargs or {}),
+        }
+        self._fixed_cell_relax_calc_kwargs["relax_cell"] = bool(self.allow_shape_change)
+        self._fixed_cell_relax_calc_kwargs["cell_filter_kwargs"] = (
+            {"constant_volume": True} if self.allow_shape_change else {}
+        )
 
         # Normalize write_* inputs to Optional[str | os.PathLike]:
         # - True  -> default filename (meaning "write to default file")
@@ -236,11 +262,13 @@ class QHACalc(PropCalc):
 
         if self.relax_structure:
             logger.info("Relaxing input structure before QHA")
-            relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
-                self.relax_calc_kwargs or {}
-            )
-            relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
-            result |= relaxer.calc(structure_in)
+            result |= RelaxCalc(
+                self.calculator,
+                fmax=self.fmax,
+                optimizer=self.optimizer,
+                max_steps=self.max_steps,
+                **self.relax_calc_kwargs or {},
+            ).calc(structure_in)
             structure_in = result["final_structure"]
 
         logger.info(
@@ -299,30 +327,36 @@ class QHACalc(PropCalc):
         scaled_structures = []
         for scale_factor in self.scale_factors:
             # Apply linear strain
-            struct = self._scale_structure(structure, scale_factor)
-            volumes.append(struct.volume)
+            scaled_structure = self._scale_structure(structure, scale_factor)
 
             # Relax at fixed volume
             logger.info("Scale factor %.3f: relaxing at fixed volume", scale_factor)
-            relaxer = RelaxCalc(
-                self.calculator,
-                optimizer=self.optimizer,
-                fmax=self.fmax,
-                max_steps=self.max_steps,
-                relax_cell=False,
-                **(self.relax_calc_kwargs or {}),
-            )
-            relaxed_result = relaxer.calc(struct)
-            electronic_energies.append(relaxed_result["energy"])
-            scaled_structures.append(relaxed_result["final_structure"])
+            relaxer = RelaxCalc(self.calculator, **self._fixed_cell_relax_calc_kwargs)
+            relaxed_result = relaxer.calc(scaled_structure)
 
-            # Calculate thermal properties from phonon calculation
+            # Calculate thermal properties from phonon calculation and tabulate results.
+            # We must store the energy, structure, etc. from the phonon calculation if
+            # available in case there are any correction attempts made to resolve imaginary modes,
+            # which would update the relaxation output.
             logger.info(
                 "Scale factor %.3f: computing phonon thermal properties (V=%.1f Å³)",
                 scale_factor,
                 relaxed_result["final_structure"].volume,
             )
             phonon_result = self._calculate_thermal_properties(relaxed_result["final_structure"])
+
+            # Collect properties
+            scaled_structures.append(phonon_result["final_structure"])
+            volume = phonon_result["final_structure"].volume
+            if (
+                np.abs(volume - scaled_structure.volume) / scaled_structure.volume > 1e-4  # noqa: PLR2004
+            ):
+                raise ValueError(
+                    f"Somehow the volume changed during relaxation. This is a bug! Before: {scaled_structure.volume}. "
+                    f"After: {volume}"
+                )
+            volumes.append(volume)
+            electronic_energies.append(phonon_result.get("energy", relaxed_result.get("energy")))
             thermal_properties = phonon_result["thermal_properties"]
             free_energies.append(thermal_properties["free_energy"])
             entropies.append(thermal_properties["entropy"])
@@ -365,11 +399,13 @@ class QHACalc(PropCalc):
             "t_step": self.t_step,
             "t_max": self.t_max,
             "t_min": self.t_min,
-            "relax_structure": False,
+            "relax_calc_kwargs": self._fixed_cell_relax_calc_kwargs,  # needed for _resolve_imaginary_modes
             "imaginary_freq_tol": self.imaginary_freq_tol,
             "on_imaginary_modes": self.on_imaginary_modes,
+            "fix_imaginary_attempts": self.fix_imaginary_attempts,
             "write_phonon": False,
         } | (self.phonon_calc_kwargs or {})
+        phonon_calc_kwargs["relax_structure"] = False  # already relaxed
         phonon_calc = PhononCalc(
             self.calculator,
             **phonon_calc_kwargs,
