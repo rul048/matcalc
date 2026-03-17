@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ase.constraints import FixAtoms, FixSymmetry
 from ase.filters import FrechetCellFilter
 
 from ._base import PropCalc
 from .backend import run_pes_calc
-from .utils import to_pmg_structure
+from .utils import to_ase_atoms, to_pmg_structure
 
 if TYPE_CHECKING:
     from typing import Any
@@ -50,7 +51,7 @@ class RelaxCalc(PropCalc):
     :ivar relax_atoms: Whether atomic positions are relaxed.
     :type relax_atoms: bool
 
-    :ivar relax_cell: Whether the cell parameters are relaxed.
+    :ivar relax_cell: Whether cell parameters are relaxed.
     :type relax_cell: bool
 
     :ivar cell_filter: ASE filter used for modifying the cell during relaxation.
@@ -61,6 +62,15 @@ class RelaxCalc(PropCalc):
 
     :ivar perturb_distance: Distance (Å) for random perturbation to break symmetry.
     :type perturb_distance: float | None
+
+    :ivar fix_symmetry: Whether symmetry is preserved.
+    :type fix_symmetry: bool
+
+    :ivar fix_atoms: Whether all atoms are fixed; if list/tuple, fixes the given indices.
+    :type fix_atoms: bool | list[int]
+
+    :ivar symprec: Tolerance for symmetry constraints.
+    :type symprec: float
     """
 
     def __init__(
@@ -77,6 +87,9 @@ class RelaxCalc(PropCalc):
         cell_filter: Filter = FrechetCellFilter,  # type: ignore[assignment]
         cell_filter_kwargs: dict | None = None,
         perturb_distance: float | None = None,
+        fix_symmetry: bool = False,
+        fix_atoms: bool | list[int] = False,
+        symprec: float = 1e-3,
     ) -> None:
         """
         Initializes the relaxation procedure for an atomic configuration system.
@@ -112,6 +125,10 @@ class RelaxCalc(PropCalc):
         :param perturb_distance: A perturbation distance used for initializing
             the system configuration before relaxation. If None, no perturbation
             is applied. Defaults to None.
+        :param fix_symmetry: Whether symmetry is preserved. Default to False.
+        :param fix_atoms: Whether all atoms are fixed; if list/tuple, fixes the given indices.
+            Default to False.
+        :param symprec: Tolerance for symmetry constraints. Default to 1e-3.
         """
         self.calculator = calculator  # type: ignore[assignment]
 
@@ -125,6 +142,9 @@ class RelaxCalc(PropCalc):
         self.cell_filter = cell_filter
         self.cell_filter_kwargs = cell_filter_kwargs
         self.perturb_distance = perturb_distance
+        self.fix_symmetry = fix_symmetry
+        self.fix_atoms = fix_atoms
+        self.symprec = symprec
 
     def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict:
         """
@@ -151,8 +171,23 @@ class RelaxCalc(PropCalc):
         if self.perturb_distance is not None:
             structure_in = to_pmg_structure(structure_in).perturb(distance=self.perturb_distance, seed=None)
 
+        atoms = to_ase_atoms(structure_in)
+        constraints: list[Any] = []
+        if self.fix_atoms:
+            if isinstance(self.fix_atoms, bool):
+                indices = list(range(len(atoms)))
+            elif isinstance(self.fix_atoms, list | tuple):
+                indices = [int(i) for i in self.fix_atoms]
+            constraints.append(FixAtoms(indices=indices))
+
+        if self.fix_symmetry:
+            constraints.append(FixSymmetry(atoms, symprec=self.symprec))
+
+        if constraints:
+            atoms.set_constraint(constraints)
+
         r = run_pes_calc(
-            structure_in,
+            atoms,
             self.calculator,
             relax_atoms=self.relax_atoms,
             relax_cell=self.relax_cell,
