@@ -13,7 +13,7 @@ from pymatgen.io.phonopy import get_phonopy_structure, get_pmg_structure
 from ._base import PropCalc
 from ._relaxation import RelaxCalc
 from .backend import run_pes_calc
-from .utils import to_pmg_structure
+from .utils import to_ase_atoms, to_pmg_structure
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -79,6 +79,9 @@ class PhononCalc(PropCalc):
         imaginary_freq_tol, then either raise a ValueError ("error") or log a
         warning ("warn").
     :type on_imaginary_modes: Literal["error", "warn"]
+    :ivar fix_imaginary_attempts: Number of attempts to resolve imaginary modes by rattling
+        the atoms and re-optimizing at fixed cell volume. 0 disables correction.
+    :type fix_imaginary_attempts: int
     :ivar write_force_constants: Path, boolean, or string specifying whether
         to write the calculated force constants to an output file, and the
         path or name of the file if applicable.
@@ -114,6 +117,7 @@ class PhononCalc(PropCalc):
         relax_calc_kwargs: dict | None = None,
         imaginary_freq_tol: float = -0.01,
         on_imaginary_modes: Literal["error", "warn"] = "warn",
+        fix_imaginary_attempts: int = 0,
         write_force_constants: bool | str | Path = False,
         write_band_structure: bool | str | Path = False,
         write_total_dos: bool | str | Path = False,
@@ -141,6 +145,9 @@ class PhononCalc(PropCalc):
             a value below imaginary_freq_tol, it is considered imaginary.
         :param on_imaginary_modes: If there is a frequency with a value below imaginary_freq_tol, then
             raise a ValueError ("error") or log a warning ("warn"). Defaults to "warn".
+        :param fix_imaginary_attempts: Number of attempts to resolve imaginary modes. For each attempt, atoms
+            are rattled (ASE rattle, stdev=0.01 Å), the structure is re-optimized at fixed cell volume, and phonons
+            are recalculated. 0 disables correction.
         :param write_force_constants: File path or boolean flag to write force constants.
             Defaults to "force_constants".
         :param write_band_structure: File path or boolean flag to write band structure data.
@@ -163,6 +170,7 @@ class PhononCalc(PropCalc):
         self.relax_calc_kwargs = relax_calc_kwargs
         self.imaginary_freq_tol = imaginary_freq_tol
         self.on_imaginary_modes = on_imaginary_modes
+        self.fix_imaginary_attempts = fix_imaginary_attempts
         self.write_force_constants = write_force_constants
         self.write_band_structure = write_band_structure
         self.write_total_dos = write_total_dos
@@ -214,14 +222,17 @@ class PhononCalc(PropCalc):
 
         if self.relax_structure:
             logger.info("Relaxing input structure before phonon calculation")
-            relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
-                self.relax_calc_kwargs or {}
-            )
-            relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
-            result |= relaxer.calc(structure_in)
+            result |= self._relax_structure(structure_in)
             structure_in = result["final_structure"]
 
         phonon, frequencies, disp_supercells = self._run_phonopy(structure_in)
+
+        if self.fix_imaginary_attempts > 0 and np.any(frequencies < self.imaginary_freq_tol):
+            relax_result, phonon, frequencies, disp_supercells = self._resolve_imaginary_modes(
+                structure_in, phonon, frequencies, disp_supercells
+            )
+            result |= relax_result
+            structure_in = result["final_structure"]
 
         self._check_imaginary_modes(frequencies)
 
@@ -251,7 +262,7 @@ class PhononCalc(PropCalc):
             Tuple of (phonon, frequencies, disp_supercells).
         """
         cell = get_phonopy_structure(structure)
-        if self.supercell_matrix:
+        if self.supercell_matrix is not None:
             supercell_matrix = np.array(self.supercell_matrix, dtype=int)
         else:
             supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure.lattice.abc)).astype(int))
@@ -266,7 +277,7 @@ class PhononCalc(PropCalc):
         logger.info("Computing forces on %d displaced supercells", len(disp_supercells))
         phonon.forces = [run_pes_calc(supercell, self.calculator).forces for supercell in disp_supercells]
         phonon.produce_force_constants()
-        phonon.run_mesh()
+        phonon.run_mesh(with_eigenvectors=True)
         frequencies = phonon.get_mesh_dict()["frequencies"]
         return phonon, frequencies, disp_supercells
 
@@ -282,9 +293,9 @@ class PhononCalc(PropCalc):
             n_imag = np.sum(imag_freq_mask)
             n_freqs = frequencies.size
             min_mode = np.min(frequencies)
-            pct = 100 * n_imag / n_freqs
+            pct_imag = 100 * n_imag / n_freqs
             msg = (
-                f"{n_imag}/{n_freqs} ({pct:.12}%) modes are imaginary (below {self.imaginary_freq_tol:.4f} THz). "
+                f"{n_imag}/{n_freqs} ({pct_imag:.12}%) modes are imaginary (below {self.imaginary_freq_tol:.4f} THz). "
                 f"Most negative: {min_mode:.2f} THz. This indicates a dynamically unstable structure. "
                 f"Thermal properties may not be reliable."
             )
@@ -292,3 +303,82 @@ class PhononCalc(PropCalc):
                 logger.warning(msg)
             else:
                 raise ValueError(msg)
+
+    def _resolve_imaginary_modes(
+        self,
+        structure_in: Structure,
+        phonon: phonopy.Phonopy,
+        frequencies: np.ndarray,
+        disp_supercells: list,
+    ) -> tuple[dict, phonopy.Phonopy, np.ndarray, list[Structure]]:
+        """Attempt to resolve imaginary modes by rattling and re-relaxing.
+
+        Args:
+            structure_in: Current primitive-cell structure.
+            phonon: Phonopy object from the most recent build.
+            frequencies: Frequencies from the most recent mesh run.
+            disp_supercells: Displaced supercells from the most recent build.
+
+        Returns:
+            Updated (RelaxCalc dictionary, phonon, frequencies, disp_supercells).
+        """
+        logger.warning(
+            "Imaginary modes detected (percent imaginary = %.2f%%, min freq: %.2f THz). "
+            "Attempting to resolve over %d attempt(s).",
+            100 * np.sum(frequencies < self.imaginary_freq_tol) / frequencies.size,
+            np.min(frequencies),
+            self.fix_imaginary_attempts,
+        )
+        relax_result: dict = {}
+        for attempt in range(self.fix_imaginary_attempts):
+            logger.info("Imaginary mode correction attempt %d/%d", attempt + 1, self.fix_imaginary_attempts)
+            structure_in = self._rattle_structure(structure_in)
+
+            logger.info("Re-relaxing structure at fixed cell volume following rattle.")
+            relax_result = self._relax_structure(structure_in)
+            structure_in = relax_result["final_structure"]
+
+            logger.info("Recomputing phonons after correction attempt %d", attempt + 1)
+            phonon, frequencies, disp_supercells = self._run_phonopy(structure_in)
+
+            if np.any(frequencies < self.imaginary_freq_tol):
+                logger.info(
+                    "Imaginary modes persist after attempt %d (percent imaginary = %.2f%%, min freq: %.2f THz).",
+                    attempt + 1,
+                    100 * np.sum(frequencies < self.imaginary_freq_tol) / frequencies.size,
+                    np.min(frequencies),
+                )
+            else:
+                logger.info("Imaginary modes resolved after %d attempt(s)", attempt + 1)
+                break
+        return relax_result, phonon, frequencies, disp_supercells
+
+    def _rattle_structure(self, structure_in: Structure, stdev: float = 0.01) -> Structure:
+        """Rattle the atoms to bump out of stationary point (stdev=0.01 Å).
+
+        Args:
+            structure_in: Pymatgen structure.
+            stdev: standard deviation in angstrom for the rattle.
+
+        Returns:
+            Pymatgen structure with rattled atomic positions.
+        """
+        atoms = to_ase_atoms(structure_in)
+        atoms.rattle(stdev=stdev)
+        atoms.wrap()
+        return to_pmg_structure(atoms)
+
+    def _relax_structure(self, structure_in: Structure) -> dict:
+        """Relax a structure.
+
+        Args:
+            structure_in: Pymatgen structure.
+
+        Returns:
+            Full result dict from RelaxCalc.
+        """
+        relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
+            self.relax_calc_kwargs or {}
+        )
+        relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
+        return relaxer.calc(structure_in)

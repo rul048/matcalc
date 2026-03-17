@@ -193,3 +193,44 @@ def test_phonon_calc_imaginary_freq_tol(
     result = phonon_calc.calc(distorted_si_atoms)
     assert "frequencies" in result
     assert np.min(result["frequencies"]) < -0.1
+
+
+def test_phonon_calc_fix_imaginary_attempts(
+    Si_atoms: Atoms,
+    matpes_calculator: PESCalculator,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test fix_imaginary_attempts parameter for resolving imaginary modes."""
+    # Stable structure which needs no fixing — correction attempt should NOT be logged
+    phonon_calc = PhononCalc(
+        calculator=matpes_calculator,
+        supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
+        fmax=0.1,
+        t_step=50,
+        t_max=1000,
+        fix_imaginary_attempts=1,
+        imaginary_freq_tol=-0.01,
+        on_imaginary_modes="error",
+    )
+    with caplog.at_level(logging.INFO, logger="matcalc"):
+        result = phonon_calc.calc(Si_atoms)
+    assert np.min(result["frequencies"]) > -0.01
+    assert not any("Imaginary mode correction attempt" in r.message for r in caplog.records)
+
+    caplog.clear()
+
+    # Distort the structure to create imaginary modes, then check that
+    # the tolerance check raises ValueError
+    distorted_si_atoms = Si_atoms.copy()
+    distorted_si_atoms.cell += 0.5
+    phonon_calc = PhononCalc(
+        calculator=matpes_calculator,
+        supercell_matrix=((2, 0, 0), (0, 2, 0), (0, 0, 2)),
+        fmax=100.0,
+        imaginary_freq_tol=-0.1,
+        on_imaginary_modes="error",
+        fix_imaginary_attempts=1,
+    )
+    with caplog.at_level(logging.INFO, logger="matcalc"), pytest.raises(ValueError, match="modes are imaginary"):
+        phonon_calc.calc(distorted_si_atoms)
+    assert any("Imaginary mode correction attempt" in r.message for r in caplog.records)
