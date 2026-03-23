@@ -413,7 +413,7 @@ class MDCalc(PropCalc):
         if use_temp:
             os.unlink(traj_path)
 
-        result["final_structure"] = to_pmg_structure(all_frames[-1])
+        result["final_structure"] = to_pmg_structure(all_frames[-1])  # type: ignore[arg-type]
 
         traj = all_frames[-self.frames :]
 
