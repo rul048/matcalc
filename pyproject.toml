@@ -9,7 +9,7 @@ authors = [
 ]
 description = "Calculators for materials properties from the potential energy surface."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 keywords = [
     "AI",
     "deep learning",
@@ -49,30 +49,30 @@ version = "0.4.5"
 [project.optional-dependencies]
 phonon = ["seekpath"]
 benchmark = ["matminer>=0.9.3", "scipy<1.17"]
-ace = [
-    "pyace>=0.1.1",
-]
-mace = [
-    "mace-torch>=0.3.12",
-]
-deepmd = [
-    "deepmd-kit>=3.0.2",
-]
-grace = [
-    "tensorpotential>=0.5.1",
-]
+# ace = [
+#     "pyace>=0.1.1",
+# ]
+# mace = [
+#     "mace-torch>=0.3.12",
+# ]
+# deepmd = [
+#     "deepmd-kit>=3.0.2",
+# ]
+# grace = [
+#     "tensorpotential>=0.5.1",
+# ]
 maml = [
     "maml>=2025.4.3",
 ]
-orb = [
-    "orb-models>=0.4.2",
-    "pynanoflann>=0.10.0",
-]
-sevennet = [
-    "sevenn>=0.10.4",
-]
+# orb = [
+#     "orb-models>=0.4.2",
+#     "pynanoflann>=0.10.0",
+# ]
+# sevennet = [
+#     "sevenn>=0.10.4",
+# ]
 matgl = [
-    "matgl>=2.0.1,<2.1.0",
+    "matgl>=2.1.1",
 ]
 ci = [
     "setuptools<82",  # Required by maml which uses pkg_resources
@@ -82,7 +82,7 @@ ci = [
     "ipython>=8.34.0",
     "jupyter>=1.1.1",
     "maml>=2025.4.3",
-    "matgl>=2.0.1,<2.1.0",
+    "matgl>=2.1.1",
     "matminer>=0.9.3",
     "scipy<1.17",
     "mp-api>=0.45.3",
@@ -118,7 +118,7 @@ dev = [
     "ipython>=8.34.0",
     "jupyter>=1.1.1",
     "maml>=2025.4.3",
-    "matgl>=2.0.1,<2.1.0",
+    "matgl>=2.1.1",
     "matminer>=0.9.3",
     "scipy<1.17",
     "mp-api>=0.45.3",
@@ -138,14 +138,14 @@ lint = [
     "pyright>=1.1.398",
     "ruff>=0.11.2",
 ]
-test-models = [
-    "mace-torch>=0.3.12",
-    "nequip>=0.6.2",
-    "orb-models>=0.4.2",
-    "pynanoflann>=0.10.0",
-    "sevenn>=0.10.4",
-    "tensorpotential>=0.5.1",
-]
+# test-models = [
+#     "mace-torch>=0.3.12",
+#     "nequip>=0.6.2",
+#     "orb-models>=0.4.2",
+#     "pynanoflann>=0.10.0",
+#     "sevenn>=0.10.4",
+#     "tensorpotential>=0.5.1",
+# ]
 
 [tool.uv]
 conflicts = [

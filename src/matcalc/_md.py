@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import os
+import tempfile
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 from ase import Atoms, units
+from ase.io import read as ase_read
+from ase.io.trajectory import TrajectoryWriter
 from ase.md import Langevin
 from ase.md.andersen import Andersen
 from ase.md.bussi import Bussi
@@ -190,10 +194,8 @@ class MDCalc(PropCalc):
             return VelocityVerlet(
                 atoms,
                 timestep_fs,
-                trajectory=self.trajfile,
                 logfile=self.logfile,
                 loginterval=self.loginterval,
-                append_trajectory=self.append_trajectory,
             )
         if ensemble in ("nvt", "nvt_nose_hoover"):
             self._upper_triangular_cell(atoms)
@@ -202,10 +204,8 @@ class MDCalc(PropCalc):
                 timestep_fs,
                 tdamp=taut,
                 temperature_K=self.temperature,
-                trajectory=self.trajfile,
                 logfile=self.logfile,
                 loginterval=self.loginterval,
-                append_trajectory=self.append_trajectory,
             )
         if ensemble == "nvt_berendsen":
             return NVTBerendsen(
@@ -213,10 +213,8 @@ class MDCalc(PropCalc):
                 timestep_fs,
                 temperature_K=self.temperature,
                 taut=taut,
-                trajectory=self.trajfile,
                 logfile=self.logfile,
                 loginterval=self.loginterval,
-                append_trajectory=self.append_trajectory,
             )
         if ensemble == "nvt_langevin":
             return Langevin(
@@ -224,10 +222,8 @@ class MDCalc(PropCalc):
                 timestep_fs,
                 temperature_K=self.temperature,
                 friction=self.friction,
-                trajectory=self.trajfile,
                 logfile=self.logfile,
                 loginterval=self.loginterval,
-                append_trajectory=self.append_trajectory,
             )
         if ensemble == "nvt_andersen":
             return Andersen(
@@ -235,10 +231,8 @@ class MDCalc(PropCalc):
                 timestep_fs,
                 temperature_K=self.temperature,
                 andersen_prob=self.andersen_prob,
-                trajectory=self.trajfile,
                 logfile=self.logfile,
                 loginterval=self.loginterval,
-                append_trajectory=self.append_trajectory,
             )
         if ensemble == "nvt_bussi":
             return Bussi(
@@ -246,10 +240,8 @@ class MDCalc(PropCalc):
                 timestep_fs,
                 temperature_K=self.temperature,
                 taut=taut,
-                trajectory=self.trajfile,
                 logfile=self.logfile,
                 loginterval=self.loginterval,
-                append_trajectory=self.append_trajectory,
             )
         if ensemble in ("npt", "npt_nose_hoover"):
             self._upper_triangular_cell(atoms)
@@ -260,10 +252,8 @@ class MDCalc(PropCalc):
                 externalstress=external_stress,  # type: ignore[arg-type]
                 ttime=self.ttime * units.fs,
                 pfactor=self.pfactor * units.fs,
-                trajectory=self.trajfile,
                 logfile=self.logfile,
                 loginterval=self.loginterval,
-                append_trajectory=self.append_trajectory,
                 mask=mask,
             )
         if ensemble == "npt_berendsen":
@@ -275,10 +265,8 @@ class MDCalc(PropCalc):
                 taut=taut,
                 taup=taup,
                 compressibility_au=self.compressibility_au,
-                trajectory=self.trajfile,
                 logfile=self.logfile,
                 loginterval=self.loginterval,
-                append_trajectory=self.append_trajectory,
             )
         if ensemble == "npt_inhomogeneous":
             return Inhomogeneous_NPTBerendsen(
@@ -289,10 +277,8 @@ class MDCalc(PropCalc):
                 taut=taut,
                 taup=taup,
                 compressibility_au=self.compressibility_au,
-                trajectory=self.trajfile,
                 logfile=self.logfile,
                 loginterval=self.loginterval,
-                append_trajectory=self.append_trajectory,
             )
         if ensemble == "npt_mtk":
             return MTKNPT(
@@ -306,10 +292,8 @@ class MDCalc(PropCalc):
                 pchain=self.pchain,
                 tloop=self.tloop,
                 ploop=self.ploop,
-                trajectory=self.trajfile,
                 logfile=self.logfile,
                 loginterval=self.loginterval,
-                append_trajectory=self.append_trajectory,
             )
         if ensemble == "npt_isotropic_mtk":
             return IsotropicMTKNPT(
@@ -323,10 +307,8 @@ class MDCalc(PropCalc):
                 pchain=self.pchain,
                 tloop=self.tloop,
                 ploop=self.ploop,
-                trajectory=self.trajfile,
                 logfile=self.logfile,
                 loginterval=self.loginterval,
-                append_trajectory=self.append_trajectory,
             )
 
         raise ValueError(
@@ -412,17 +394,43 @@ class MDCalc(PropCalc):
         # Initialize the molecular dynamics (MD) simulation and set up the simulation parameters.
         md = self._initialize_md(atoms)
 
-        # Attach a callback to the MD simulation to record the atoms' state at intervals defined by self.loginterval.
-        traj = TrajectoryObserver(atoms)
-        md.attach(traj, interval=self.loginterval)
+        # Set up ASE native Trajectory as observer, writing frames at loginterval steps.
+        use_temp = self.trajfile is None
+        if use_temp:
+            with tempfile.NamedTemporaryFile(suffix=".traj", delete=False) as tmp_file:
+                traj_path = tmp_file.name
+        else:
+            traj_path = str(self.trajfile)
 
-        # Run the MD simulation for the specified number of steps.
-        md.run(self.steps)
+        mode = "a" if self.append_trajectory else "w"
+        with TrajectoryWriter(traj_path, mode, atoms) as ase_traj:
+            md.attach(ase_traj.write, interval=self.loginterval)
+            # Run the MD simulation for the specified number of steps.
+            md.run(self.steps)
+
+        # Read back all frames and build a TrajectoryObserver for analysis.
+        all_frames = ase_read(traj_path, index=":")
+
+        if use_temp:
+            os.unlink(traj_path)
+
+        traj = TrajectoryObserver(atoms)
+        for frame in all_frames:
+            traj.atom_positions.append(frame.get_positions())
+            traj.cells.append(np.array(frame.get_cell()))
+            e_pot = float(frame.get_potential_energy())
+            e_kin = float(frame.get_kinetic_energy())
+            traj.potential_energies.append(e_pot)
+            traj.kinetic_energies.append(e_kin)
+            traj.total_energies.append(e_pot + e_kin)
+            traj.forces.append(frame.get_forces())
+            traj.stresses.append(frame.get_stress())
+
         final_atoms = Atoms(
-            traj.atoms.get_chemical_symbols(),
+            atoms.get_chemical_symbols(),
             positions=traj.atom_positions[-1],
             cell=traj.cells[-1],
-            pbc=traj.atoms.get_pbc(),
+            pbc=atoms.get_pbc(),
         )
         result["final_structure"] = to_pmg_structure(final_atoms)
 
