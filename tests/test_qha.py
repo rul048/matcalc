@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import logging
 import os
 from typing import TYPE_CHECKING
 
@@ -208,14 +209,15 @@ def test_phonon_calc_imaginary_freq_tol(
     matpes_calculator: PESCalculator,
 ) -> None:
 
-    # Initialize QHACalc
+    # Initialize QHACalc and ensure no imaginaries
     qha_calc = QHACalc(
         calculator=matpes_calculator,
         t_step=50,
         t_max=1000,
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         fmax=0.1,
-        imaginary_freq_tol=0.1,
+        imaginary_freq_tol=-0.1,
+        on_imaginary_modes="error",
         phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
     )
 
@@ -223,6 +225,8 @@ def test_phonon_calc_imaginary_freq_tol(
 
     ind = result["temperatures"].tolist().index(300)
     assert result["thermal_expansion_coefficients"][ind] == pytest.approx(5.191273165438463e-06, rel=1e-1)
+    assert len(result["volumes"]) == 7
+    assert len(result["electronic_energies"]) == 7
 
     # Distorted
     distorted_si_atoms = Si_atoms.copy()
@@ -233,14 +237,15 @@ def test_phonon_calc_imaginary_freq_tol(
         t_max=1000,
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         fmax=100,
-        imaginary_freq_tol=0.1,
+        imaginary_freq_tol=-0.1,
+        on_imaginary_modes="error",
         phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
     )
 
-    with pytest.raises(ValueError, match="are imaginary"):
+    with pytest.raises(ValueError, match="modes are imaginary"):
         qha_calc.calc(distorted_si_atoms)
 
-    # Distorted no check
+    # Distorted but tol is very negative so no modes are flagged
     distorted_si_atoms = Si_atoms.copy()
     distorted_si_atoms.cell += 0.5
     qha_calc = QHACalc(
@@ -249,8 +254,36 @@ def test_phonon_calc_imaginary_freq_tol(
         t_max=1000,
         scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
         fmax=100,
-        imaginary_freq_tol=None,
+        imaginary_freq_tol=-100.0,
+        on_imaginary_modes="error",
         phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
     )
+    result = qha_calc.calc(distorted_si_atoms)
+    assert len(result["volumes"]) == 7
+    assert len(result["electronic_energies"]) == 7
 
-    assert qha_calc.calc(distorted_si_atoms)
+
+def test_qha_calc_fix_imaginary_attempts(
+    Si_atoms: Atoms,
+    matpes_calculator: PESCalculator,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that fix_imaginary_attempts is accepted by QHACalc and passed to PhononCalc."""
+    # Distorted
+    distorted_si_atoms = Si_atoms.copy()
+    distorted_si_atoms.cell += 0.5
+    qha_calc = QHACalc(
+        calculator=matpes_calculator,
+        t_step=50,
+        t_max=1000,
+        scale_factors=[0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03],
+        fmax=100,
+        imaginary_freq_tol=-0.1,
+        fix_imaginary_attempts=1,
+        on_imaginary_modes="error",
+        phonon_calc_kwargs={"supercell_matrix": ((2, 0, 0), (0, 2, 0), (0, 0, 2))},
+    )
+    with caplog.at_level(logging.INFO, logger="matcalc"), pytest.raises(ValueError, match="modes are imaginary"):
+        qha_calc.calc(distorted_si_atoms)
+    assert any("Imaginary mode correction attempt" in r.message for r in caplog.records)
+    caplog.clear()
