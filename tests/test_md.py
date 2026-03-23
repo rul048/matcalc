@@ -74,14 +74,14 @@ def test_md_calc(
 
     assert results["total_energy"] == pytest.approx(expected_energy, abs=1e-2)
 
-    energies = np.array(results["trajectory"].total_energies)
+    energies = np.array([a.get_total_energy() for a in results["trajectory"]])
 
     if ensemble != "nve":
         assert not np.allclose(energies - energies[0], 0, atol=1e-9), f"Energies are too close for {ensemble}"
 
     if ensemble.startswith("nvt"):
         # There should be no volume change for NVT simulations.
-        assert np.linalg.det(results["trajectory"].cells[-1]) == pytest.approx(initial_vol, rel=1e-2)
+        assert np.linalg.det(results["trajectory"][-1].get_cell()) == pytest.approx(initial_vol, rel=1e-2)
 
     assert len(results["trajectory"]) == 5
 
@@ -127,7 +127,7 @@ def test_md_relax_cell(
     )
     initial_vol = Si.lattice.volume
     results = md_calc.calc(Si)
-    volume_after_relax = np.linalg.det(results["trajectory"].cells[0])
+    volume_after_relax = np.linalg.det(results["trajectory"][0].get_cell())
     assert volume_after_relax == pytest.approx(initial_vol, rel=1e-4)
 
     md_calc = MDCalc(
@@ -140,7 +140,7 @@ def test_md_relax_cell(
     )
     initial_vol = Si.lattice.volume
     results = md_calc.calc(Si)
-    volume_after_relax = np.linalg.det(results["trajectory"].cells[0])
+    volume_after_relax = np.linalg.det(results["trajectory"][0].get_cell())
     assert abs(volume_after_relax - initial_vol) > 0.1
 
 

@@ -22,7 +22,6 @@ from ase.md.verlet import VelocityVerlet
 
 from ._base import PropCalc
 from ._relaxation import RelaxCalc
-from .backend._ase import TrajectoryObserver
 from .utils import to_ase_atoms, to_pmg_structure
 
 if TYPE_CHECKING:
@@ -408,40 +407,22 @@ class MDCalc(PropCalc):
             # Run the MD simulation for the specified number of steps.
             md.run(self.steps)
 
-        # Read back all frames and build a TrajectoryObserver for analysis.
+        # Read back all frames.
         all_frames = ase_read(traj_path, index=":")
 
         if use_temp:
             os.unlink(traj_path)
 
-        traj = TrajectoryObserver(atoms)
-        for frame in all_frames:
-            traj.atom_positions.append(frame.get_positions())
-            traj.cells.append(np.array(frame.get_cell()))
-            e_pot = float(frame.get_potential_energy())
-            e_kin = float(frame.get_kinetic_energy())
-            traj.potential_energies.append(e_pot)
-            traj.kinetic_energies.append(e_kin)
-            traj.total_energies.append(e_pot + e_kin)
-            traj.forces.append(frame.get_forces())
-            traj.stresses.append(frame.get_stress())
+        result["final_structure"] = to_pmg_structure(all_frames[-1])
 
-        final_atoms = Atoms(
-            atoms.get_chemical_symbols(),
-            positions=traj.atom_positions[-1],
-            cell=traj.cells[-1],
-            pbc=atoms.get_pbc(),
-        )
-        result["final_structure"] = to_pmg_structure(final_atoms)
-
-        traj = traj.get_slice(slice(-self.frames, len(traj), 1))
+        traj = all_frames[-self.frames :]
 
         # Calculate the average potential energy over the selected frames.
-        energy_pot = sum(traj.potential_energies) / self.frames
+        energy_pot = sum(a.get_potential_energy() for a in traj) / self.frames
         # Calculate the average kinetic energy over the selected frames.
-        energy_kin = sum(traj.kinetic_energies) / self.frames
+        energy_kin = sum(a.get_kinetic_energy() for a in traj) / self.frames
         # Calculate the average total energy (potential + kinetic) over the selected frames.
-        energy_tot = sum(traj.total_energies) / self.frames
+        energy_tot = sum(a.get_total_energy() for a in traj) / self.frames
 
         # Update the result dictionary with the simulation trajectory and computed energy.
         result |= {
