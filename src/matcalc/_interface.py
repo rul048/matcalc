@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from pymatgen.analysis.interfaces.coherent_interfaces import CoherentInterfaceBuilder
-from pymatgen.analysis.structure_matcher import StructureMatcher
+from pymatgen.core.structure_matcher import StructureMatcher
 
 from ._base import PropCalc
 from ._relaxation import RelaxCalc

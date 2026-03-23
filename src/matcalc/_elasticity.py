@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from pymatgen.analysis.elasticity import DeformedStructureSet, ElasticTensor, Strain
-from pymatgen.analysis.elasticity.elastic import get_strain_state_dict
+from pymatgen.core.elasticity import DeformedStructureSet, ElasticTensor, Strain
+from pymatgen.core.elasticity.elastic import get_strain_state_dict
 
 from ._base import PropCalc
 from ._relaxation import RelaxCalc
@@ -127,13 +127,13 @@ class ElasticityCalc(PropCalc):
             - `residuals_sum`: The residual sum from the elastic tensor fitting.
             - `structure`: The (potentially relaxed) final structure after calculations.
             The units are originally documented in pymatgen.
-            See pymatgen.analysis.elasticity.elastic.ElasticTensor()
+            See pymatgen.core.elasticity.elastic.ElasticTensor()
             (https://github.com/materialsproject/pymatgen/blob/master/src/pymatgen/analysis/elasticity/elastic.py/#130)
-            -> pymatgen.analysis.elasticity.elastic.ElasticTensor.k_vrh()
+            -> pymatgen.core.elasticity.elastic.ElasticTensor.k_vrh()
             (https://github.com/materialsproject/pymatgen/blob/master/src/pymatgen/analysis/elasticity/elastic.py/#189)
-            pymatgen.analysis.elasticity.elastic.ElasticTensor.g_vrh()
+            pymatgen.core.elasticity.elastic.ElasticTensor.g_vrh()
             (https://github.com/materialsproject/pymatgen/blob/master/src/pymatgen/analysis/elasticity/elastic.py/#194)
-            pymatgen.analysis.elasticity.elastic.ElasticTensor.y_mod()
+            pymatgen.core.elasticity.elastic.ElasticTensor.y_mod()
             (https://github.com/materialsproject/pymatgen/blob/master/src/pymatgen/analysis/elasticity/elastic.py/#199)
         """
         result = super().calc(structure)

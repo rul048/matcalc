@@ -3797,7 +3797,7 @@ requires-dist = [
     { name = "scipy", marker = "extra == 'ci'", specifier = "<1.17" },
     { name = "seekpath", marker = "extra == 'ci'", specifier = ">=2.1.0" },
     { name = "seekpath", marker = "extra == 'phonon'" },
-    { name = "setuptools", marker = "extra == 'ci'" },
+    { name = "setuptools", marker = "extra == 'ci'", specifier = "<82" },
     { name = "sevenn", marker = "extra == 'sevennet'", specifier = ">=0.10.4" },
     { name = "tensorpotential", marker = "extra == 'grace'", specifier = ">=0.5.1" },
 ]
@@ -3824,7 +3824,7 @@ dev = [
     { name = "requests", specifier = ">=2.32.3" },
     { name = "scipy", specifier = "<1.17" },
     { name = "seekpath", specifier = ">=2.1.0" },
-    { name = "setuptools" },
+    { name = "setuptools", specifier = "<82" },
     { name = "sphinx", specifier = ">=8.1.3" },
     { name = "sphinx-markdown-builder", specifier = ">=0.6.8" },
     { name = "sphinx-rtd-theme", specifier = ">=3.0.2" },

@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import contextlib
 import io
-import pickle
 import warnings
 from dataclasses import dataclass, field
 from inspect import isclass
@@ -15,6 +14,7 @@ from typing import TYPE_CHECKING
 
 import ase
 from ase.filters import FrechetCellFilter
+from ase.io import Trajectory
 from ase.optimize.optimize import Optimizer
 
 from matcalc.utils import to_ase_atoms, to_pmg_structure
@@ -161,25 +161,6 @@ class TrajectoryObserver:
             self.cells[sl],
         )
 
-    def save(self, filename: str) -> None:
-        """Save the trajectory to file.
-
-        Args:
-            filename (str): filename to save the trajectory.
-        """
-        out = {
-            "potential_energies": self.potential_energies,
-            "kinetic_energies": self.kinetic_energies,
-            "total_energies": self.total_energies,
-            "forces": self.forces,
-            "stresses": self.stresses,
-            "atom_positions": self.atom_positions,
-            "cell": self.cells,
-            "atomic_number": self.atoms.get_atomic_numbers(),
-        }
-        with open(filename, "wb") as file:
-            pickle.dump(out, file)
-
 
 def run_ase(
     structure: Structure | Atoms,
@@ -211,26 +192,27 @@ def run_ase(
     if relax_atoms:
         stream = io.StringIO()
         with contextlib.redirect_stdout(stream):
-            obs = TrajectoryObserver(atoms)
+            original_atoms = atoms
             if relax_cell:
                 atoms = cell_filter(atoms, **cell_filter_kwargs)  # type:ignore[operator]
             opt = get_ase_optimizer(optimizer)(atoms)  # type:ignore[operator]
-            opt.attach(obs, interval=interval)
+            traj = Trajectory(traj_file, "w", original_atoms) if traj_file is not None else None
+            if traj is not None:
+                opt.attach(traj, interval=interval)
             opt.run(fmax=fmax, steps=max_steps)
+            if traj is not None:
+                traj.close()
             if opt.nsteps >= max_steps:
                 warnings.warn("Maximum steps reached in structure relaxation.", UserWarning, stacklevel=2)
-            if traj_file is not None:
-                obs()
-                obs.save(traj_file)
         if relax_cell:
             atoms = atoms.atoms  # type:ignore[attr-defined]
         return SimulationResult(
             to_pmg_structure(atoms),
-            obs.potential_energies[-1],
-            obs.kinetic_energies[-1],
-            obs.total_energies[-1],
-            obs.forces[-1],
-            obs.stresses[-1],
+            atoms.get_potential_energy(),
+            atoms.get_kinetic_energy(),
+            atoms.get_total_energy(),
+            atoms.get_forces(),
+            atoms.get_stress(voigt=False),
         )
 
     return SimulationResult(
