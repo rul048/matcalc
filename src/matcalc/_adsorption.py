@@ -6,8 +6,8 @@ from copy import copy
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
-from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 from pymatgen.core import Structure
+from pymatgen.core.adsorption import AdsorbateSiteFinder
 from pymatgen.core.surface import Slab, SlabGenerator
 
 from ._base import PropCalc
