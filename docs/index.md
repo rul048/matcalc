@@ -12,7 +12,7 @@ width="200" alt="MatCalc" style="vertical-align: middle;" /><br>
 [![Test](https://github.com/materialsvirtuallab/matcalc/workflows/Test/badge.svg)](https://github.com/materialsvirtuallab/matcalc/workflows/Test/badge.svg)
 [![Lint](https://github.com/materialsvirtuallab/matcalc/workflows/Lint/badge.svg)](https://github.com/materialsvirtuallab/matcalc/workflows/Lint/badge.svg)
 [![codecov](https://codecov.io/gh/materialsvirtuallab/matcalc/branch/main/graph/badge.svg?token=OR7Z9WWRRC)](https://codecov.io/gh/materialsvirtuallab/matcalc)
-[![Requires Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg?logo=python&logoColor=white)](https://python.org/downloads)
+[![Requires Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg?logo=python&logoColor=white)](https://python.org/downloads)
 [![PyPI](https://img.shields.io/pypi/v/matcalc?logo=pypi&logoColor=white)](https://pypi.org/project/matcalc?logo=pypi&logoColor=white)
 [![GitHub license](https://img.shields.io/github/license/materialsvirtuallab/matcalc)](https://github.com/materialsvirtuallab/matcalc/blob/main/LICENSE)
 
@@ -77,7 +77,7 @@ r2scan_calculator = mtc.load_fp("r2scan")
 ```
 
 At the time of writing, these are the `TensorNet-MatPES-v2025.1` models for these functionals. However, these
-recommendations may updated as improved models become available.
+recommendations may be updated as improved models become available.
 
 MatCalc also supports trivial parallelization using joblib via the `calc_many` method.
 

@@ -45,7 +45,7 @@ class AdsorptionCalc(PropCalc):
     :type relax_bulk: bool, optional
     :param fmax: Force tolerance in eV/Å for relaxation. Default is 0.1.
     :type fmax: float, optional
-    :param optimizer: The ASE optimizer to usein RelaxCalc. Can be a string (e.g. "BFGS") or
+    :param optimizer: The ASE optimizer to use in RelaxCalc. Can be a string (e.g. "BFGS") or
         an :class:`Optimizer` instance. Default is "BFGS".
     :type optimizer: str | Optimizer, optional
     :param max_steps: Maximum number of optimization steps for relaxation. Default is 500.

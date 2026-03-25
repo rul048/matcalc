@@ -48,7 +48,7 @@ class InterfaceCalc(PropCalc):
             optimizer (str | Optimizer, optional): The optimization algorithm to use. Defaults to "BFGS".
             max_steps (int, optional): The maximum number of optimization steps. Defaults to 500.
             relax_calc_kwargs: Additional keyword arguments passed to the
-            class:`RelaxCalc` constructor for both bulk and interface. Default is None.
+                :class:`RelaxCalc` constructor for both bulk and interface. Default is None.
 
         Returns:
             None
