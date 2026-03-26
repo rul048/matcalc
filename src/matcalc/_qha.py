@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -10,16 +11,18 @@ from phonopy import PhonopyQHA
 from ._base import PropCalc
 from ._phonon import PhononCalc
 from ._relaxation import RelaxCalc
-from .backend import run_pes_calc
+from .utils import to_pmg_structure
 
 if TYPE_CHECKING:
+    import os
     from collections.abc import Sequence
-    from pathlib import Path
-    from typing import Any
+    from typing import Any, Literal
 
     from ase import Atoms
     from ase.calculators.calculator import Calculator
     from pymatgen.core import Structure
+
+logger = logging.getLogger(__name__)
 
 
 class QHACalc(PropCalc):
@@ -41,12 +44,17 @@ class QHACalc(PropCalc):
     :type t_max: float
     :ivar t_min: Minimum temperature in Kelvin.
     :type t_min: float
+    :ivar pressure: Pressure in GPa.
+    :type pressure: float | None
     :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
     :type fmax: float
     :ivar optimizer: Type of optimizer used for structural relaxation.
     :type optimizer: str
     :ivar eos: Equation of state used for fitting energy vs. volume data.
-    :type eos: str
+    :type eos: Literal["vinet", "birch_murnaghan", "murnaghan"]
+    :ivar allow_shape_change: Whether or not to allow the unit cell shape to
+        change at fixed cell volume during the EOS calculations. Default is True.
+    :type allow_shape_change: bool
     :ivar relax_structure: Whether to perform structure relaxation before phonon calculations.
     :type relax_structure: bool
     :ivar relax_calc_kwargs: Additional keyword arguments for structure relaxation calculations.
@@ -55,6 +63,16 @@ class QHACalc(PropCalc):
     :type phonon_calc_kwargs: dict | None
     :ivar scale_factors: List of scale factors for lattice scaling.
     :type scale_factors: Sequence[float]
+    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
+            a value below imaginary_freq_tol, it is considered imaginary.
+    :type imaginary_freq_tol: float
+    :ivar on_imaginary_modes: If there is a frequency with a value below
+        imaginary_freq_tol, then either raise a ValueError ("error") or log a
+        warning ("warn").
+    :type on_imaginary_modes: Literal["error", "warn"]
+    :ivar fix_imaginary_attempts: Number of attempts passed to PhononCalc to resolve imaginary modes
+        at each scale factor. 0 disables correction.
+    :type fix_imaginary_attempts: int
     :ivar write_helmholtz_volume: Path or boolean to control saving Helmholtz free energy vs. volume data.
     :type write_helmholtz_volume: bool | str | Path
     :ivar write_volume_temperature: Path or boolean to control saving volume vs. temperature data.
@@ -82,21 +100,27 @@ class QHACalc(PropCalc):
         t_step: float = 10,
         t_max: float = 1000,
         t_min: float = 0,
-        fmax: float = 0.1,
+        pressure: None | float = None,
+        fmax: float = 1e-5,
+        max_steps: int = 5000,
         optimizer: str = "FIRE",
-        eos: str = "vinet",
+        eos: Literal["vinet", "birch_murnaghan", "murnaghan"] = "vinet",
+        allow_shape_change: bool = True,
         relax_structure: bool = True,
         relax_calc_kwargs: dict | None = None,
         phonon_calc_kwargs: dict | None = None,
-        scale_factors: Sequence[float] = tuple(np.arange(0.95, 1.05, 0.01)),
-        write_helmholtz_volume: bool | str | Path = False,
-        write_volume_temperature: bool | str | Path = False,
-        write_thermal_expansion: bool | str | Path = False,
-        write_gibbs_temperature: bool | str | Path = False,
-        write_bulk_modulus_temperature: bool | str | Path = False,
-        write_heat_capacity_p_numerical: bool | str | Path = False,
-        write_heat_capacity_p_polyfit: bool | str | Path = False,
-        write_gruneisen_temperature: bool | str | Path = False,
+        scale_factors: Sequence[float] = (0.95, 0.96, 0.97, 0.98, 0.99, 1.0, 1.01, 1.02, 1.03, 1.04, 1.05),
+        imaginary_freq_tol: float = -0.01,
+        on_imaginary_modes: Literal["error", "warn"] = "warn",
+        fix_imaginary_attempts: int = 0,
+        write_helmholtz_volume: bool | str | os.PathLike = False,
+        write_volume_temperature: bool | str | os.PathLike = False,
+        write_thermal_expansion: bool | str | os.PathLike = False,
+        write_gibbs_temperature: bool | str | os.PathLike = False,
+        write_bulk_modulus_temperature: bool | str | os.PathLike = False,
+        write_heat_capacity_p_numerical: bool | str | os.PathLike = False,
+        write_heat_capacity_p_polyfit: bool | str | os.PathLike = False,
+        write_gruneisen_temperature: bool | str | os.PathLike = False,
     ) -> None:
         """
         Initializes the class that handles thermal and structural calculations, including atomic
@@ -106,22 +130,33 @@ class QHACalc(PropCalc):
 
         :param calculator: Calculator object or string indicating the computational engine to use
             for performing calculations.
-        :param t_step: Step size for the temperature range, given in units of temperature.
-        :param t_max: Maximum temperature for the calculations, given in units of temperature.
-        :param t_min: Minimum temperature for the calculations, given in units of temperature.
+        :param t_step: Step size for the temperature range, given in units of K.
+        :param t_max: Maximum temperature for the calculations, given in units of K.
+        :param t_min: Minimum temperature for the calculations, given in units of K.
+        :param pressure: Pressure to calculate thermochemistry at, given in units of GPa.
         :param fmax: Maximum force convergence criterion for structure relaxation, in force units.
+        :param max_steps: The maximum number of optimization steps during the relaxation.
         :param optimizer: Name of the optimizer to use for structure optimization, default is
             "FIRE".
         :param eos: Equation of state to use for calculating energy vs. volume relationships.
             Default is "vinet".
-        :param relax_structure: A boolean flag indicating whether the atomic structure should be
-            relaxed as part of the computation workflow.
+        :param allow_shape_change: Whether or not to allow the unit cell shape to
+            change at fixed cell volume during the EOS calculations. Default is True.
+        :param relax_structure: A boolean flag indicating whether the initial atomic structure should be
+            relaxed as part of the computation workflow. Note that subsequent relaxations on the
+            volume-scaled structures will be carried out regardless.
         :param relax_calc_kwargs: A dictionary containing additional keyword arguments to pass to
-            the relax calculation.
+            all relaxations in the workflow.
         :param phonon_calc_kwargs: A dictionary containing additional parameters to pass to the
             phonon calculation routine.
         :param scale_factors: A sequence of scale factors for volume scaling during
             thermodynamic and phononic calculations.
+        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
+            a value below imaginary_freq_tol, it is considered imaginary.
+        :param on_imaginary_modes: If there is a frequency with a value below imaginary_freq_tol, then
+            raise a ValueError ("error") or log a warning ("warn"). Defaults to "warn".
+        :param fix_imaginary_attempts: Number of attempts passed to PhononCalc to resolve imaginary modes
+            at each scale factor. 0 disables correction.
         :param write_helmholtz_volume: Path, boolean, or string to indicate whether and where
             to save Helmholtz energy as a function of volume.
         :param write_volume_temperature: Path, boolean, or string to indicate whether and where
@@ -144,64 +179,62 @@ class QHACalc(PropCalc):
         self.t_step = t_step
         self.t_max = t_max
         self.t_min = t_min
+        self.pressure = pressure
         self.fmax = fmax
+        self.max_steps = max_steps
         self.optimizer = optimizer
         self.eos = eos
+        self.allow_shape_change = allow_shape_change
         self.relax_structure = relax_structure
         self.relax_calc_kwargs = relax_calc_kwargs
         self.phonon_calc_kwargs = phonon_calc_kwargs
         self.scale_factors = scale_factors
-        self.write_helmholtz_volume = write_helmholtz_volume
-        self.write_volume_temperature = write_volume_temperature
-        self.write_thermal_expansion = write_thermal_expansion
-        self.write_gibbs_temperature = write_gibbs_temperature
-        self.write_bulk_modulus_temperature = write_bulk_modulus_temperature
-        self.write_heat_capacity_p_numerical = write_heat_capacity_p_numerical
-        self.write_heat_capacity_p_polyfit = write_heat_capacity_p_polyfit
-        self.write_gruneisen_temperature = write_gruneisen_temperature
+        self.imaginary_freq_tol = imaginary_freq_tol
+        self.on_imaginary_modes = on_imaginary_modes
+        self.fix_imaginary_attempts = fix_imaginary_attempts
+
+        # Needed to make sure the volume doesn't change during relaxations on scaled structures
+        self._fixed_cell_relax_calc_kwargs = {
+            "optimizer": self.optimizer,
+            "fmax": self.fmax,
+            "max_steps": self.max_steps,
+            **(self.relax_calc_kwargs or {}),
+        }
+        self._fixed_cell_relax_calc_kwargs["relax_cell"] = bool(self.allow_shape_change)
+        self._fixed_cell_relax_calc_kwargs["cell_filter_kwargs"] = (
+            {"constant_volume": True} if self.allow_shape_change else {}
+        )
+
+        # Normalize write_* inputs to Optional[str | os.PathLike]:
+        # - True  -> default filename (meaning "write to default file")
+        # - False -> None (disabled)
+        # - str/PathLike -> keep as-is (user-provided path)
+        self.write_helmholtz_volume: str | os.PathLike | None = None
+        self.write_volume_temperature: str | os.PathLike | None = None
+        self.write_thermal_expansion: str | os.PathLike | None = None
+        self.write_gibbs_temperature: str | os.PathLike | None = None
+        self.write_bulk_modulus_temperature: str | os.PathLike | None = None
+        self.write_heat_capacity_p_numerical: str | os.PathLike | None = None
+        self.write_heat_capacity_p_polyfit: str | os.PathLike | None = None
+        self.write_gruneisen_temperature: str | os.PathLike | None = None
+
         for key, val, default_path in (
-            (
-                "write_helmholtz_volume",
-                self.write_helmholtz_volume,
-                "helmholtz_volume.dat",
-            ),
-            (
-                "write_volume_temperature",
-                self.write_volume_temperature,
-                "volume_temperature.dat",
-            ),
-            (
-                "write_thermal_expansion",
-                self.write_thermal_expansion,
-                "thermal_expansion.dat",
-            ),
-            (
-                "write_gibbs_temperature",
-                self.write_gibbs_temperature,
-                "gibbs_temperature.dat",
-            ),
-            (
-                "write_bulk_modulus_temperature",
-                self.write_bulk_modulus_temperature,
-                "bulk_modulus_temperature.dat",
-            ),
-            (
-                "write_heat_capacity_p_numerical",
-                self.write_heat_capacity_p_numerical,
-                "Cp_temperature.dat",
-            ),
-            (
-                "write_heat_capacity_p_polyfit",
-                self.write_heat_capacity_p_polyfit,
-                "Cp_temperature_polyfit.dat",
-            ),
-            (
-                "write_gruneisen_temperature",
-                self.write_gruneisen_temperature,
-                "gruneisen_temperature.dat",
-            ),
+            ("write_helmholtz_volume", write_helmholtz_volume, "helmholtz_volume.dat"),
+            ("write_volume_temperature", write_volume_temperature, "volume_temperature.dat"),
+            ("write_thermal_expansion", write_thermal_expansion, "thermal_expansion.dat"),
+            ("write_gibbs_temperature", write_gibbs_temperature, "gibbs_temperature.dat"),
+            ("write_bulk_modulus_temperature", write_bulk_modulus_temperature, "bulk_modulus_temperature.dat"),
+            ("write_heat_capacity_p_numerical", write_heat_capacity_p_numerical, "Cp_temperature.dat"),
+            ("write_heat_capacity_p_polyfit", write_heat_capacity_p_polyfit, "Cp_temperature_polyfit.dat"),
+            ("write_gruneisen_temperature", write_gruneisen_temperature, "gruneisen_temperature.dat"),
         ):
-            setattr(self, key, str({True: default_path, False: ""}.get(val, val)))  # type: ignore[arg-type]
+            if val is True:
+                normalized: str | os.PathLike | None = default_path
+            elif val is False:
+                normalized = None
+            else:
+                normalized = val
+            setattr(self, key, normalized)
 
     def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict:
         """Calculates thermal properties of Pymatgen structure with phonopy under quasi-harmonic approximation.
@@ -225,28 +258,58 @@ class QHACalc(PropCalc):
         }
         """
         result = super().calc(structure)
-        structure_in: Structure = result["final_structure"]
+        structure_in: Structure = to_pmg_structure(result["final_structure"])
 
         if self.relax_structure:
-            relaxer = RelaxCalc(
+            logger.info("Relaxing input structure before QHA")
+            result |= RelaxCalc(
                 self.calculator,
                 fmax=self.fmax,
                 optimizer=self.optimizer,
-                **(self.relax_calc_kwargs or {}),
-            )
-            result |= relaxer.calc(structure_in)
+                max_steps=self.max_steps,
+                **self.relax_calc_kwargs or {},
+            ).calc(structure_in)
             structure_in = result["final_structure"]
 
-        temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
-        volumes, electronic_energies, free_energies, entropies, heat_capacities = self._collect_properties(structure_in)
+        logger.info(
+            "Starting QHA calculation over %d scale factors: %s",
+            len(self.scale_factors),
+            list(self.scale_factors),
+        )
+        properties = self._collect_properties(structure_in)
 
-        qha = self._create_qha(volumes, electronic_energies, temperatures, free_energies, entropies, heat_capacities)  # type: ignore[arg-type]
+        logger.info("Fitting equation of state and computing QHA thermal properties")
+        temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
+        qha = PhonopyQHA(
+            volumes=properties["volumes"],
+            electronic_energies=properties["electronic_energies"],
+            temperatures=temperatures,
+            free_energy=np.transpose(properties["free_energies"]),
+            cv=np.transpose(properties["heat_capacities"]),
+            entropy=np.transpose(properties["entropies"]),
+            pressure=self.pressure,
+            eos=self.eos,
+            t_max=self.t_max,
+        )
 
         self._write_output_files(qha)
+        output_dict = {
+            "qha": qha,
+            "scale_factors": self.scale_factors,
+            "volumes": properties["volumes"],
+            "scaled_structures": properties["scaled_structures"],
+            "electronic_energies": properties["electronic_energies"],
+            "temperatures": temperatures,
+            "thermal_expansion_coefficients": qha.thermal_expansion,
+            "gibbs_free_energies": qha.gibbs_temperature,
+            "bulk_modulus_P": qha.bulk_modulus_temperature,
+            "heat_capacity_P": qha.heat_capacity_P_polyfit,
+            "gruneisen_parameters": qha.gruneisen_temperature,
+        }
 
-        return result | self._generate_output_dict(qha, volumes, electronic_energies, temperatures)  # type: ignore[arg-type]
+        return result | output_dict
 
-    def _collect_properties(self, structure: Structure) -> tuple[list, list, list, list, list]:
+    def _collect_properties(self, structure: Structure) -> dict[str, list]:
         """Helper to collect properties like volumes, electronic energies, and thermal properties.
 
         Args:
@@ -261,15 +324,51 @@ class QHACalc(PropCalc):
         free_energies = []
         entropies = []
         heat_capacities = []
+        scaled_structures = []
         for scale_factor in self.scale_factors:
-            struct = self._scale_structure(structure, scale_factor)
-            volumes.append(struct.volume)
-            electronic_energies.append(run_pes_calc(struct, self.calculator).energy)
-            thermal_properties = self._calculate_thermal_properties(struct)
+            # Apply linear strain
+            scaled_structure = self._scale_structure(structure, scale_factor)
+
+            # Relax at fixed volume
+            logger.info("Scale factor %.3f: relaxing at fixed volume", scale_factor)
+            relaxer = RelaxCalc(self.calculator, **self._fixed_cell_relax_calc_kwargs)
+            relaxed_result = relaxer.calc(scaled_structure)
+
+            # Calculate thermal properties from phonon calculation and tabulate results.
+            # We must store the energy, structure, etc. from the phonon calculation if
+            # available in case there are any correction attempts made to resolve imaginary modes,
+            # which would update the relaxation output.
+            logger.info(
+                "Scale factor %.3f: computing phonon thermal properties (V=%.1f Å³)",
+                scale_factor,
+                relaxed_result["final_structure"].volume,
+            )
+            phonon_result = self._calculate_thermal_properties(relaxed_result["final_structure"])
+
+            # Collect properties
+            scaled_structures.append(phonon_result["final_structure"])
+            volume = phonon_result["final_structure"].volume
+            if (
+                np.abs(volume - scaled_structure.volume) / scaled_structure.volume > 1e-4  # noqa: PLR2004
+            ):
+                raise ValueError(
+                    f"Somehow the volume changed during relaxation. This is a bug! Before: {scaled_structure.volume}. "
+                    f"After: {volume}"
+                )
+            volumes.append(volume)
+            electronic_energies.append(phonon_result.get("energy", relaxed_result.get("energy")))
+            thermal_properties = phonon_result["thermal_properties"]
             free_energies.append(thermal_properties["free_energy"])
             entropies.append(thermal_properties["entropy"])
             heat_capacities.append(thermal_properties["heat_capacity"])
-        return volumes, electronic_energies, free_energies, entropies, heat_capacities
+        return {
+            "volumes": volumes,
+            "electronic_energies": electronic_energies,
+            "free_energies": free_energies,
+            "entropies": entropies,
+            "heat_capacities": heat_capacities,
+            "scaled_structures": scaled_structures,
+        }
 
     def _scale_structure(self, structure: Structure, scale_factor: float) -> Structure:
         """Helper to scale the lattice of a structure.
@@ -292,51 +391,26 @@ class QHACalc(PropCalc):
             structure: Pymatgen structure for which the thermal properties are calculated.
 
         Returns:
-            Dictionary of thermal properties containing free energies, entropies and heat capacities.
+            Full result dict from PhononCalc, containing "energy" (eV, from the
+            volume-fixed ionic relaxation) and "thermal_properties" (free energies,
+            entropies and heat capacities).
         """
+        phonon_calc_kwargs = {
+            "t_step": self.t_step,
+            "t_max": self.t_max,
+            "t_min": self.t_min,
+            "relax_calc_kwargs": self._fixed_cell_relax_calc_kwargs,  # needed for _resolve_imaginary_modes
+            "imaginary_freq_tol": self.imaginary_freq_tol,
+            "on_imaginary_modes": self.on_imaginary_modes,
+            "fix_imaginary_attempts": self.fix_imaginary_attempts,
+            "write_phonon": False,
+        } | (self.phonon_calc_kwargs or {})
+        phonon_calc_kwargs["relax_structure"] = False  # already relaxed
         phonon_calc = PhononCalc(
             self.calculator,
-            t_step=self.t_step,
-            t_max=self.t_max,
-            t_min=self.t_min,
-            relax_structure=False,
-            write_phonon=False,
-            **(self.phonon_calc_kwargs or {}),
+            **phonon_calc_kwargs,
         )
-        return phonon_calc.calc(structure)["thermal_properties"]
-
-    def _create_qha(
-        self,
-        volumes: list,
-        electronic_energies: list,
-        temperatures: list,
-        free_energies: list,
-        entropies: list,
-        heat_capacities: list,
-    ) -> PhonopyQHA:
-        """Helper to create a PhonopyQHA object for quasi-harmonic approximation.
-
-        Args:
-            volumes: List of volumes corresponding to different scale factors.
-            electronic_energies: List of electronic energies corresponding to different volumes.
-            temperatures: List of temperatures in ascending order (in Kelvin).
-            free_energies: List of free energies corresponding to different volumes and temperatures.
-            entropies: List of entropies corresponding to different volumes and temperatures.
-            heat_capacities: List of heat capacities corresponding to different volumes and temperatures.
-
-        Returns:
-            Phonopy.qha object.
-        """
-        return PhonopyQHA(
-            volumes=volumes,
-            electronic_energies=electronic_energies,
-            temperatures=temperatures,
-            free_energy=np.transpose(free_energies),
-            entropy=np.transpose(entropies),
-            cv=np.transpose(heat_capacities),
-            eos=self.eos,
-            t_max=self.t_max,
-        )
+        return phonon_calc.calc(structure)
 
     def _write_output_files(self, qha: PhonopyQHA) -> None:
         """Helper to write various output files based on the QHA calculation.
@@ -344,46 +418,20 @@ class QHACalc(PropCalc):
         Args:
             qha: Phonopy.qha object
         """
-        if self.write_helmholtz_volume:
+        # write_* now are Optional[str | os.PathLike]; None means "do not write".
+        if self.write_helmholtz_volume is not None:
             qha.write_helmholtz_volume(filename=self.write_helmholtz_volume)
-        if self.write_volume_temperature:
+        if self.write_volume_temperature is not None:
             qha.write_volume_temperature(filename=self.write_volume_temperature)
-        if self.write_thermal_expansion:
+        if self.write_thermal_expansion is not None:
             qha.write_thermal_expansion(filename=self.write_thermal_expansion)
-        if self.write_gibbs_temperature:
+        if self.write_gibbs_temperature is not None:
             qha.write_gibbs_temperature(filename=self.write_gibbs_temperature)
-        if self.write_bulk_modulus_temperature:
+        if self.write_bulk_modulus_temperature is not None:
             qha.write_bulk_modulus_temperature(filename=self.write_bulk_modulus_temperature)
-        if self.write_heat_capacity_p_numerical:
+        if self.write_heat_capacity_p_numerical is not None:
             qha.write_heat_capacity_P_numerical(filename=self.write_heat_capacity_p_numerical)
-        if self.write_heat_capacity_p_polyfit:
+        if self.write_heat_capacity_p_polyfit is not None:
             qha.write_heat_capacity_P_polyfit(filename=self.write_heat_capacity_p_polyfit)
-        if self.write_gruneisen_temperature:
+        if self.write_gruneisen_temperature is not None:
             qha.write_gruneisen_temperature(filename=self.write_gruneisen_temperature)
-
-    def _generate_output_dict(
-        self, qha: PhonopyQHA, volumes: list, electronic_energies: list, temperatures: list
-    ) -> dict:
-        """Helper to generate the output dictionary after QHA calculation.
-
-        Args:
-            qha: Phonopy.qha object.
-            volumes: List of volumes corresponding to different scale factors.
-            electronic_energies: List of electronic energies corresponding to different volumes.
-            temperatures: List of temperatures in ascending order (in Kelvin).
-
-        Returns:
-            Dictionary containing the results of QHA calculation.
-        """
-        return {
-            "qha": qha,
-            "scale_factors": self.scale_factors,
-            "volumes": volumes,
-            "electronic_energies": electronic_energies,
-            "temperatures": temperatures,
-            "thermal_expansion_coefficients": qha.thermal_expansion,
-            "gibbs_free_energies": qha.gibbs_temperature,
-            "bulk_modulus_P": qha.bulk_modulus_temperature,
-            "heat_capacity_P": qha.heat_capacity_P_polyfit,
-            "gruneisen_parameters": qha.gruneisen_temperature,
-        }

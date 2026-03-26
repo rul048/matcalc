@@ -6,8 +6,8 @@ from copy import copy
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
-from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 from pymatgen.core import Structure
+from pymatgen.core.adsorption import AdsorbateSiteFinder
 from pymatgen.core.surface import Slab, SlabGenerator
 
 from ._base import PropCalc
@@ -45,7 +45,7 @@ class AdsorptionCalc(PropCalc):
     :type relax_bulk: bool, optional
     :param fmax: Force tolerance in eV/Å for relaxation. Default is 0.1.
     :type fmax: float, optional
-    :param optimizer: The ASE optimizer to usein RelaxCalc. Can be a string (e.g. "BFGS") or
+    :param optimizer: The ASE optimizer to use in RelaxCalc. Can be a string (e.g. "BFGS") or
         an :class:`Optimizer` instance. Default is "BFGS".
     :type optimizer: str | Optimizer, optional
     :param max_steps: Maximum number of optimization steps for relaxation. Default is 500.

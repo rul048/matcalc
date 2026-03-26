@@ -76,11 +76,11 @@ class EnergeticsCalc(PropCalc):
             a predefined string identifier ("MP-PBE", "MatPES-PBE", "MatPES-r2SCAN") or a dictionary
             mapping elements to their energy references.
         :type elemental_refs: Literal["MP-PBE", "MatPES-PBE", "MatPES-r2SCAN"] | dict
-        :ivar fmax: Force tolerance for convergence (eV/Å).
+        :param fmax: Force tolerance for convergence (eV/Å).
         :type fmax: float
-        :ivar optimizer: Algorithm for performing the optimization.
-        :type optimizer: Optimizer | str
-        :ivar perturb_distance: Distance (Å) for random perturbation to break symmetry.
+        :param optimizer: Algorithm for performing the optimization.
+        :type optimizer: str
+        :param perturb_distance: Distance (Å) for random perturbation to break symmetry.
         :type perturb_distance: float | None
         :param use_gs_reference: Determines whether to use ground state energy as a reference.
             Defaults to False.

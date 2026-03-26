@@ -23,8 +23,6 @@ class SurfaceCalc(PropCalc):
     computational chemistry workflows, enabling computations of surface properties
     for various crystal orientations and surface terminations.
 
-    Detailed description of the class, its purpose, and usage.
-
     :ivar calculator: ASE Calculator used for energy and force evaluations. Interface
         to computational backends like DFT or classical force fields.
     :type calculator: Calculator

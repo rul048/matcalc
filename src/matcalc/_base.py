@@ -152,9 +152,10 @@ class PropCalc(abc.ABC):
 class ChainedCalc(PropCalc):
     """A chained calculator that runs a series of PropCalcs on a structure or set of structures.
 
-    Often, you may want to obtain multiple properties at once, e.g., perform a relaxation with a formation energy
-    computation and a elasticity calculation. This can be done using this class by supplying a list of calculators.
-    Note that it is likely
+    Often, you may want to obtain multiple properties at once, e.g., perform a relaxation followed by a formation
+    energy computation and an elasticity calculation. This can be done by supplying a list of calculators. Each
+    calculator receives the full result dict from the previous step, so downstream calculators can skip redundant
+    relaxations by setting ``relax_structure=False``.
     """
 
     def __init__(self, prop_calcs: Sequence[PropCalc]) -> None:

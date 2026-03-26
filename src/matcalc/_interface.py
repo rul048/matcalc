@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from pymatgen.analysis.interfaces.coherent_interfaces import CoherentInterfaceBuilder
-from pymatgen.analysis.structure_matcher import StructureMatcher
+from pymatgen.core.structure_matcher import StructureMatcher
 
 from ._base import PropCalc
 from ._relaxation import RelaxCalc
@@ -48,7 +48,7 @@ class InterfaceCalc(PropCalc):
             optimizer (str | Optimizer, optional): The optimization algorithm to use. Defaults to "BFGS".
             max_steps (int, optional): The maximum number of optimization steps. Defaults to 500.
             relax_calc_kwargs: Additional keyword arguments passed to the
-            class:`RelaxCalc` constructor for both bulk and interface. Default is None.
+                :class:`RelaxCalc` constructor for both bulk and interface. Default is None.
 
         Returns:
             None

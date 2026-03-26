@@ -8,7 +8,7 @@ import os
 import re
 import shutil
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pprint import pprint
 
 import requests
@@ -165,7 +165,7 @@ def update_changelog(ctx: Context, version: str | None = None, *, dry_run: bool 
         dry_run (bool, optional): If True, the function will only print the changes without
             updating the actual change log file. Defaults to False.
     """
-    version = version or f"{datetime.now(tz=timezone.utc):%Y.%-m.%-d}"
+    version = version or f"{datetime.now(tz=UTC):%Y.%-m.%-d}"
     lastver = get_last_version()
     print(f"Getting all comments since {lastver}")
     output = subprocess.check_output(["git", "log", "--pretty=format:%s", f"v{lastver}..HEAD"])
