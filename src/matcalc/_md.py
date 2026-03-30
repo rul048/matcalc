@@ -197,7 +197,6 @@ class MDCalc(PropCalc):
                 loginterval=self.loginterval,
             )
         if ensemble in ("nvt", "nvt_nose_hoover"):
-            self._upper_triangular_cell(atoms)
             return NoseHooverChainNVT(
                 atoms,
                 timestep_fs,
