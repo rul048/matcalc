@@ -240,7 +240,7 @@ class PhononCalc(PropCalc):
         if self.write_force_constants:
             write_force_constants(phonon.force_constants, filename=self.write_force_constants)  # type: ignore[arg-type]
         if self.write_band_structure:
-            phonon.auto_band_structure(write_yaml=True, filename=cast(str, self.write_band_structure))
+            phonon.auto_band_structure(write_yaml=True, filename=cast("str", self.write_band_structure))
         if self.write_total_dos:
             phonon.auto_total_dos(write_dat=True, filename=self.write_total_dos)
         if self.write_phonon:
@@ -278,7 +278,7 @@ class PhononCalc(PropCalc):
         phonon.forces = [run_pes_calc(supercell, self.calculator).forces for supercell in disp_supercells]
         phonon.produce_force_constants()
         phonon.run_mesh(with_eigenvectors=True)
-        mesh_dict = cast(dict[str, Any], phonon.get_mesh_dict())
+        mesh_dict = cast("dict[str, Any]", phonon.get_mesh_dict())
         frequencies = mesh_dict["frequencies"]
         return phonon, frequencies, disp_supercells
 
@@ -381,5 +381,5 @@ class PhononCalc(PropCalc):
         relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
             self.relax_calc_kwargs or {}
         )
-        relaxer = RelaxCalc(self.calculator, **cast(Any, relax_calc_kwargs))
+        relaxer = RelaxCalc(self.calculator, **cast("Any", relax_calc_kwargs))
         return relaxer.calc(structure_in)

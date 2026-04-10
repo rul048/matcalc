@@ -408,7 +408,7 @@ class QHACalc(PropCalc):
         phonon_calc_kwargs["relax_structure"] = False  # already relaxed
         phonon_calc = PhononCalc(
             self.calculator,
-            **cast(Any, phonon_calc_kwargs),
+            **cast("Any", phonon_calc_kwargs),
         )
         return phonon_calc.calc(structure)
 

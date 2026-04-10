@@ -368,7 +368,7 @@ class MDCalc(PropCalc):
                 "relax_cell": False,
             } | (self.relax_calc_kwargs or {})
 
-            relaxer = RelaxCalc(self.calculator, **cast(Any, merged_relax_calc_kwargs))
+            relaxer = RelaxCalc(self.calculator, **cast("Any", merged_relax_calc_kwargs))
             # Run the relaxation calculation and update the result dictionary.
             result |= relaxer.calc(structure_in)
             # Update the input structure with the relaxed final structure.
