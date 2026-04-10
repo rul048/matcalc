@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import phonopy
@@ -17,7 +17,7 @@ from .utils import to_ase_atoms, to_pmg_structure
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Literal
+    from typing import Literal
 
     from ase import Atoms
     from ase.calculators.calculator import Calculator
@@ -240,7 +240,7 @@ class PhononCalc(PropCalc):
         if self.write_force_constants:
             write_force_constants(phonon.force_constants, filename=self.write_force_constants)  # type: ignore[arg-type]
         if self.write_band_structure:
-            phonon.auto_band_structure(write_yaml=True, filename=self.write_band_structure)
+            phonon.auto_band_structure(write_yaml=True, filename=cast(str, self.write_band_structure))
         if self.write_total_dos:
             phonon.auto_total_dos(write_dat=True, filename=self.write_total_dos)
         if self.write_phonon:
@@ -278,7 +278,8 @@ class PhononCalc(PropCalc):
         phonon.forces = [run_pes_calc(supercell, self.calculator).forces for supercell in disp_supercells]
         phonon.produce_force_constants()
         phonon.run_mesh(with_eigenvectors=True)
-        frequencies = phonon.get_mesh_dict()["frequencies"]
+        mesh_dict = cast(dict[str, Any], phonon.get_mesh_dict())
+        frequencies = mesh_dict["frequencies"]
         return phonon, frequencies, disp_supercells
 
     def _check_imaginary_modes(self, frequencies: np.ndarray) -> None:
@@ -380,5 +381,5 @@ class PhononCalc(PropCalc):
         relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
             self.relax_calc_kwargs or {}
         )
-        relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
+        relaxer = RelaxCalc(self.calculator, **cast(Any, relax_calc_kwargs))
         return relaxer.calc(structure_in)

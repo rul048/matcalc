@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 from phonopy import PhonopyQHA
@@ -16,7 +16,7 @@ from .utils import to_pmg_structure
 if TYPE_CHECKING:
     import os
     from collections.abc import Sequence
-    from typing import Any, Literal
+    from typing import Literal
 
     from ase import Atoms
     from ase.calculators.calculator import Calculator
@@ -408,7 +408,7 @@ class QHACalc(PropCalc):
         phonon_calc_kwargs["relax_structure"] = False  # already relaxed
         phonon_calc = PhononCalc(
             self.calculator,
-            **phonon_calc_kwargs,
+            **cast(Any, phonon_calc_kwargs),
         )
         return phonon_calc.calc(structure)
 
