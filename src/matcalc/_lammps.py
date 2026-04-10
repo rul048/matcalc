@@ -37,42 +37,21 @@ class LAMMPSMDCalc(PropCalc):
     """
     Class to manage molecular dynamics simulations using LAMMPS.
 
-    :ivar calculator: Name of the potential/calculator model.
-    :type calculator: str
-    :ivar temperature: Simulation temperature in Kelvin.
-    :type temperature: int
-    :ivar ensemble: Statistical ensemble for simulation.
-    :type ensemble: Literal["nve", "nvt", "npt", "nvt_nose_hoover", "npt_nose_hoover"]
-    :ivar timestep: Simulation timestep in picoseconds.
-    :type timestep: float
-    :ivar steps: Number of MD steps.
-    :type steps: int
-    :ivar pressure: Simulation pressure in bars.
-    :type pressure: float
-    :ivar taut: Temperature coupling constant (ps).
-    :type taut: float | None
-    :ivar taup: Pressure coupling constant (ps).
-    :type taup: float | None
-    :ivar infile: File for Input.
-    :type infile: str
-    :ivar trajfile: File for trajectory output.
-    :type trajfile: str
-    :ivar logfile: Logfile path.
-    :type logfile: str
-    :ivar loginterval: Logging interval in steps.
-    :type loginterval: int
-    :ivar relax_structure: Whether to perform initial structural relaxation.
-    :type relax_structure: bool
-    :ivar fmax: Maximum force for relaxation convergence.
-    :type fmax: float
-    :ivar optimizer: Optimizer for structural relaxation.
-    :type optimizer: str
-    :ivar frames: Number of frames saved from the trajectory.
-    :type frames: int
-    :ivar settings: Settings for the template script.
-    :type settings: dict | None
-    :ivar relax_calc_kwargs: Additional kwargs for relaxation calculation.
-    :type relax_calc_kwargs: dict | None
+    Attributes:
+        calculator: Universal model name string (resolved for MatGL potentials).
+        temperature: Target temperature (K).
+        ensemble: Thermostat/barostat choice.
+        timestep: MD timestep (ps).
+        steps: Total MD steps.
+        pressure: Target pressure for NPT (bar).
+        taut, taup: Thermo/barostat time constants (ps).
+        infile, trajfile, logfile: LAMMPS IO paths.
+        loginterval: Thermo output stride.
+        relax_structure: Pre-MD ``RelaxCalc`` when True.
+        fmax, optimizer: Relaxation settings.
+        frames: Number of trailing trajectory frames to return.
+        settings: Extra template placeholders for ``LammpsRun``.
+        relax_calc_kwargs: Kwargs for pre-MD ``RelaxCalc``.
     """
 
     def __init__(
@@ -149,12 +128,12 @@ class LAMMPSMDCalc(PropCalc):
     ) -> LammpsRun:
         """Write LAMMPS input files based on a given structure.
 
-        Parameters:
-            structure (Structure | Atoms | dict[str, Any]): Input pymatgen Structure or equivalent dictionary.
-            script_template (str | Path): Template of the input script.
+        Args:
+            structure: Structure, atoms, or dict accepted by ``PropCalc.calc``.
+            script_template: Path or string content of the LAMMPS script template.
 
         Returns:
-            LammpsRun: Instance representing written LAMMPS inputs.
+            ``LammpsRun`` with inputs written to the current working directory.
         """
         # Preprocess the input structure using the superclass's calc method.
         # This initial processing returns a dictionary containing a "final_structure".

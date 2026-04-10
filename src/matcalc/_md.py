@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import tempfile
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import numpy as np
 from ase import Atoms, units
@@ -25,8 +25,6 @@ from ._relaxation import RelaxCalc
 from .utils import to_ase_atoms, to_pmg_structure
 
 if TYPE_CHECKING:
-    from typing import Any
-
     from ase.calculators.calculator import Calculator
     from pymatgen.core import Structure
 
@@ -369,7 +367,7 @@ class MDCalc(PropCalc):
                 "relax_cell": False,
             } | (self.relax_calc_kwargs or {})
 
-            relaxer = RelaxCalc(self.calculator, **merged_relax_calc_kwargs)
+            relaxer = RelaxCalc(self.calculator, **cast("Any", merged_relax_calc_kwargs))
             # Run the relaxation calculation and update the result dictionary.
             result |= relaxer.calc(structure_in)
             # Update the input structure with the relaxed final structure.

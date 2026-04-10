@@ -26,7 +26,7 @@ uv add <dependency> --dev
 ```
 
 Dependencies required for different models should always be optional. For example, matgl is an optional dependency
-(as well as a dev dependency used for unit testing) that is used only when you plan to use MatGL models with Matcalc.
+(as well as a dev dependency used for unit testing) that is used only when you plan to use MatGL models with MatCalc.
 
 ```shell
 uv add matgl --optional matgl

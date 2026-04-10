@@ -25,23 +25,39 @@ Calculating material properties often requires involved setups of various simula
 goal of MatCalc is to provide a simplified, consistent interface to access these properties with any
 parameterization of the PES.
 
-MatCalc is part of the MatML ecosystem, which includes the [MatGL] (Materials Graph Library) and [MAML] (MAterials
-Machine Learning) packages, the [MatPES] (Materials Potential Energy Surface) dataset, and the [MatCalc] (Materials
-Calculator).
+MatCalc is part of the MatML ecosystem, which includes [MatGL] (Materials Graph Library) and [MAML] (MAterials
+Machine Learning), the [MatPES] (Materials Potential Energy Surface) dataset, and the [MatCalc] documentation site.
 
 ## Documentation
 
-The API documentation and tutorials are available at http://matcalc.ai.
+The API documentation and tutorials are available at https://matcalc.ai.
+
+For installation options, calculator and model tables, and full CLI usage, see the
+[README on GitHub](https://github.com/materialsvirtuallab/matcalc/blob/main/README.md).
+
+## Installation
+
+```bash
+pip install matcalc
+```
+
+Optional extras (same as the README):
+
+```bash
+pip install matcalc[matgl]    # MatGL foundation potentials (TensorNet, M3GNet, CHGNet)
+pip install matcalc[maml]     # MAML classical potentials (MTP, GAP, NNP, SNAP, etc.)
+pip install matcalc[benchmark]
+pip install matcalc[phonon]   # Seekpath for phonon band paths
+```
 
 ## Outline
 
-The main base class in MatCalc is `PropCalc` (property calculator). [All `PropCalc` subclasses](https://github.com/search?q=repo%3Amaterialsvirtuallab%2Fmatcalc%20%22(PropCalc)%22) should implement a
+The main base class in MatCalc is `PropCalc` (property calculator). [All `PropCalc` subclasses](https://github.com/search?q=repo%3Amaterialsvirtuallab%2Fmatcalc%20%22(PropCalc)%22) implement a
 `calc(pymatgen.Structure | ase.Atoms | dict) -> dict` method that returns a dictionary of properties.
 
-In general, `PropCalc` should be initialized with an ML model or [ASE] calculator, which is then used by either ASE,
-LAMMPS or some other simulation code to perform calculations of properties. The `matcalc.PESCalculator` class
-provides easy access to many foundation potentials (FPs) as well as an interface to MAML for custom MLIPs
-such as MTP, NNP, GAP, etc.
+In general, `PropCalc` is initialized with an ML model or [ASE] calculator. The `matcalc.PESCalculator` class
+provides convenient access to many foundation potentials (FPs) as well as an interface to MAML for classical
+MLIPs such as MTP, NNP, GAP, SNAP, ACE, etc.
 
 # Basic Usage
 
@@ -61,7 +77,8 @@ print(f"K_VRH = {props['bulk_modulus_vrh'] * 160.2176621} GPa")
 
 The calculated `K_VRH` is about 102 GPa, in reasonably good agreement with the experimental and DFT values.
 
-You can easily access a list of universal calculators (not comprehensive) using the UNIVERSAL_CALCULATORS enum.
+You can list supported universal calculator names using the `UNIVERSAL_CALCULATORS` enum (additional MatGL pretrained
+models appear at runtime when MatGL is installed).
 
 ```python
 print(mtc.UNIVERSAL_CALCULATORS)
@@ -136,11 +153,16 @@ Chaining can also be used with the `calc_many` method, with parallelization.
 
 ### CLI tool
 
-A CLI tool provides a means to use FPs to obtain properties for any structure. Example usage:
+A command-line interface computes properties from structure files (any format supported by
+`pymatgen.Structure.from_file`). Examples:
 
 ```shell
 matcalc calc -p ElasticityCalc -s Li2O.cif
+matcalc calc -p RelaxCalc -m TensorNet -s structure.cif -o results.json
+matcalc clear
 ```
+
+Use `matcalc calc -h` for available property calculators.
 
 ## Benchmarking
 

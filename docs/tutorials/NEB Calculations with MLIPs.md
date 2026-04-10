@@ -1,6 +1,6 @@
 ---
 layout: default
-title: NEB Calculations with MLIPs.md
+title: NEB calculations with MLIPs
 nav_exclude: true
 ---
 

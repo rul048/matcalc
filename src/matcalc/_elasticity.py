@@ -25,29 +25,18 @@ if TYPE_CHECKING:
 
 class ElasticityCalc(PropCalc):
     """
-    Class for calculating elastic properties of a material. This includes creating
-    an elastic tensor, shear modulus, bulk modulus, and other related properties with
-    the help of strain and stress analyses. It leverages the provided ASE Calculator
-    for computations and supports relaxation of structures when necessary.
+    Elastic tensor and related moduli via strain-stress fitting with pymatgen.
 
-    :ivar calculator: The ASE Calculator used for performing computations.
-    :type calculator: Calculator
-    :ivar norm_strains: Sequence of normal strain values to be applied.
-    :type norm_strains: Sequence[float] | float
-    :ivar shear_strains: Sequence of shear strain values to be applied.
-    :type shear_strains: Sequence[float] | float
-    :ivar fmax: Maximum force tolerated for structure relaxation.
-    :type fmax: float
-    :ivar symmetry: Whether to apply symmetry reduction techniques during calculations.
-    :type symmetry: bool
-    :ivar relax_structure: Whether the initial structure should be relaxed before applying strains.
-    :type relax_structure: bool
-    :ivar relax_deformed_structures: Whether to relax atomic positions in deformed/strained structures.
-    :type relax_deformed_structures: bool
-    :ivar use_equilibrium: Whether to use equilibrium stress and strain in calculations.
-    :type use_equilibrium: bool
-    :ivar relax_calc_kwargs: Additional arguments for relaxation calculations.
-    :type relax_calc_kwargs: dict | None
+    Attributes:
+        calculator: ASE calculator (or universal model name).
+        norm_strains: Normal strains applied in ``DeformedStructureSet``.
+        shear_strains: Shear strains applied in ``DeformedStructureSet``.
+        fmax: Force tolerance for optional relaxations.
+        symmetry: Whether to reduce deformations by symmetry.
+        relax_structure: Relax initial structure before deforming.
+        relax_deformed_structures: Relax each deformed structure before stress.
+        use_equilibrium: Include equilibrium stress in the fit when applicable.
+        relax_calc_kwargs: Optional kwargs for ``RelaxCalc``.
     """
 
     def __init__(
@@ -64,27 +53,16 @@ class ElasticityCalc(PropCalc):
         relax_calc_kwargs: dict | None = None,
     ) -> None:
         """
-        Initializes the class with parameters to construct normalized and shear strain values
-        and control relaxation behavior for structures. Validates input parameters to ensure
-        appropriate constraints are maintained.
-
-        :param calculator: An ASE calculator object used to perform energy and force
-            calculations. If string is provided, the corresponding universal calculator is loaded.
-        :type calculator: Calculator | str
-        :param norm_strains: Sequence of normalized strain values applied during deformation.
-            Can also be a single float. Must not be empty or contain zero.
-        :param shear_strains: Sequence of shear strain values applied during deformation.
-            Can also be a single float. Must not be empty or contain zero.
-        :param fmax: Maximum force magnitude tolerance for relaxation. Default is 0.1.
-        :param symmetry: Boolean flag to enforce symmetry in deformation. Default is False.
-        :param relax_structure: Boolean flag indicating if the structure should be relaxed before
-            applying strains. Default is True.
-        :param relax_deformed_structures: Boolean flag indicating if the deformed structures
-            should be relaxed. Default is False.
-        :param use_equilibrium: Boolean flag indicating if equilibrium conditions should be used for
-            calculations. Automatically enabled if multiple normal and shear strains are provided.
-        :param relax_calc_kwargs: Optional dictionary containing keyword arguments for structure
-            relaxation calculations.
+        Args:
+            calculator: ASE calculator or universal model name string.
+            norm_strains: Normal strains (non-empty, no zeros); scalar broadcast to one value.
+            shear_strains: Shear strains (non-empty, no zeros); scalar allowed.
+            fmax: Force tolerance for relaxations.
+            symmetry: Pass-through to pymatgen ``DeformedStructureSet``.
+            relax_structure: Relax parent structure before generating deformations.
+            relax_deformed_structures: Relax each deformed structure before stress eval.
+            use_equilibrium: Use equilibrium stress in fit; forced True if only one strain type.
+            relax_calc_kwargs: Optional kwargs for ``RelaxCalc``.
         """
         self.calculator = calculator  # type: ignore[assignment]
         self.norm_strains = tuple(np.array([1]) * np.asarray(norm_strains))
@@ -107,34 +85,14 @@ class ElasticityCalc(PropCalc):
 
     def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict[str, Any]:
         """
-        Performs a calculation to determine the elastic tensor and related elastic
-        properties. It involves multiple steps such as optionally relaxing the input
-        structure, generating deformed structures, calculating stresses, and evaluating
-        elastic properties. The method supports equilibrium stress computation and various
-        relaxations depending on configuration.
+        Args:
+            structure: Pymatgen structure, ASE atoms, or dict with structure keys.
 
-        :param structure:
-            The input structure which can either be an instance of `Structure` or
-            a dictionary containing structural data.
-        :return:
-            A dictionary containing the calculation results that include:
-            - `elastic_tensor`: The computed elastic tensor of the material.
-            - `shear_modulus_vrh`: Shear modulus obtained from the elastic tensor
-              using the Voigt-Reuss-Hill approximation in eV/A3.
-            - `bulk_modulus_vrh`: Bulk modulus calculated using the Voigt-Reuss-Hill
-              approximation in eV/A3.
-            - `youngs_modulus`: Young's modulus derived from the elastic tensor in SI unit.
-            - `residuals_sum`: The residual sum from the elastic tensor fitting.
-            - `structure`: The (potentially relaxed) final structure after calculations.
-            The units are originally documented in pymatgen.
-            See pymatgen.core.elasticity.elastic.ElasticTensor()
-            (https://github.com/materialsproject/pymatgen/blob/master/src/pymatgen/analysis/elasticity/elastic.py/#130)
-            -> pymatgen.core.elasticity.elastic.ElasticTensor.k_vrh()
-            (https://github.com/materialsproject/pymatgen/blob/master/src/pymatgen/analysis/elasticity/elastic.py/#189)
-            pymatgen.core.elasticity.elastic.ElasticTensor.g_vrh()
-            (https://github.com/materialsproject/pymatgen/blob/master/src/pymatgen/analysis/elasticity/elastic.py/#194)
-            pymatgen.core.elasticity.elastic.ElasticTensor.y_mod()
-            (https://github.com/materialsproject/pymatgen/blob/master/src/pymatgen/analysis/elasticity/elastic.py/#199)
+        Returns:
+            Dict including ``elastic_tensor``, ``shear_modulus_vrh``, ``bulk_modulus_vrh``,
+            ``youngs_modulus``, ``residuals_sum``, ``structure``, and merged relaxation
+            fields. Moduli follow pymatgen ``ElasticTensor`` conventions (see pymatgen
+            elasticity docs for units).
         """
         result = super().calc(structure)
         structure_in: Structure | Atoms = result["final_structure"]
@@ -186,31 +144,17 @@ class ElasticityCalc(PropCalc):
         tol: float = 1e-7,
     ) -> tuple[ElasticTensor, float]:
         """
-        Compute the elastic tensor from given strain and stress data using least-squares
-        fitting.
+        Fit elastic constants from strain-stress pairs (Voigt), optionally subtracting
+        equilibrium stress.
 
-        This function calculates the elastic constants from strain-stress relations,
-        using a least-squares fitting procedure for each independent component of stress
-        and strain tensor pairs. An optional equivalent stress array can be supplied.
-        Residuals from the fitting process are accumulated and returned alongside the
-        elastic tensor. The elastic tensor is zeroed according to the given tolerance.
+        Args:
+            strains: Strain states (array-like) for each deformation.
+            stresses: Matching stress tensors (array-like).
+            eq_stress: Equilibrium stress to subtract; None to omit.
+            tol: Small components below this are zeroed on the fitted tensor.
 
-        :param strains:
-            Strain data array-like, representing different strain states.
-        :param stresses:
-            Stress data array-like corresponding to the given strain states.
-        :param eq_stress:
-            Optional array-like, equivalent stress values for equilibrium stress states.
-            Defaults to None.
-        :param tol:
-            A float representing the tolerance threshold used for zeroing the elastic
-            tensor. Defaults to 1e-7.
-        :return:
-            A tuple consisting of:
-              - ElasticTensor object: The computed and zeroed elastic tensor in Voigt
-                notation.
-              - float: The summed residuals from least-squares fittings across all
-                tensor components.
+        Returns:
+            Tuple of ``(ElasticTensor, residuals_sum)``.
         """
         strain_states = [tuple(ss) for ss in np.eye(6)]
         ss_dict = get_strain_state_dict(strains, stresses, eq_stress=eq_stress, add_eq=self.use_equilibrium)

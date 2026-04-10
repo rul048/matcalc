@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import phonopy
@@ -17,7 +17,7 @@ from .utils import to_ase_atoms, to_pmg_structure
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, Literal
+    from typing import Literal
 
     from ase import Atoms
     from ase.calculators.calculator import Calculator
@@ -38,66 +38,24 @@ class PhononCalc(PropCalc):
     methods to export calculated properties to various output files for
     further analysis or visualization.
 
-    :ivar calculator: A calculator object or a string specifying the
-        computational backend to be used.
-    :type calculator: Calculator | str
-    :ivar atom_disp: Magnitude of atomic displacements for phonon
-        calculations.
-    :type atom_disp: float
-    :ivar min_length: Minimum length of lattice dimensions, used to
-        automatically set supercell_matrix.
-    :type min_length: float | None
-    :ivar supercell_matrix: Array defining the transformation matrix to
-        construct supercells for phonon calculations. Takes precedence
-        over min_length.
-    :type supercell_matrix: ArrayLike | None
-    :ivar t_step: Temperature step for thermal property calculations in
-        Kelvin.
-    :type t_step: float
-    :ivar t_max: Maximum temperature for thermal property calculations in
-        Kelvin.
-    :type t_max: float
-    :ivar t_min: Minimum temperature for thermal property calculations in
-        Kelvin.
-    :type t_min: float
-    :ivar fmax: Maximum force convergence criterion for structural relaxation.
-    :type fmax: float
-    :ivar optimizer: String specifying the optimizer type to be used for
-        structural relaxation.
-    :type optimizer: str
-    :ivar relax_structure: Boolean flag to determine whether to relax the
-        structure before phonon calculation.
-    :type relax_structure: bool
-    :ivar relax_calc_kwargs: Optional dictionary containing additional
-        arguments for the structural relaxation calculation.
-    :type relax_calc_kwargs: dict | None
-    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in
-        THz. If a frequency is found with a value below imaginary_freq_tol,
-        it is considered imaginary.
-    :type imaginary_freq_tol: float
-    :ivar on_imaginary_modes: If there is a frequency with a value below
-        imaginary_freq_tol, then either raise a ValueError ("error") or log a
-        warning ("warn").
-    :type on_imaginary_modes: Literal["error", "warn"]
-    :ivar fix_imaginary_attempts: Number of attempts to resolve imaginary modes by rattling
-        the atoms and re-optimizing at fixed cell volume. 0 disables correction.
-    :type fix_imaginary_attempts: int
-    :ivar write_force_constants: Path, boolean, or string specifying whether
-        to write the calculated force constants to an output file, and the
-        path or name of the file if applicable.
-    :type write_force_constants: bool | str | Path
-    :ivar write_band_structure: Path, boolean, or string specifying whether
-        to write the calculated phonon band structure to an output file,
-        and the path or name of the file if applicable.
-    :type write_band_structure: bool | str | Path
-    :ivar write_total_dos: Path, boolean, or string specifying whether to
-        write the calculated total density of states (DOS) to an output
-        file, and the path or name of the file if applicable.
-    :type write_total_dos: bool | str | Path
-    :ivar write_phonon: Path, boolean, or string specifying whether to write
-        the calculated phonon properties (e.g., phonon.yaml) to an output
-        file, and the path or name of the file if applicable.
-    :type write_phonon: bool | str | Path
+    Attributes:
+        calculator: ASE calculator or universal model name.
+        atom_disp: Finite-difference displacement for force constants (Å).
+        min_length: Minimum supercell dimension (Å); used if ``supercell_matrix`` is None.
+        supercell_matrix: Explicit supercell; overrides ``min_length`` when set.
+        t_step, t_max, t_min: Thermal property temperature grid (K).
+        fmax: Relaxation force tolerance when ``relax_structure`` is used.
+        max_steps: Max relaxation steps.
+        optimizer: ASE optimizer name for pre-phonon relaxation.
+        relax_structure: Relax structure before phonopy.
+        relax_calc_kwargs: Optional kwargs for ``RelaxCalc``.
+        imaginary_freq_tol: Frequencies below this (THz) count as imaginary.
+        on_imaginary_modes: ``"warn"`` or ``"error"`` on imaginary modes.
+        fix_imaginary_attempts: Rattle/retry cycles to fix imaginary modes.
+        write_force_constants: Output path for force constants (or False).
+        write_band_structure: Band structure YAML path (or False).
+        write_total_dos: Total DOS path (or False).
+        write_phonon: Phonopy save path (e.g. ``phonon.yaml``) or False.
     """
 
     def __init__(
@@ -124,37 +82,26 @@ class PhononCalc(PropCalc):
         write_phonon: bool | str | Path = True,
     ) -> None:
         """
-        Initializes the class with configuration for the phonon calculations. The initialization parameters control
-        the behavior of structural relaxation, thermal properties, force calculations, and output file generation.
-        The class allows for customization of key parameters to facilitate the study of material behaviors.
-
-        :param calculator: The calculator object or string name specifying the calculation backend to use.
-        :param atom_disp: Atom displacement to be used for finite difference calculation of force constants.
-        :param min_length: Minimum length of lattice dimensions, used to automatically set supercell_matrix.
-        :param supercell_matrix: Transformation matrix to define the supercell for the calculation. Takes
-            precedence over min_length
-        :param t_step: Temperature step for thermal property calculations.
-        :param t_max: Maximum temperature for thermal property calculations.
-        :param t_min: Minimum temperature for thermal property calculations.
-        :param fmax: Maximum force during structure relaxation, used as a convergence criterion.
-        :param max_steps: The maximum number of optimization steps to perform during the relaxation process.
-        :param optimizer: Name of the optimization algorithm for structural relaxation.
-        :param relax_structure: Flag to indicate whether structure relaxation should be performed before calculations.
-        :param relax_calc_kwargs: Additional keyword arguments for relaxation phase calculations.
-        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
-            a value below imaginary_freq_tol, it is considered imaginary.
-        :param on_imaginary_modes: If there is a frequency with a value below imaginary_freq_tol, then
-            raise a ValueError ("error") or log a warning ("warn"). Defaults to "warn".
-        :param fix_imaginary_attempts: Number of attempts to resolve imaginary modes. For each attempt, atoms
-            are rattled (ASE rattle, stdev=0.01 Å), the structure is re-optimized at fixed cell volume, and phonons
-            are recalculated. 0 disables correction.
-        :param write_force_constants: File path or boolean flag to write force constants.
-            Defaults to "force_constants".
-        :param write_band_structure: File path or boolean flag to write band structure data.
-            Defaults to "band_structure.yaml".
-        :param write_total_dos: File path or boolean flag to write total density of states (DOS) data.
-            Defaults to "total_dos.dat".
-        :param write_phonon: File path or boolean flag to write phonon data. Defaults to "phonon.yaml".
+        Args:
+            calculator: ASE calculator or universal model name string.
+            atom_disp: Displacement for phonopy finite differences.
+            min_length: Minimum supercell size along each lattice direction (Å).
+            supercell_matrix: Integer supercell matrix; if None, derived from ``min_length``.
+            t_step: Temperature step for thermal properties (K).
+            t_max: Maximum temperature (K).
+            t_min: Minimum temperature (K).
+            fmax: Relaxation force tolerance (eV/Å).
+            max_steps: Maximum relaxation steps before phonopy.
+            optimizer: Optimizer for pre-phonon relaxation.
+            relax_structure: Whether to relax before building phonopy.
+            relax_calc_kwargs: Optional kwargs for ``RelaxCalc``.
+            imaginary_freq_tol: Threshold (THz) for classifying imaginary modes.
+            on_imaginary_modes: ``"warn"`` or ``"error"`` when imaginary modes exist.
+            fix_imaginary_attempts: Rattle/relax/phonon retries; 0 disables.
+            write_force_constants: Path to write FCs, True for default name, or False.
+            write_band_structure: Path, True for default YAML, or False.
+            write_total_dos: Path, True for default DOS file, or False.
+            write_phonon: Path, True for default ``phonon.yaml``, or False.
         """
         self.calculator = calculator  # type: ignore[assignment]
         self.atom_disp = atom_disp
@@ -189,33 +136,15 @@ class PhononCalc(PropCalc):
             setattr(self, key, str({True: default_path, False: ""}.get(val, val)))  # type: ignore[arg-type]
 
     def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict:
-        """Calculates thermal properties of Pymatgen structure with phonopy.
+        """Compute phonons and thermal properties with phonopy.
 
         Args:
-            structure: Pymatgen structure.
+            structure: Pymatgen structure, ASE atoms, or dict with structure keys.
 
         Returns:
-        {
-            phonon: Phonopy object with force constants produced
-            thermal_properties:
-                {
-                    temperatures: list of temperatures in Kelvin,
-                    free_energy: list of Helmholtz free energies at corresponding temperatures in kJ/mol,
-                    entropy: list of entropies at corresponding temperatures in J/K/mol,
-                    heat_capacity: list of heat capacities at constant volume at corresponding temperatures in J/K/mol,
-                    The units are originally documented in phonopy.
-                    See phonopy.Phonopy.run_thermal_properties()
-                    (https://github.com/phonopy/phonopy/blob/develop/phonopy/api_phonopy.py#L2591)
-                    -> phonopy.phonon.thermal_properties.ThermalProperties.run()
-                    (https://github.com/phonopy/phonopy/blob/develop/phonopy/phonon/thermal_properties.py#L498)
-                    -> phonopy.phonon.thermal_properties.ThermalPropertiesBase.run_free_energy()
-                    (https://github.com/phonopy/phonopy/blob/develop/phonopy/phonon/thermal_properties.py#L217)
-                    phonopy.phonon.thermal_properties.ThermalPropertiesBase.run_entropy()
-                    (https://github.com/phonopy/phonopy/blob/develop/phonopy/phonon/thermal_properties.py#L233)
-                    phonopy.phonon.thermal_properties.ThermalPropertiesBase.run_heat_capacity()
-                    (https://github.com/phonopy/phonopy/blob/develop/phonopy/phonon/thermal_properties.py#L225)
-                }
-        }
+            Dict with ``phonon`` (``phonopy.Phonopy``), ``thermal_properties`` (phonopy thermal dict:
+            temperatures, free_energy, entropy, heat_capacity; see phonopy docs for units),
+            ``frequencies``, ``disp_supercells``, plus any relaxation fields merged in.
         """
         result = super().calc(structure)
         structure_in: Structure = to_pmg_structure(result["final_structure"])
@@ -240,7 +169,7 @@ class PhononCalc(PropCalc):
         if self.write_force_constants:
             write_force_constants(phonon.force_constants, filename=self.write_force_constants)  # type: ignore[arg-type]
         if self.write_band_structure:
-            phonon.auto_band_structure(write_yaml=True, filename=self.write_band_structure)
+            phonon.auto_band_structure(write_yaml=True, filename=cast("str", self.write_band_structure))
         if self.write_total_dos:
             phonon.auto_total_dos(write_dat=True, filename=self.write_total_dos)
         if self.write_phonon:
@@ -278,7 +207,8 @@ class PhononCalc(PropCalc):
         phonon.forces = [run_pes_calc(supercell, self.calculator).forces for supercell in disp_supercells]
         phonon.produce_force_constants()
         phonon.run_mesh(with_eigenvectors=True)
-        frequencies = phonon.get_mesh_dict()["frequencies"]
+        mesh_dict = cast("dict[str, Any]", phonon.get_mesh_dict())
+        frequencies = mesh_dict["frequencies"]
         return phonon, frequencies, disp_supercells
 
     def _check_imaginary_modes(self, frequencies: np.ndarray) -> None:
@@ -380,5 +310,5 @@ class PhononCalc(PropCalc):
         relax_calc_kwargs = {"fmax": self.fmax, "optimizer": self.optimizer, "max_steps": self.max_steps} | (
             self.relax_calc_kwargs or {}
         )
-        relaxer = RelaxCalc(self.calculator, **relax_calc_kwargs)
+        relaxer = RelaxCalc(self.calculator, **cast("Any", relax_calc_kwargs))
         return relaxer.calc(structure_in)

@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Running the MatCalc-Benchmark.md
+title: Running the MatCalc benchmark
 nav_exclude: true
 ---
 

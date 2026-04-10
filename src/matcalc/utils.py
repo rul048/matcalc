@@ -65,6 +65,9 @@ MODEL_ALIASES = {
 
 UNIVERSAL_CALCULATORS = Enum("UNIVERSAL_CALCULATORS", {k: k for k in _universal_calculators})  # type: ignore[misc]
 
+# Same strings as enum values; exposed for typing-friendly iteration (e.g. CLI choices).
+UNIVERSAL_CALCULATOR_NAMES: tuple[str, ...] = tuple(_universal_calculators)
+
 
 class PESCalculator(Calculator):
     """
@@ -78,10 +81,9 @@ class PESCalculator(Calculator):
     includes utilities to load compatible models for each potential type, making it
     a versatile tool for materials modeling and molecular simulations.
 
-    :ivar potential: The potential model used for PES calculations.
-    :type potential: LMPStaticCalculator
-    :ivar stress_weight: The stress weight factor to convert between units.
-    :type stress_weight: float
+    Attributes:
+        potential: MAML LAMMPS static potential backend.
+        stress_weight: Factor applied to stress (includes unit conversion).
     """
 
     implemented_properties = ["energy", "forces", "stress"]  # noqa:RUF012
@@ -97,11 +99,10 @@ class PESCalculator(Calculator):
         Initialize PESCalculator with a potential from maml.
 
         Args:
-            potential (LMPStaticCalculator): maml.apps.pes._lammps.LMPStaticCalculator
-            stress_unit (str): The unit of stress. Default to "GPa"
-            stress_weight (float): The conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa.
-                Default to 1.0.
-            **kwargs: Additional keyword arguments passed to super().__init__().
+            potential: MAML ``LMPStaticCalculator`` instance.
+            stress_unit: ``"GPa"`` or ``"eV/A3"`` for returned stress units.
+            stress_weight: Multiplier on stress after unit conversion (default 1.0).
+            **kwargs: Forwarded to ``ase.calculators.calculator.Calculator``.
         """
         super().__init__(**kwargs)
         self.potential = potential
@@ -126,11 +127,9 @@ class PESCalculator(Calculator):
         Perform calculation for an input Atoms.
 
         Args:
-            atoms (ase.Atoms): ase Atoms object
-            properties (list): The list of properties to calculate
-            system_changes (list): monitor which properties of atoms were
-                changed for new calculation. If not, the previous calculation
-                results will be loaded.
+            atoms: Structure to evaluate.
+            properties: ASE property list to compute (defaults to all).
+            system_changes: ASE change list; if unchanged, cached results may be reused.
         """
         from ase.calculators.calculator import all_changes, all_properties
         from maml.apps.pes import EnergyForceStress
@@ -160,12 +159,12 @@ class PESCalculator(Calculator):
         or directory. It then configures a calculator using the loaded model and
         the provided keyword arguments.
 
-        :param path: The path to the MATGL model file or directory.
-        :type path: str | Path
-        :param kwargs: Additional keyword arguments used to configure the calculator.
-        :return: An instance of the PESCalculator initialized with the loaded MATGL
-            model and configured with the given parameters.
-        :rtype: Calculator
+        Args:
+            path: Path to the MatGL model file or pretrained model name.
+            **kwargs: Forwarded to the MatGL ASE calculator.
+
+        Returns:
+            Configured ASE calculator for the MatGL model.
         """
         import matgl
 
@@ -193,15 +192,13 @@ class PESCalculator(Calculator):
         configuration file and elements. It returns a PESCalculator instance,
         which wraps the initialized potential model.
 
-        :param filename: Path to the configuration file for the MTPotential.
-        :type filename: str | Path
-        :param elements: List of element symbols used in the model. Each element
-            should be a string representing a chemical element (e.g., "H", "O").
-        :type elements: list
-        :param kwargs: Additional keyword arguments to configure the PESCalculator.
-        :type kwargs: Any
-        :return: A calculator object wrapping the MTPotential.
-        :rtype: Calculator
+        Args:
+            filename: MTP configuration file path.
+            elements: Element symbols for the potential (e.g. ``["Cu"]``).
+            **kwargs: Forwarded to ``PESCalculator``.
+
+        Returns:
+            ``PESCalculator`` wrapping the MTP model.
         """
         from maml.apps.pes import MTPotential
 
@@ -217,12 +214,12 @@ class PESCalculator(Calculator):
         input. Any additional arguments for the calculator can be passed via kwargs,
         allowing customization.
 
-        :param filename: Path to the configuration file for the GAP model.
-        :type filename: str | Path
-        :param kwargs: Additional keyword arguments for configuring the calculator.
-        :type kwargs: Any
-        :return: An instance of PESCalculator initialized with the GAPotential model.
-        :rtype: Calculator
+        Args:
+            filename: GAP configuration file path.
+            **kwargs: Forwarded to ``PESCalculator``.
+
+        Returns:
+            ``PESCalculator`` wrapping the GAP model.
         """
         from maml.apps.pes import GAPotential
 
@@ -242,16 +239,14 @@ class PESCalculator(Calculator):
         for customizable keyword arguments to modify the behavior of the resulting
         Calculator.
 
-        :param input_filename: Path to the primary input file containing NNP configuration.
-        :type input_filename: str | Path
-        :param scaling_filename: Path to the scaling parameters file required for the NNP.
-        :type scaling_filename: str | Path
-        :param weights_filenames: List of paths to weight files for the NNP.
-        :type weights_filenames: list
-        :param kwargs: Additional keyword arguments passed to the Calculator constructor.
-        :type kwargs: Any
-        :return: A Calculator object initialized with the loaded NNP settings.
-        :rtype: Calculator
+        Args:
+            input_filename: NNP input configuration path.
+            scaling_filename: NNP scaling parameters path.
+            weights_filenames: Paths to NNP weight files.
+            **kwargs: Forwarded to ``PESCalculator``.
+
+        Returns:
+            ``PESCalculator`` wrapping the NNP model.
         """
         from maml.apps.pes import NNPotential
 
@@ -272,11 +267,13 @@ class PESCalculator(Calculator):
         configuration files and subsequently generates a PESCalculator based on the
         created potential model and additional keyword arguments.
 
-        :param param_file: Path to the parameter file required for SNAPotential configuration.
-        :param coeff_file: Path to the coefficient file required for SNAPotential configuration.
-        :param kwargs: Additional keyword arguments passed to the PESCalculator.
-        :return: A PESCalculator instance configured with the SNAPotential model.
-        :rtype: Calculator
+        Args:
+            param_file: SNAP parameter file path.
+            coeff_file: SNAP coefficient file path.
+            **kwargs: Forwarded to ``PESCalculator``.
+
+        Returns:
+            ``PESCalculator`` wrapping the SNAP model.
         """
         from maml.apps.pes import SNAPotential
 
@@ -296,14 +293,12 @@ class PESCalculator(Calculator):
         file paths, basis set objects, or configurations. Additional customization options
         can be passed through keyword arguments.
 
-        :param basis_set: The basis set used for initializing the ACE calculator. This can
-            be provided as a string, Path object, ACEBBasisSet, ACECTildeBasisSet, or
-            BBasisConfiguration.
-        :param kwargs: Additional configuration parameters to customize the ACE
-            calculator. These keyword arguments are passed directly to the PyACECalculator
-            instance during initialization.
-        :return: An instance of the Calculator class representing the initialized ACE
-            calculator.
+        Args:
+            basis_set: ACE basis (path, or PyACE basis / configuration object).
+            **kwargs: Forwarded to ``PyACECalculator``.
+
+        Returns:
+            Initialized PyACE ASE calculator.
         """
         from pyace import PyACECalculator
 
@@ -318,14 +313,12 @@ class PESCalculator(Calculator):
         This method facilitates the integration of machine learning models into ASE
         by loading a model for atomic-scale simulations.
 
-        :param model_path: The file path to the serialized NequIP model.
-        :type model_path: str | Path
-        :param kwargs: Additional keyword arguments to be passed to the
-            `NequIPCalculator.from_deployed_model` method.
-        :type kwargs: Any
-        :return: A `Calculator` instance initialized with the given model and parameters,
-            suitable for ASE simulations.
-        :rtype: Calculator
+        Args:
+            model_path: Path to the deployed NequIP model.
+            **kwargs: Forwarded to ``NequIPCalculator.from_deployed_model``.
+
+        Returns:
+            NequIP ASE calculator instance.
         """
         from nequip.ase import NequIPCalculator
 
@@ -346,13 +339,12 @@ class PESCalculator(Calculator):
         The function requires the DeePMD-kit library to be installed to properly import
         and utilize the `DP` class.
 
-        :param model_path: Path to the trained DeePMD model file, provided as a string
-                           or a Path object.
-        :param kwargs: Additional options and configurations to pass into the DeePMD
-                       `Calculator` during initialization.
-        :return: An instance of the Calculator object initialized with the specified
-                 DeePMD model and optional configurations.
-        :rtype: Calculator
+        Args:
+            model_path: Trained DeePMD model path.
+            **kwargs: Forwarded to DeePMD ``DP``.
+
+        Returns:
+            DeePMD ASE calculator instance.
         """
         from deepmd.calculator import DP
 
@@ -370,12 +362,15 @@ class PESCalculator(Calculator):
         may belong to different domains and packages. It auto-resolves aliases, provides default options
         for certain calculators, and raises errors for unsupported inputs.
 
-        :param name: The name of the calculator to load or an instance of a Calculator.
-        :param kwargs: Keyword arguments that are passed to the internal calculator initialization routines
-                    for models matching the specified name. These options are calculator dependent.
-        :return: An instance of the loaded calculator.
+        Args:
+            name: Model name, alias, or an existing ASE calculator instance.
+            **kwargs: Model-specific options passed to the underlying loader.
 
-        :raises ValueError: If the name provided does not match any recognized calculator type.
+        Returns:
+            ASE calculator instance.
+
+        Raises:
+            ValueError: If ``name`` is not a recognized universal model.
         """
         result: Calculator
 
@@ -452,13 +447,13 @@ def to_ase_atoms(structure: Atoms | Structure | Molecule) -> Atoms:
     """
     Converts a given structure into an ASE Atoms object. This function checks
     if the input structure is already an ASE Atoms object. If not, it converts
-    a pymatgen Structure object to an ASE Atoms object using the AseAtomsAdaptor.
+    a pymatgen Structure object to an ASE Atoms object     using the AseAtomsAdaptor.
 
-    :param structure: The input structure, which can be either an ASE Atoms object
-        or a pymatgen Structure object.
-    :type structure: Atoms | Structure
-    :return: An ASE Atoms object representing the given structure.
-    :rtype: Atoms
+    Args:
+        structure: ASE ``Atoms``, pymatgen ``Structure``, or ``Molecule``.
+
+    Returns:
+        ASE ``Atoms`` for the same system.
     """
     return structure if isinstance(structure, Atoms) else AseAtomsAdaptor.get_atoms(structure)
 
@@ -470,13 +465,11 @@ def to_pmg_structure(structure: Atoms | Structure) -> Structure:
     returned unchanged. If the input structure is of type Atoms, it is
     converted to a Structure using the AseAtomsAdaptor.
 
-    :param structure: The input structure to be converted. This can be of
-        type Atoms or Structure.
-    :type structure: Atoms | Structure
-    :return: A Structure object corresponding to the input structure. If the
-        input is already a Structure, it is returned as-is. Otherwise, it is
-        converted.
-    :rtype: Structure
+    Args:
+        structure: ASE ``Atoms`` or pymatgen ``Structure``.
+
+    Returns:
+        Pymatgen ``Structure`` (unchanged if already a structure).
     """
     return structure if isinstance(structure, Structure) else AseAtomsAdaptor.get_structure(structure)  # type: ignore[return-value]
 
@@ -488,13 +481,11 @@ def to_pmg_molecule(structure: Atoms | Structure | Molecule | IMolecule) -> IMol
     returned unchanged. If the input structure is of type Atoms, it is
     converted to a Molecule using the AseAtomsAdaptor.
 
-    :param structure: The input structure to be converted. This can be of
-        type Atoms or Structure or Molecule.
-    :type structure: Atoms | Structure | Molecule
-    :return: A Molecule object corresponding to the input structure. If the
-        input is already a Molecule, it is returned as-is. Otherwise, it is
-        converted.
-    :rtype: Molecule
+    Args:
+        structure: ASE ``Atoms``, pymatgen ``Structure`` / ``Molecule``, or interface molecule type.
+
+    Returns:
+        Pymatgen ``Molecule`` representation.
     """
     if isinstance(structure, Atoms):
         structure = AseAtomsAdaptor.get_molecule(structure)

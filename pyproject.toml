@@ -238,6 +238,7 @@ exclude_lines = [
 
 [tool.pyright]
 reportMissingImports = false
+reportMissingModuleSource = false
 reportPossiblyUnboundVariable = true
 reportUnboundVariable = true
 exclude = ["tests"]

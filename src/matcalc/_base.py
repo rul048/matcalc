@@ -40,7 +40,7 @@ class PropCalc(abc.ABC):
         and controlled access to the underlying calculator.
 
         Returns:
-            Calculator: The internal `Calculator` instance.
+            The internal ASE calculator instance.
         """
         return self._pes_calculator
 
@@ -51,16 +51,8 @@ class PropCalc(abc.ABC):
         loads the universal PESCalculator using the given value. Otherwise, it sets
         the provided Calculator instance.
 
-        Parameters:
-            val (str | Calculator): The new value to assign to the calculator property.
-            It can either be a string representing a PESCalculator configuration or an
-            existing Calculator object.
-
-        Returns:
-            None
-
-        Exceptions:
-            None
+        Args:
+            val: Universal model name string or an existing ASE calculator instance.
         """
         self._pes_calculator = PESCalculator.load_universal(val) if isinstance(val, str) else val
 
@@ -116,25 +108,16 @@ class PropCalc(abc.ABC):
         `None` for those structures, without raising exceptions.
 
         Args:
-            structures (Sequence[Structure | dict[str, Any] | Atoms]): A sequence of structures
-                to be processed. Each structure can be represented as `Structure`, a dictionary
-                containing structure-related data, or `Atoms`.
-            n_jobs (None | int, optional): The number of jobs to use for parallel processing. If
-                `None`, the default parallelism settings of the `Parallel` utility will be used.
-                Defaults to `None`.
-            allow_errors (bool, optional): If `True`, exceptions encountered during the
-                calculation of a structure will be caught, and `None` will be returned for that
-                structure. If `False`, the exception is raised. Defaults to `False`.
-            **kwargs (Any): Additional keyword arguments to pass to the `Parallel` utility.
+            structures: Sequence of structures or structure dicts.
+            n_jobs: ``joblib`` worker count; ``None`` uses joblib defaults.
+            allow_errors: If True, failed structures yield ``None`` instead of raising.
+            **kwargs: Forwarded to ``joblib.Parallel``.
 
-        Returns:
-            Generator[dict | None, None, None]: A generator that yields the results of the
-                calculations for the input structures. If an exception occurs and `allow_errors`
-                is `True`, `None` will be yielded for the corresponding structure.
+        Yields:
+            Result dict from ``calc``, or ``None`` when ``allow_errors`` and a structure fails.
 
         Raises:
-            Exception: If any error occurs during the calculation of a structure and
-                `allow_errors` is `False`, the exception will be raised.
+            Exception: Any error from ``calc`` when ``allow_errors`` is False.
         """
         parallel = Parallel(n_jobs=n_jobs, return_as="generator", **kwargs)
 
@@ -177,7 +160,7 @@ class ChainedCalc(PropCalc):
                 by an elasticity calculation.
 
         Returns:
-            dict[str, Any]: In the form {"prop_name": value}.
+            Merged dict from all steps (final keys depend on the chain).
         """
         results = structure  # type:ignore[assignment]
         for prop_calc in self.prop_calcs:
