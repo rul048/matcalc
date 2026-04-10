@@ -50,6 +50,12 @@ For benchmarking support:
 pip install matcalc[benchmark]
 ```
 
+For phonon band paths via Seekpath:
+
+```bash
+pip install matcalc[phonon]
+```
+
 ## Architecture
 
 The main base class in MatCalc is `PropCalc` (property calculator). All `PropCalc` subclasses implement a
@@ -66,8 +72,8 @@ MLIPs such as MTP, NNP, GAP, SNAP, ACE, etc.
 | `RelaxCalc` | Structural relaxation | `energy`, `forces`, `stress`, `a`, `b`, `c`, `alpha`, `beta`, `gamma`, `volume`, `final_structure` |
 | `ElasticityCalc` | Elastic constants via strain-stress fitting | `elastic_tensor`, `bulk_modulus_vrh`, `shear_modulus_vrh`, `youngs_modulus`, `residuals_sum` |
 | `EOSCalc` | Birch-Murnaghan equation of state | `eos`, `bulk_modulus_bm`, `r2_score_bm` |
-| `PhononCalc` | Phonon band structure and thermal properties | `phonon`, `thermal_properties`, `frequencies` |
-| `Phonon3Calc` | Third-order force constants and thermal conductivity | `phono3py`, `kappa` |
+| `PhononCalc` | Phonon band structure and thermal properties | `phonon`, `thermal_properties`, `frequencies`, `disp_supercells` |
+| `Phonon3Calc` | Third-order force constants and thermal conductivity | `phonon3` (Phono3py object), `temperatures`, `thermal_conductivity` |
 | `QHACalc` | Quasi-harmonic approximation | `gibbs_temperature`, `thermal_expansion`, `bulk_modulus_temperature` |
 | `MDCalc` | Molecular dynamics simulation | `md_structures`, `md_energies` |
 | `NEBCalc` | Nudged elastic band / minimum energy path | `mep`, `barrier_energy` |
@@ -80,7 +86,7 @@ MLIPs such as MTP, NNP, GAP, SNAP, ACE, etc.
 
 ### Supported Foundation Potentials
 
-`PESCalculator.load_universal()` — aliased as `matcalc.load_fp()` — supports these models out of the box:
+`PESCalculator.load_universal()` — aliased as `matcalc.load_fp()` and `matcalc.load_up()` — supports these models out of the box:
 
 | Model | String Name / Alias | Package |
 |---|---|---|
@@ -133,6 +139,8 @@ r2scan_calculator = mtc.load_fp("r2scan")
 
 These currently resolve to the `TensorNet-MatPES-v2025.1` models, but may be updated as better models
 become available.
+
+`matcalc.load_up` is the same as `matcalc.load_fp` (historical alias).
 
 ### Parallelization
 

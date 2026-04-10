@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Running Softening Benchmark.md
+title: Running the softening benchmark
 nav_exclude: true
 ---
 

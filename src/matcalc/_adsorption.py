@@ -1,4 +1,4 @@
-"""Surface Energy calculations."""
+"""Adsorption energy calculations on surfaces."""
 
 from __future__ import annotations
 

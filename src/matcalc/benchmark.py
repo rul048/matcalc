@@ -55,16 +55,15 @@ def get_available_benchmarks() -> list[str]:
     return [d["name"] for d in json.loads(r.content.decode("utf-8")) if d["name"].endswith(".json.gz")]
 
 
-def get_benchmark_data(name: str) -> pd.DataFrame:
+def get_benchmark_data(name: str) -> list[Any]:
     """
-    Retrieve benchmark data as a Pandas DataFrame. Uses fsspec to cache files locally if possible.
+    Retrieve a benchmark dataset from the remote store. Uses fsspec to cache files locally if possible.
 
-    :param name: Name of the benchmark elemental_refs file to be retrieved
+    :param name: Filename of the benchmark JSON archive (e.g. ``*.json.gz``).
     :type name: str
-    :return: Benchmark elemental_refs loaded as a Pandas DataFrame
-    :rtype: pd.DataFrame
-    :raises requests.RequestException: If the benchmark elemental_refs file cannot be
-        downloaded from the specified URL
+    :return: List of benchmark entries decoded with ``MontyDecoder`` (each entry is typically a dict).
+    :rtype: list[Any]
+    :raises requests.RequestException: If the benchmark file cannot be downloaded from the specified URL.
     """
     uri = f"{BENCHMARK_DATA_DOWNLOAD_URL}/{name}"
     parsed = urlparse(str(uri))
@@ -107,18 +106,18 @@ class CheckpointFile:
 
     def load(self, *args: list) -> tuple:
         """
-        Loads elemental_refs from a specified path if it exists, returning the loaded elemental_refs along with
+        Loads checkpoint data from a specified path if it exists, returning the loaded entries along with
         remaining portions of the given input arguments.
 
-        The method checks if the file path exists, and if so, it loads elemental_refs from the specified
+        The method checks if the file path exists, and if so, it loads data from the specified
         file using a predefined `loadfn` function. It logs the number of loaded entries and
-        returns the successfully loaded elemental_refs alongside sliced input arguments based on the
+        returns the successfully loaded entries alongside sliced input arguments based on the
         number of loaded entries. If the file path does not exist, it returns empty results
         and the original input arguments unchanged.
 
-        :param args: List of lists where each list corresponds to additional elemental_refs to
+        :param args: List of lists where each list corresponds to additional data to
             process in conjunction with the loaded file content.
-        :return: A tuple where the first element is the loaded elemental_refs (list) from the specified
+        :return: A tuple where the first element is the loaded list from the specified
             file path (or an empty list if the path does not exist), and subsequent elements
             are the remaining unsliced portions of each input list from `args` or the entire
             original lists if nothing was loaded.
@@ -219,7 +218,7 @@ class Benchmark(metaclass=abc.ABCMeta):
 
         :raises FileNotFoundError: If the provided `benchmark_name` is a path that does not exist.
 
-        :raises ValueError: If invalid or incomplete elemental_refs is encountered in the benchmark entries.
+        :raises ValueError: If invalid or incomplete data is encountered in the benchmark entries.
         """
         rows = []
         structures = []
@@ -228,7 +227,7 @@ class Benchmark(metaclass=abc.ABCMeta):
             random.seed(seed)
             entries = random.sample(entries, n_samples)
 
-        # We will first create a DataFrame from the required components from the raw elemental_refs.
+        # We will first create a DataFrame from the required components from the raw benchmark entries.
         # We also create the list of structures in the order of the entries.
         for entry in entries:
             row = {k: entry[k] for k in [index_name, *other_fields]}

@@ -1,4 +1,4 @@
-"""Calculators for materials properties."""
+"""Calculators for materials properties from the potential energy surface."""
 
 from __future__ import annotations
 
