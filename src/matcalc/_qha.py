@@ -36,61 +36,21 @@ class QHACalc(PropCalc):
     and fine-tuning various calculation parameters. Calculation results can be selectively
     saved to output files.
 
-    :ivar calculator: Calculator instance used for electronic structure or energy calculations.
-    :type calculator: Calculator
-    :ivar t_step: Temperature step size in Kelvin.
-    :type t_step: float
-    :ivar t_max: Maximum temperature in Kelvin.
-    :type t_max: float
-    :ivar t_min: Minimum temperature in Kelvin.
-    :type t_min: float
-    :ivar pressure: Pressure in GPa.
-    :type pressure: float | None
-    :ivar fmax: Maximum force threshold for structure relaxation in eV/Å.
-    :type fmax: float
-    :ivar optimizer: Type of optimizer used for structural relaxation.
-    :type optimizer: str
-    :ivar eos: Equation of state used for fitting energy vs. volume data.
-    :type eos: Literal["vinet", "birch_murnaghan", "murnaghan"]
-    :ivar allow_shape_change: Whether or not to allow the unit cell shape to
-        change at fixed cell volume during the EOS calculations. Default is True.
-    :type allow_shape_change: bool
-    :ivar relax_structure: Whether to perform structure relaxation before phonon calculations.
-    :type relax_structure: bool
-    :ivar relax_calc_kwargs: Additional keyword arguments for structure relaxation calculations.
-    :type relax_calc_kwargs: dict | None
-    :ivar phonon_calc_kwargs: Additional keyword arguments for phonon calculations.
-    :type phonon_calc_kwargs: dict | None
-    :ivar scale_factors: List of scale factors for lattice scaling.
-    :type scale_factors: Sequence[float]
-    :ivar imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
-            a value below imaginary_freq_tol, it is considered imaginary.
-    :type imaginary_freq_tol: float
-    :ivar on_imaginary_modes: If there is a frequency with a value below
-        imaginary_freq_tol, then either raise a ValueError ("error") or log a
-        warning ("warn").
-    :type on_imaginary_modes: Literal["error", "warn"]
-    :ivar fix_imaginary_attempts: Number of attempts passed to PhononCalc to resolve imaginary modes
-        at each scale factor. 0 disables correction.
-    :type fix_imaginary_attempts: int
-    :ivar write_helmholtz_volume: Path or boolean to control saving Helmholtz free energy vs. volume data.
-    :type write_helmholtz_volume: bool | str | Path
-    :ivar write_volume_temperature: Path or boolean to control saving volume vs. temperature data.
-    :type write_volume_temperature: bool | str | Path
-    :ivar write_thermal_expansion: Path or boolean to control saving thermal expansion coefficient data.
-    :type write_thermal_expansion: bool | str | Path
-    :ivar write_gibbs_temperature: Path or boolean to control saving Gibbs free energy as a function of temperature.
-    :type write_gibbs_temperature: bool | str | Path
-    :ivar write_bulk_modulus_temperature: Path or boolean to control saving bulk modulus vs. temperature data.
-    :type write_bulk_modulus_temperature: bool | str | Path
-    :ivar write_heat_capacity_p_numerical: Path or boolean to control saving numerically calculated heat capacity vs.
-        temperature data.
-    :type write_heat_capacity_p_numerical: bool | str | Path
-    :ivar write_heat_capacity_p_polyfit: Path or boolean to control saving polynomial-fitted heat capacity vs.
-        temperature data.
-    :type write_heat_capacity_p_polyfit: bool | str | Path
-    :ivar write_gruneisen_temperature: Path or boolean to control saving Grüneisen parameter vs. temperature data.
-    :type write_gruneisen_temperature: bool | str | Path
+    Attributes:
+        calculator: ASE calculator or universal model name.
+        t_step, t_max, t_min: Temperature grid (K) for QHA output.
+        pressure: Target pressure (GPa) or None.
+        fmax: Relaxation force tolerance (eV/Å).
+        max_steps: Max relaxation steps.
+        optimizer: ASE optimizer name.
+        eos: EOS model for volume-energy fits (``vinet``, ``birch_murnaghan``, ``murnaghan``).
+        allow_shape_change: Allow cell shape change at fixed volume in scaled relaxations.
+        relax_structure: Relax initial structure before the QHA volume scan.
+        relax_calc_kwargs: Kwargs merged into all ``RelaxCalc`` uses.
+        phonon_calc_kwargs: Kwargs merged into ``PhononCalc``.
+        scale_factors: Volume scale factors for the QHA mesh.
+        imaginary_freq_tol, on_imaginary_modes, fix_imaginary_attempts: Passed to ``PhononCalc``.
+        write_*: Output paths (or True for defaults) for phonopy QHA text files.
     """
 
     def __init__(
@@ -123,57 +83,32 @@ class QHACalc(PropCalc):
         write_gruneisen_temperature: bool | str | os.PathLike = False,
     ) -> None:
         """
-        Initializes the class that handles thermal and structural calculations, including atomic
-        structure relaxation, property evaluations, and phononic calculations across temperature
-        ranges. This class is mainly designed to facilitate systematic computations involving
-        temperature-dependent material properties and thermodynamic quantities.
-
-        :param calculator: Calculator object or string indicating the computational engine to use
-            for performing calculations.
-        :param t_step: Step size for the temperature range, given in units of K.
-        :param t_max: Maximum temperature for the calculations, given in units of K.
-        :param t_min: Minimum temperature for the calculations, given in units of K.
-        :param pressure: Pressure to calculate thermochemistry at, given in units of GPa.
-        :param fmax: Maximum force convergence criterion for structure relaxation, in force units.
-        :param max_steps: The maximum number of optimization steps during the relaxation.
-        :param optimizer: Name of the optimizer to use for structure optimization, default is
-            "FIRE".
-        :param eos: Equation of state to use for calculating energy vs. volume relationships.
-            Default is "vinet".
-        :param allow_shape_change: Whether or not to allow the unit cell shape to
-            change at fixed cell volume during the EOS calculations. Default is True.
-        :param relax_structure: A boolean flag indicating whether the initial atomic structure should be
-            relaxed as part of the computation workflow. Note that subsequent relaxations on the
-            volume-scaled structures will be carried out regardless.
-        :param relax_calc_kwargs: A dictionary containing additional keyword arguments to pass to
-            all relaxations in the workflow.
-        :param phonon_calc_kwargs: A dictionary containing additional parameters to pass to the
-            phonon calculation routine.
-        :param scale_factors: A sequence of scale factors for volume scaling during
-            thermodynamic and phononic calculations.
-        :param imaginary_freq_tol: Tolerance for imaginary frequency detection in THz. If a frequency is found with
-            a value below imaginary_freq_tol, it is considered imaginary.
-        :param on_imaginary_modes: If there is a frequency with a value below imaginary_freq_tol, then
-            raise a ValueError ("error") or log a warning ("warn"). Defaults to "warn".
-        :param fix_imaginary_attempts: Number of attempts passed to PhononCalc to resolve imaginary modes
-            at each scale factor. 0 disables correction.
-        :param write_helmholtz_volume: Path, boolean, or string to indicate whether and where
-            to save Helmholtz energy as a function of volume.
-        :param write_volume_temperature: Path, boolean, or string to indicate whether and where
-            to save equilibrium volume as a function of temperature.
-        :param write_thermal_expansion: Path, boolean, or string to indicate whether and where
-            to save the thermal expansion coefficient as a function of temperature.
-        :param write_gibbs_temperature: Path, boolean, or string to indicate whether and where
-            to save Gibbs energy as a function of temperature.
-        :param write_bulk_modulus_temperature: Path, boolean, or string to indicate whether and
-            where to save bulk modulus as a function of temperature.
-        :param write_heat_capacity_p_numerical: Path, boolean, or string to indicate whether and
-            where to save specific heat capacity at constant pressure, calculated numerically.
-        :param write_heat_capacity_p_polyfit: Path, boolean, or string to indicate whether and
-            where to save specific heat capacity at constant pressure, calculated via polynomial
-            fitting.
-        :param write_gruneisen_temperature: Path, boolean, or string to indicate whether and
-            where to save Grüneisen parameter values as a function of temperature.
+        Args:
+            calculator: ASE calculator or universal model name string.
+            t_step: Temperature sampling step (K).
+            t_max: Maximum temperature (K).
+            t_min: Minimum temperature (K).
+            pressure: Pressure in GPa for Gibbs terms, or None.
+            fmax: Force tolerance for relaxations.
+            max_steps: Max steps per relaxation.
+            optimizer: ASE optimizer name.
+            eos: EOS key for ``PhonopyQHA``.
+            allow_shape_change: Allow shape relaxation at constant volume for scaled cells.
+            relax_structure: Relax input once before scanning ``scale_factors``.
+            relax_calc_kwargs: Extra kwargs for every ``RelaxCalc``.
+            phonon_calc_kwargs: Extra kwargs for each ``PhononCalc``.
+            scale_factors: Volume scale factors applied to the relaxed structure.
+            imaginary_freq_tol: Imaginary-mode threshold (THz) for ``PhononCalc``.
+            on_imaginary_modes: ``"warn"`` or ``"error"``.
+            fix_imaginary_attempts: Imaginary-mode retries per scale factor in ``PhononCalc``.
+            write_helmholtz_volume: Write F(V); True selects default filename.
+            write_volume_temperature: Write V(T).
+            write_thermal_expansion: Write thermal expansion alpha(T).
+            write_gibbs_temperature: Write G(T).
+            write_bulk_modulus_temperature: Write B(T).
+            write_heat_capacity_p_numerical: Write Cp(T) numerical.
+            write_heat_capacity_p_polyfit: Write Cp(T) polyfit.
+            write_gruneisen_temperature: Write Gruneisen gamma(T).
         """
         self.calculator = calculator  # type: ignore[assignment]
         self.t_step = t_step
@@ -237,25 +172,16 @@ class QHACalc(PropCalc):
             setattr(self, key, normalized)
 
     def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict:
-        """Calculates thermal properties of Pymatgen structure with phonopy under quasi-harmonic approximation.
+        """Quasi-harmonic thermodynamics via phonopy over a volume scan.
 
         Args:
-            structure: Pymatgen structure.
+            structure: Pymatgen structure, ASE atoms, or dict with structure keys.
 
         Returns:
-        {
-            "qha": Phonopy.qha object,
-            "scale_factors": List of scale factors of lattice constants,
-            "volumes": List of unit cell volumes at corresponding scale factors (in Angstrom^3),
-            "electronic_energies": List of electronic energies at corresponding volumes (in eV),
-            "temperatures": List of temperatures in ascending order (in Kelvin),
-            "thermal_expansion_coefficients": List of volumetric thermal expansion coefficients at corresponding
-                temperatures (in Kelvin^-1),
-            "gibbs_free_energies": List of Gibbs free energies at corresponding temperatures (in eV),
-            "bulk_modulus_P": List of bulk modulus at constant pressure at corresponding temperatures (in GPa),
-            "heat_capacity_P": List of heat capacities at constant pressure at corresponding temperatures (in J/K/mol),
-            "gruneisen_parameters": List of Gruneisen parameters at corresponding temperatures,
-        }
+            Dict with ``qha`` (``PhonopyQHA``), per-volume lists (``scale_factors``, ``volumes``,
+            ``electronic_energies``, ``scaled_structures``), temperature arrays for thermal
+            expansion, Gibbs energy, bulk modulus, Cp, and Gruneisen parameter, merged with any
+            relaxation fields from earlier steps. Units follow phonopy QHA.
         """
         result = super().calc(structure)
         structure_in: Structure = to_pmg_structure(result["final_structure"])
@@ -313,11 +239,11 @@ class QHACalc(PropCalc):
         """Helper to collect properties like volumes, electronic energies, and thermal properties.
 
         Args:
-            structure: Pymatgen structure for which the properties need to be calculated.
+            structure: Primitive cell structure at the reference volume.
 
         Returns:
-            Tuple containing lists of volumes, electronic energies, free energies, entropies,
-                and heat capacities for different scale factors.
+            Dict of lists keyed by ``volumes``, ``electronic_energies``, ``free_energies``,
+            ``entropies``, ``heat_capacities``, and ``scaled_structures``.
         """
         volumes = []
         electronic_energies = []

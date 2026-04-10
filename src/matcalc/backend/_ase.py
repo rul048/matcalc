@@ -41,12 +41,11 @@ def is_ase_optimizer(key: str | Optimizer) -> bool:
     If the key is a string, the function checks whether it corresponds
     to a class in `ase.optimize` that is a subclass of `Optimizer`.
 
-    :param key: The key to check, either a string name of an ASE
-        optimizer class or a class object that potentially subclasses
-        `Optimizer`.
-    :return: True if the key is either a string corresponding to an
-        ASE optimizer subclass name in `ase.optimize` or a class that
-        is a subclass of `Optimizer`. Otherwise, returns False.
+    Args:
+        key: String name of an ASE optimizer in ``ase.optimize``, or an ``Optimizer`` subclass.
+
+    Returns:
+        True if ``key`` names a valid ASE optimizer class or is an ``Optimizer`` subclass.
     """
     if isclass(key) and issubclass(key, Optimizer):
         return True
@@ -67,15 +66,14 @@ def get_ase_optimizer(optimizer: str | Optimizer) -> Optimizer:
 
     If an Optimizer subclass or instance is provided as input, it is returned directly.
 
-    :param optimizer: The optimizer to be retrieved. Can be a string representing a valid ASE
-        optimizer name or an instance/subclass of the Optimizer class.
-    :type optimizer: str | Optimizer
+    Args:
+        optimizer: ASE optimizer name (str) or ``Optimizer`` subclass.
 
-    :return: The corresponding ASE optimizer instance or the input Optimizer instance/subclass.
-    :rtype: Optimizer
+    Returns:
+        The ASE optimizer class or the given ``Optimizer`` subclass.
 
-    :raises ValueError: If the optimizer name provided as a string is not among the valid ASE
-        optimizer names defined by `VALID_OPTIMIZERS`.
+    Raises:
+        ValueError: If ``optimizer`` is a string not in ``VALID_OPTIMIZERS``.
     """
     if isclass(optimizer) and issubclass(optimizer, Optimizer):
         return optimizer
@@ -103,12 +101,21 @@ def run_ase(
     """
     Run ASE static calculation using the given structure and calculator.
 
-    Parameters:
-    structure (Structure|Atoms): The input structure to calculate potential energy, forces, and stress.
-    calculator (Calculator): The calculator object to use for the calculation.
+    Args:
+        structure: Input structure for energy, forces, and stress.
+        calculator: ASE calculator attached to the structure.
+        relax_atoms: Whether to relax atomic positions.
+        relax_cell: Whether to relax the cell (with ``cell_filter``).
+        optimizer: Optimizer name or class.
+        max_steps: Maximum optimization steps.
+        traj_file: Optional trajectory path during relaxation.
+        interval: Trajectory write interval.
+        fmax: Force convergence criterion (eV/Å).
+        cell_filter: Cell filter class when ``relax_cell`` is True.
+        cell_filter_kwargs: Extra arguments for the cell filter.
 
     Returns:
-    PESResult: Object containing potential energy, forces, and stress of the input structure.
+        SimulationResult with structure, energies, forces, and stress.
     """
     atoms = to_ase_atoms(structure)
     atoms.calc = calculator
