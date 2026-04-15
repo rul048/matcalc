@@ -50,6 +50,11 @@ class QHACalc(PropCalc):
         phonon_calc_kwargs: Kwargs merged into ``PhononCalc``.
         scale_factors: Volume scale factors for the QHA mesh.
         imaginary_freq_tol, on_imaginary_modes, fix_imaginary_attempts: Passed to ``PhononCalc``.
+        store_ha_phonon: Whether to store per-scale-factor harmonic approximation results in
+            the output dict under the ``"ha"`` key.
+        write_ha_phonon: Write per-scale-factor phonopy files. False disables writing,
+            True uses the default name ``phonon_{scale_factor:.3f}.yaml``, or a format string
+            with a ``{scale_factor}`` placeholder selects a custom name.
         write_*: Output paths (or True for defaults) for phonopy QHA text files.
     """
 
@@ -73,6 +78,8 @@ class QHACalc(PropCalc):
         imaginary_freq_tol: float = -0.01,
         on_imaginary_modes: Literal["error", "warn"] = "warn",
         fix_imaginary_attempts: int = 0,
+        store_ha_phonon: bool = True,
+        write_ha_phonon: bool | str = False,
         write_helmholtz_volume: bool | str | os.PathLike = False,
         write_volume_temperature: bool | str | os.PathLike = False,
         write_thermal_expansion: bool | str | os.PathLike = False,
@@ -101,6 +108,12 @@ class QHACalc(PropCalc):
             imaginary_freq_tol: Imaginary-mode threshold (THz) for ``PhononCalc``.
             on_imaginary_modes: ``"warn"`` or ``"error"``.
             fix_imaginary_attempts: Imaginary-mode retries per scale factor in ``PhononCalc``.
+            store_ha_phonon: If True (default), each per-scale-factor ``PhononCalc`` result
+                dict is stored and returned under the ``"ha"`` key. Set to False to skip
+                storing these results and omit the ``"ha"`` key from the output entirely.
+            write_ha_phonon: Write a phonopy file for each scale factor. False (default)
+                disables writing. True writes ``phonon_{scale_factor:.3f}.yaml``. A format
+                string containing ``{scale_factor}`` selects a custom filename pattern.
             write_helmholtz_volume: Write F(V); True selects default filename.
             write_volume_temperature: Write V(T).
             write_thermal_expansion: Write thermal expansion alpha(T).
@@ -127,6 +140,8 @@ class QHACalc(PropCalc):
         self.imaginary_freq_tol = imaginary_freq_tol
         self.on_imaginary_modes = on_imaginary_modes
         self.fix_imaginary_attempts = fix_imaginary_attempts
+        self.store_ha_phonon = store_ha_phonon
+        self.write_ha_phonon = write_ha_phonon
 
         # Needed to make sure the volume doesn't change during relaxations on scaled structures
         self._fixed_cell_relax_calc_kwargs = {
@@ -181,7 +196,9 @@ class QHACalc(PropCalc):
             Dict with ``qha`` (``PhonopyQHA``), per-volume lists (``scale_factors``, ``volumes``,
             ``electronic_energies``, ``scaled_structures``), temperature arrays for thermal
             expansion, Gibbs energy, bulk modulus, Cp, and Gruneisen parameter, merged with any
-            relaxation fields from earlier steps. Units follow phonopy QHA.
+            relaxation fields from earlier steps. When ``store_ha_phonon=True``, also includes
+            ``"ha"``: a list of per-scale-factor ``PhononCalc`` result dicts (one per scale
+            factor, in the same order as ``scale_factors``). Units follow phonopy QHA.
         """
         result = super().calc(structure)
         structure_in: Structure = to_pmg_structure(result["final_structure"])
@@ -206,16 +223,19 @@ class QHACalc(PropCalc):
 
         logger.info("Fitting equation of state and computing QHA thermal properties")
         temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
+        # Collected as (n_volumes, n_temps); PhonopyQHA expects (n_temps, n_volumes).
+        free_energy = np.array(properties["free_energies"]).T
+        cv = np.array(properties["heat_capacities"]).T
+        entropy = np.array(properties["entropies"]).T
         qha = PhonopyQHA(
             volumes=properties["volumes"],
             electronic_energies=properties["electronic_energies"],
-            temperatures=temperatures,
-            free_energy=np.transpose(properties["free_energies"]),
-            cv=np.transpose(properties["heat_capacities"]),
-            entropy=np.transpose(properties["entropies"]),
+            temperatures=np.append(temperatures, temperatures[-1] + self.t_step),
+            free_energy=free_energy,
+            cv=cv,
+            entropy=entropy,
             pressure=self.pressure,
             eos=self.eos,
-            t_max=self.t_max,
         )
 
         self._write_output_files(qha)
@@ -233,6 +253,9 @@ class QHACalc(PropCalc):
             "gruneisen_parameters": qha.gruneisen_temperature,
         }
 
+        if self.store_ha_phonon:
+            output_dict["ha"] = properties["ha"]
+
         return result | output_dict
 
     def _collect_properties(self, structure: Structure) -> dict[str, list]:
@@ -243,7 +266,8 @@ class QHACalc(PropCalc):
 
         Returns:
             Dict of lists keyed by ``volumes``, ``electronic_energies``, ``free_energies``,
-            ``entropies``, ``heat_capacities``, and ``scaled_structures``.
+            ``entropies``, ``heat_capacities``, ``scaled_structures``, and ``ha``
+            (per-scale-factor ``PhononCalc`` result dicts).
         """
         volumes = []
         electronic_energies = []
@@ -251,6 +275,7 @@ class QHACalc(PropCalc):
         entropies = []
         heat_capacities = []
         scaled_structures = []
+        ha = []
         for scale_factor in self.scale_factors:
             # Apply linear strain
             scaled_structure = self._scale_structure(structure, scale_factor)
@@ -259,6 +284,14 @@ class QHACalc(PropCalc):
             logger.info("Scale factor %.3f: relaxing at fixed volume", scale_factor)
             relaxer = RelaxCalc(self.calculator, **self._fixed_cell_relax_calc_kwargs)
             relaxed_result = relaxer.calc(scaled_structure)
+
+            # Resolve the phonon write path for this scale factor
+            if self.write_ha_phonon is False:
+                write_phonon: bool | str = False
+            elif self.write_ha_phonon is True:
+                write_phonon = f"phonon_{scale_factor:.3f}.yaml"
+            else:
+                write_phonon = str(self.write_ha_phonon).format(scale_factor=scale_factor)
 
             # Calculate thermal properties from phonon calculation and tabulate results.
             # We must store the energy, structure, etc. from the phonon calculation if
@@ -269,9 +302,12 @@ class QHACalc(PropCalc):
                 scale_factor,
                 relaxed_result["final_structure"].volume,
             )
-            phonon_result = self._calculate_thermal_properties(relaxed_result["final_structure"])
+            phonon_result = self._calculate_thermal_properties(
+                relaxed_result["final_structure"], write_phonon=write_phonon
+            )
 
             # Collect properties
+            ha.append(phonon_result)
             scaled_structures.append(phonon_result["final_structure"])
             volume = phonon_result["final_structure"].volume
             if (
@@ -294,6 +330,7 @@ class QHACalc(PropCalc):
             "entropies": entropies,
             "heat_capacities": heat_capacities,
             "scaled_structures": scaled_structures,
+            "ha": ha,
         }
 
     def _scale_structure(self, structure: Structure, scale_factor: float) -> Structure:
@@ -310,11 +347,13 @@ class QHACalc(PropCalc):
         struct.apply_strain(scale_factor - 1)
         return struct
 
-    def _calculate_thermal_properties(self, structure: Structure) -> dict:
+    def _calculate_thermal_properties(self, structure: Structure, *, write_phonon: bool | str = False) -> dict:
         """Helper to calculate the thermal properties of a structure.
 
         Args:
             structure: Pymatgen structure for which the thermal properties are calculated.
+            write_phonon: Passed directly to ``PhononCalc`` as ``write_phonon``. False disables
+                writing, True uses the phonopy default name, or a string path is used as-is.
 
         Returns:
             Full result dict from PhononCalc, containing "energy" (eV, from the
@@ -323,13 +362,13 @@ class QHACalc(PropCalc):
         """
         phonon_calc_kwargs = {
             "t_step": self.t_step,
-            "t_max": self.t_max,
+            "t_max": self.t_max + self.t_step,  # one extra point for PhonopyQHA finite differences
             "t_min": self.t_min,
             "relax_calc_kwargs": self._fixed_cell_relax_calc_kwargs,  # needed for _resolve_imaginary_modes
             "imaginary_freq_tol": self.imaginary_freq_tol,
             "on_imaginary_modes": self.on_imaginary_modes,
             "fix_imaginary_attempts": self.fix_imaginary_attempts,
-            "write_phonon": False,
+            "write_phonon": write_phonon,
         } | (self.phonon_calc_kwargs or {})
         phonon_calc_kwargs["relax_structure"] = False  # already relaxed
         phonon_calc = PhononCalc(
