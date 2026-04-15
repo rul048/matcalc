@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Calculating MLIP properties.md
+title: Calculating MLIP properties
 nav_exclude: true
 ---
 

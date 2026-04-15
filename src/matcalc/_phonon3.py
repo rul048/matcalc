@@ -33,41 +33,20 @@ class Phonon3Calc(PropCalc):
     supercells. Results include the thermal conductivity as a function of temperature
     and other intermediate configurations used in the calculation.
 
-    :ivar calculator: Calculator used to compute forces for the atomic structure.
-    :type calculator: Calculator | str
-    :ivar fc2_supercell: Transformation matrix defining the supercell for second-order
-        force constants.
-    :type fc2_supercell: ArrayLike
-    :ivar fc3_supercell: Transformation matrix defining the supercell for third-order
-        force constants.
-    :type fc3_supercell: ArrayLike
-    :ivar mesh_numbers: Mesh grid dimensions for phonon calculations.
-    :type mesh_numbers: ArrayLike
-    :ivar disp_kwargs: Keyword arguments for displacement generation.
-    :type disp_kwargs: dict[str, Any] | None
-    :ivar thermal_conductivity_kwargs: Keyword arguments for thermal conductivity
-        calculations.
-    :type thermal_conductivity_kwargs: dict | None
-    :ivar relax_structure: Flag indicating if the structure needs to be relaxed before
-        calculations.
-    :type relax_structure: bool
-    :ivar relax_calc_kwargs: Additional arguments for the relaxation calculator.
-    :type relax_calc_kwargs: dict | None
-    :ivar fmax: Maximum force criterion for structure relaxation.
-    :type fmax: float
-    :ivar optimizer: Optimizer name for structure relaxation.
-    :type optimizer: str
-    :ivar t_min: Minimum temperature for thermal conductivity calculations.
-    :type t_min: float
-    :ivar t_max: Maximum temperature for thermal conductivity calculations.
-    :type t_max: float
-    :ivar t_step: Step size for temperature in thermal conductivity calculations.
-    :type t_step: float
-    :ivar write_phonon3: Path or flag for saving the Phono3py output object.
-    :type write_phonon3: bool | str | Path
-    :ivar write_kappa: Flag indicating if the thermal conductivity results
-        should be written to file.
-    :type write_kappa: bool
+    Attributes:
+        calculator: ASE calculator or universal model name.
+        fc2_supercell: Supercell matrix for FC2 (phonon supercell).
+        fc3_supercell: Supercell matrix for FC3.
+        mesh_numbers: q-mesh dimensions for phono3py.
+        disp_kwargs: Passed to ``generate_displacements``.
+        thermal_conductivity_kwargs: Passed to ``run_thermal_conductivity``.
+        relax_structure: Relax primitive structure before phono3py.
+        relax_calc_kwargs: Kwargs for ``RelaxCalc``.
+        fmax: Relaxation force tolerance (eV/Å).
+        optimizer: Relaxation optimizer name.
+        t_min, t_max, t_step: Temperature grid for κ(T) (K).
+        write_phonon3: Path to save phono3py state, True for default, or False.
+        write_kappa: Whether phono3py writes κ output files.
     """
 
     def __init__(
@@ -95,30 +74,22 @@ class Phonon3Calc(PropCalc):
         parameters for the relaxation process, supercell settings, thermal conductivity
         calculation, and file output management.
 
-        :param calculator: The calculator instance or string indicating the method to be
-                           used for energy and force calculations.
-        :param fc2_supercell: The supercell matrix for generating second-order force constants.
-        :param fc3_supercell: The supercell matrix for generating third-order force constants.
-        :param mesh_numbers: The grid size for reciprocal space mesh used in phonon calculations.
-        :param disp_kwargs: Dictionary containing optional parameters for displacement generation
-                            in force constant calculation.
-        :param thermal_conductivity_kwargs: Dictionary containing optional parameters for thermal
-                                            conductivity calculation.
-        :param relax_structure: Boolean flag to enable or disable structure relaxation before
-                                force constant calculations.
-        :param relax_calc_kwargs: Dictionary containing additional configuration options for the
-                                  relaxation calculation.
-        :param fmax: The maximum force allowed on atoms during the structure relaxation
-                     procedure. Determines the relaxation termination condition.
-        :param optimizer: The optimizer algorithm to use for structure relaxation. Defaults to "FIRE."
-        :param t_min: The minimum temperature (in Kelvin) for thermal conductivity calculations.
-        :param t_max: The maximum temperature (in Kelvin) for thermal conductivity calculations.
-        :param t_step: The temperature step size for thermal conductivity calculations.
-        :param write_phonon3: Specifies the filename or a boolean flag for writing the
-                              third-order force constants to a file. If True, writes to
-                              "phonon3.yaml" by default.
-        :param write_kappa: Boolean flag to enable or disable saving thermal conductivity
-                            results to a file.
+        Args:
+            calculator: ASE calculator or universal model name string.
+            fc2_supercell: Phonon (FC2) supercell matrix.
+            fc3_supercell: FC3 supercell matrix.
+            mesh_numbers: q-point mesh shape.
+            disp_kwargs: Kwargs for ``Phono3py.generate_displacements``.
+            thermal_conductivity_kwargs: Kwargs for ``run_thermal_conductivity``.
+            relax_structure: Relax input before building phono3py.
+            relax_calc_kwargs: Kwargs for ``RelaxCalc``.
+            fmax: Force tolerance for relaxation (eV/Å).
+            optimizer: ASE optimizer for relaxation.
+            t_min: Minimum temperature for κ (K).
+            t_max: Maximum temperature for κ (K).
+            t_step: Temperature step (K).
+            write_phonon3: Save path, True for default YAML, or False.
+            write_kappa: Pass ``write_kappa`` to phono3py RTA.
         """
         self.calculator = calculator  # type: ignore[assignment]
         self.fc2_supercell = fc2_supercell
@@ -153,24 +124,13 @@ class Phonon3Calc(PropCalc):
         structures. The results include computed thermal conductivity over specified
         temperatures, along with intermediate Phono3py configurations.
 
-        :param structure: The atomic structure to compute thermal conductivity for. This can
-            be provided as either a `Structure` object or a dictionary describing
-            the structure as per specifications of the input format.
-        :return: A dictionary containing the following keys:
-            - "phonon3": The configured and processed Phono3py object containing data
-              regarding the phonon interactions and force constants.
-            - "temperatures": A numpy array of temperatures over which thermal
-              conductivity has been computed.
-            - "thermal_conductivity": The averaged thermal conductivity values computed
-              at the specified temperatures in W/m-K. Returns NaN if the values cannot be
-              computed.
-              The units are originally documented in phono3py.
-              See phono3py.Phono3py.thermal_conductivity()
-              (https://github.com/phonopy/phono3py/blob/master/phono3py/api_phono3py.py/#877)
-              -> phono3py.conductivity.init_rta.get_thermal_conductivity_RTA()
-              (https://github.com/phonopy/phono3py/blob/master/phono3py/conductivity/init_rta.py/#58)
-              -> phono3py.conductivity.init_rta.ShowCalcProgress.kappa_Wigner_RTA()
-              (https://github.com/phonopy/phono3py/blob/master/phono3py/conductivity/init_rta.py/#217)
+        Args:
+            structure: Pymatgen structure, ASE atoms, or dict with structure keys.
+
+        Returns:
+            Dict with ``phonon3`` (``Phono3py``), ``temperatures``, and
+            ``thermal_conductivity`` (spatially averaged κ in W/m·K where defined; NaN if
+            unavailable). See phono3py RTA documentation for details.
         """
         result = super().calc(structure)
         structure_in: Structure = result["final_structure"]

@@ -17,12 +17,7 @@ if typing.TYPE_CHECKING:
 
 
 def calculate_property(args: Any) -> None:
-    """
-    Implements calculate property.
-
-    :param args:
-    :return:
-    """
+    """Run the selected PropCalc on input structure files (from parsed CLI args)."""
     calculator = mtc.load_fp(args.model)
     mod = mtc.__dict__[args.property](calculator)
     results = []
@@ -39,12 +34,7 @@ def calculate_property(args: Any) -> None:
 
 
 def clear_cache(args: Any) -> None:
-    """
-    Clear the benchmark cache.
-
-    :param args:
-    :return:
-    """
+    """Clear the MatCalc benchmark cache (from parsed CLI args)."""
     mtc.clear_cache(confirm=args.yes)
 
 
@@ -74,7 +64,7 @@ def main() -> None:
         "--model",
         dest="model",
         type=str,
-        choices=mtc.UNIVERSAL_CALCULATORS,
+        choices=mtc.UNIVERSAL_CALCULATOR_NAMES,
         default="TensorNet",
         help="Universal MLIP to use.",
     )

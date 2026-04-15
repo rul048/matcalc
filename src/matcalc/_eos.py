@@ -31,25 +31,16 @@ class EOSCalc(PropCalc):
     initial relaxation of the structure, and evaluation of energies and volumes
     corresponding to the applied strain.
 
-    :ivar calculator: The ASE Calculator used for the calculations.
-    :type calculator: Calculator
-    :ivar optimizer: Optimization algorithm. Defaults to "FIRE".
-    :type optimizer: Optimizer | str
-    :ivar relax_structure: Indicates if the structure should be relaxed initially. Defaults to True.
-    :type relax_structure: bool
-    :ivar n_points: Number of strain points for the EOS calculation. Defaults to 11.
-    :type n_points: int
-    :ivar max_abs_strain: Maximum absolute volumetric strain. Defaults to 0.1 (10% strain).
-    :type max_abs_strain: float
-    :ivar fmax: Maximum force tolerance for relaxation. Defaults to 0.1 eV/Å.
-    :type fmax: float
-    :ivar max_steps: Maximum number of optimization steps during relaxation. Defaults to 500.
-    :type max_steps: int
-    :ivar allow_shape_change: Whether or not to allow the unit cell shape to
-        change at fixed cell volume during the EOS calculations. Default is True.
-    :type allow_shape_change: bool
-    :ivar relax_calc_kwargs: Additional keyword arguments for relaxation calculations. Defaults to None.
-    :type relax_calc_kwargs: dict | None
+    Attributes:
+        calculator: ASE calculator or universal model name.
+        optimizer: Optimizer for optional relaxations.
+        relax_structure: Relax initial structure before the EOS scan.
+        n_points: Number of volume/strain samples.
+        max_abs_strain: Half-range of applied volumetric strain (symmetric scan).
+        fmax: Force tolerance for relaxations.
+        max_steps: Max optimizer steps per relaxation.
+        allow_shape_change: Allow cell shape to change at fixed volume during EOS points.
+        relax_calc_kwargs: Optional kwargs for ``RelaxCalc``.
     """
 
     def __init__(
@@ -66,39 +57,16 @@ class EOSCalc(PropCalc):
         relax_calc_kwargs: dict | None = None,
     ) -> None:
         """
-        Constructor for initializing the data and configurations necessary for a
-        calculation and optimization process. This class enables the setup of
-        simulation parameters, structural relaxation options, and optimizations
-        with specified constraints and tolerances.
-
-        :param calculator: An ASE calculator object used to perform energy and force
-            calculations. If string is provided, the corresponding universal calculator is loaded.
-        :type calculator: Calculator | str
-        :param optimizer: The optimization algorithm used for structural relaxations
-            or energy minimizations. Can be an optimizer object or the string name
-            of the algorithm. Default is "FIRE".
-        :type optimizer: Optimizer | str, optional
-        :param max_steps: The maximum number of steps allowed during the optimization
-            or relaxation process. Default is 500.
-        :type max_steps: int, optional
-        :param max_abs_strain: The maximum allowable absolute strain for relaxation
-            processes. Default is 0.1.
-        :type max_abs_strain: float, optional
-        :param n_points: The number of points or configurations evaluated during
-            the simulation or calculation process. Default is 11.
-        :type n_points: int, optional
-        :param fmax: The force convergence criterion, specifying the maximum force
-            threshold (per atom) for stopping relaxations. Default is 0.1.
-        :type fmax: float, optional
-        :param allow_shape_change: Whether or not to allow the unit cell shape to
-            change at fixed cell volume during the EOS calculations. Default is True.
-        :type allow_shape_change: bool
-        :param relax_structure: A flag indicating whether structural relaxation
-            should be performed before proceeding with further steps. Default is True.
-        :type relax_structure: bool, optional
-        :param relax_calc_kwargs: Additional keyword arguments to customize the
-            relaxation calculation process. Default is None.
-        :type relax_calc_kwargs: dict | None, optional
+        Args:
+            calculator: ASE calculator or universal model name string.
+            optimizer: ASE optimizer name or class for relaxations.
+            max_steps: Maximum relaxation steps per structure.
+            max_abs_strain: Maximum absolute volumetric strain in the scan.
+            n_points: Number of strain points (including halves of the scan).
+            fmax: Force convergence criterion (eV/Å).
+            allow_shape_change: Relax cell shape at fixed volume for EOS points when True.
+            relax_structure: Relax input structure before the strain scan.
+            relax_calc_kwargs: Optional kwargs for ``RelaxCalc``.
         """
         self.calculator = calculator  # type: ignore[assignment]
         self.optimizer = optimizer
@@ -112,28 +80,13 @@ class EOSCalc(PropCalc):
 
     def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict:
         """
-        Performs energy-strain calculations using Birch-Murnaghan equations of state to extract
-        equation of state properties such as bulk modulus and R-squared score of the fit.
+        Args:
+            structure: Pymatgen structure, ASE atoms, or dict with structure keys.
 
-        This function calculates properties of a material system under strain, specifically
-        its volumetric energy response produced by applying incremental strain, then fits
-        the Birch-Murnaghan equation of state to the calculated energy and volume data.
-        Optionally, a relaxation is applied to the structure between calculations of its
-        strained configurations.
-
-        :param structure: Input structure for calculations. Can be a `Structure` object or
-            a dictionary representation of its atomic configuration and parameters.
-        :return: A dictionary containing results of the calculations, including relaxed
-            structures under conditions of strain, energy-volume data, Birch-Murnaghan
-            bulk modulus (in GPa), and R-squared fit of the Birch-Murnaghan model to the
-            data.
-        The units are originally documented in pymatgen.
-        See pymatgen.analysis.eos.BirchMurnaghan()
-        (https://github.com/materialsproject/pymatgen/blob/master/src/pymatgen/analysis/eos.py/#316)
-        -> pymatgen.analysis.eos.EOSBase()
-        (https://github.com/materialsproject/pymatgen/blob/master/src/pymatgen/analysis/eos.py/#38)
-        -> pymatgen.analysis.eos.EOSBase.b0_GPa()
-        (https://github.com/materialsproject/pymatgen/blob/master/src/pymatgen/analysis/eos.py/#155)
+        Returns:
+            Dict with ``eos`` (volumes, energies), ``bulk_modulus_bm`` (GPa), ``r2_score_bm``,
+            and fields from the final relaxation merged in. See pymatgen ``BirchMurnaghan`` /
+            ``EOSBase`` for fit details.
         """
         result = super().calc(structure)
         structure_in: Structure = to_pmg_structure(result["final_structure"])

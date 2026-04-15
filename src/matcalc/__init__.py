@@ -1,4 +1,4 @@
-"""Calculators for materials properties."""
+"""Calculators for materials properties from the potential energy surface."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ from ._relaxation import RelaxCalc
 from ._stability import EnergeticsCalc
 from ._surface import SurfaceCalc
 from .config import SIMULATION_BACKEND, clear_cache
-from .utils import UNIVERSAL_CALCULATORS, PESCalculator
+from .utils import UNIVERSAL_CALCULATOR_NAMES, UNIVERSAL_CALCULATORS, PESCalculator
 
 # Provide an alias for loading calculators quickly.
 load_up = PESCalculator.load_universal

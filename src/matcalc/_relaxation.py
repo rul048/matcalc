@@ -30,47 +30,21 @@ class RelaxCalc(PropCalc):
     and total energy, offering customization for relaxation parameters and further
     enabling properties to be extracted from the relaxed structure.
 
-    :ivar calculator: ASE Calculator used for force and energy evaluations.
-    :type calculator: Calculator
-
-    :ivar optimizer: Algorithm for performing the optimization.
-    :type optimizer: Optimizer | str
-
-    :ivar max_steps: Maximum number of optimization steps allowed.
-    :type max_steps: int
-
-    :ivar traj_file: Path to save relaxation trajectory (optional).
-    :type traj_file: str | None
-
-    :ivar interval: Interval for saving trajectory frames during relaxation.
-    :type interval: int
-
-    :ivar fmax: Force tolerance for convergence (eV/Å).
-    :type fmax: float
-
-    :ivar relax_atoms: Whether atomic positions are relaxed.
-    :type relax_atoms: bool
-
-    :ivar relax_cell: Whether cell parameters are relaxed.
-    :type relax_cell: bool
-
-    :ivar cell_filter: ASE filter used for modifying the cell during relaxation.
-    :type cell_filter: Filter
-
-    :ivar cell_filter_kwargs: The keyword arguments to pass to the cell_filter.
-    :type cell_filter_kwargs: dict | None
-
-    :ivar perturb_distance: Distance (Å) for random perturbation to break symmetry.
-    :type perturb_distance: float | None
-
-    :ivar fix_symmetry: Whether symmetry is preserved.
-    :type fix_symmetry: bool
-
-    :ivar fix_atoms: Whether all atoms are fixed; if list/tuple, fixes the given indices.
-    :type fix_atoms: bool | list[int]
-
-    :ivar symprec: Tolerance for symmetry constraints.
-    :type symprec: float
+    Attributes:
+        calculator: ASE calculator or universal model name.
+        optimizer: ASE optimizer name or class.
+        max_steps: Maximum optimization steps.
+        traj_file: Optional ASE trajectory path.
+        interval: Trajectory write interval (steps).
+        fmax: Force convergence threshold (eV/Å).
+        relax_atoms: Relax atomic positions.
+        relax_cell: Relax unit cell (via ``cell_filter``).
+        cell_filter: Cell filter class when ``relax_cell`` is True.
+        cell_filter_kwargs: Kwargs for ``cell_filter``.
+        perturb_distance: Random displacement before relax, or None.
+        fix_symmetry: Apply ``FixSymmetry`` when True.
+        fix_atoms: Fix all atoms, or list of indices to fix.
+        symprec: Symmetry tolerance for ``FixSymmetry``.
     """
 
     def __init__(
@@ -92,43 +66,21 @@ class RelaxCalc(PropCalc):
         symprec: float = 1e-3,
     ) -> None:
         """
-        Initializes the relaxation procedure for an atomic configuration system.
-
-        This constructor sets up the relaxation pipeline, configuring the required
-        calculator, optimizer, relaxation parameters, and logging options. The
-        relaxation process aims to find the minimum energy configuration, optionally
-        relaxing atoms and/or the simulation cell within the specified constraints.
-
-        :param calculator: An ASE calculator object used to perform energy and force
-            calculations. If string is provided, the corresponding universal calculator is loaded.
-        :type calculator: Calculator | str
-        :param optimizer: The optimization algorithm to use for relaxation. It can
-            either be an instance of an Optimizer class or a string identifier for
-            a recognized ASE optimizer. Defaults to "FIRE".
-        :param max_steps: The maximum number of optimization steps to perform
-            during the relaxation process. Defaults to 500.
-        :param traj_file: Path to a file for periodic trajectory output (if specified).
-            This file logs the atomic positions and cell configurations after a given
-            interval. Defaults to None.
-        :param interval: The interval (in steps) at which the trajectory file is
-            updated. Defaults to 1.
-        :param fmax: The force convergence threshold. Relaxation continues until the
-            maximum force on any atom falls below this value. Defaults to 0.1.
-        :param relax_atoms: A flag indicating whether the atomic positions are to
-            be relaxed. Defaults to True.
-        :param relax_cell: A flag indicating whether the simulation cell is to
-            be relaxed. Defaults to True.
-        :param cell_filter: The filter to apply when relaxing the simulation cell.
-            This determines constraints or allowed degrees of freedom during
-            cell relaxation. Defaults to FrechetCellFilter.
-        :param cell_filter_kwargs: The keyword arguments to pass to the cell_filter.
-        :param perturb_distance: A perturbation distance used for initializing
-            the system configuration before relaxation. If None, no perturbation
-            is applied. Defaults to None.
-        :param fix_symmetry: Whether symmetry is preserved. Default to False.
-        :param fix_atoms: Whether all atoms are fixed; if list/tuple, fixes the given indices.
-            Default to False.
-        :param symprec: Tolerance for symmetry constraints. Default to 1e-3.
+        Args:
+            calculator: ASE calculator or universal model name string.
+            optimizer: ASE optimizer name or class.
+            max_steps: Maximum relaxation steps.
+            traj_file: Optional trajectory output path.
+            interval: Steps between trajectory writes.
+            fmax: Force convergence criterion (eV/Å).
+            relax_atoms: Relax atomic positions.
+            relax_cell: Relax cell with ``cell_filter``.
+            cell_filter: Cell filter class (default ``FrechetCellFilter``).
+            cell_filter_kwargs: Kwargs for the cell filter.
+            perturb_distance: Random displacement (Å) before relax, or None.
+            fix_symmetry: Constrain symmetry when True.
+            fix_atoms: Fix all atoms if True, or indices to fix.
+            symprec: Symmetry precision for ``FixSymmetry``.
         """
         self.calculator = calculator  # type: ignore[assignment]
 
@@ -148,21 +100,12 @@ class RelaxCalc(PropCalc):
 
     def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict:
         """
-        Calculate the final relaxed structure, energy, forces, and stress for a given
-        structure and update the result dictionary with additional geometric properties.
+        Args:
+            structure: Pymatgen structure, ASE atoms, or dict with structure keys.
 
-        This method takes an input structure and performs a relaxation process
-        depending on the specified parameters. If the `perturb_distance` attribute
-        is provided, the structure is perturbed before relaxation. The relaxation
-        process can involve optimization of both atomic positions and the unit cell
-        if specified. Results of the calculation including final structure geometry,
-        energy, forces, stresses, and lattice parameters are returned in a dictionary.
-
-        :param structure: Input structure for calculation. Can be provided as a
-                          `Structure` object or a dictionary convertible to `Structure`.
-        :return: Dictionary containing the final relaxed structure, calculated
-                 energy, forces, stress, and lattice parameters.
-        :rtype: dict
+        Returns:
+            Dict with ``final_structure``, ``energy``, ``forces``, ``stress``, and
+            lattice parameters ``a``, ``b``, ``c``, angles, and ``volume``.
         """
         result = super().calc(structure)
 
@@ -174,10 +117,7 @@ class RelaxCalc(PropCalc):
         atoms = to_ase_atoms(structure_in)
         constraints: list[Any] = []
         if self.fix_atoms:
-            if isinstance(self.fix_atoms, bool):
-                indices = list(range(len(atoms)))
-            elif isinstance(self.fix_atoms, list | tuple):
-                indices = [int(i) for i in self.fix_atoms]
+            indices = list(range(len(atoms))) if isinstance(self.fix_atoms, bool) else [int(i) for i in self.fix_atoms]
             constraints.append(FixAtoms(indices=indices))
 
         if self.fix_symmetry:
