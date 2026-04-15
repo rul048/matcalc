@@ -142,7 +142,10 @@ class GBCalc(PropCalc):
         lattice_type = analyzer.get_crystal_system()[0]
         c_a_ratio = gb_gen.get_ratio()
         angles = gb_gen.get_rotation_angle_from_sigma(
-            sigma=sigma, r_axis=rotation_axis, lat_type=lattice_type, ratio=c_a_ratio
+            sigma=sigma,
+            r_axis=rotation_axis,
+            lat_type=lattice_type,
+            ratio=tuple(c_a_ratio) if c_a_ratio is not None else None,  # type: ignore[arg-type]
         )
 
         # look through the list of computed angles and find the one
@@ -154,7 +157,7 @@ class GBCalc(PropCalc):
         # …and if none are within the tolerance, error out
         if rotation_angle_exact is None:
             raise ValueError(
-                f"No matching rotation angle {rotation_angle} for sigma={sigma}. Possible angles: {angles}"
+                f"No matching rotation angle {rotation_angle} for sigma={sigma}. " f"Possible angles: {angles}"
             )
 
         grain_boundary = gb_gen.gb_from_parameters(
