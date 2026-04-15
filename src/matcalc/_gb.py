@@ -157,7 +157,7 @@ class GBCalc(PropCalc):
         # …and if none are within the tolerance, error out
         if rotation_angle_exact is None:
             raise ValueError(
-                f"No matching rotation angle {rotation_angle} for sigma={sigma}. " f"Possible angles: {angles}"
+                f"No matching rotation angle {rotation_angle} for sigma={sigma}. Possible angles: {angles}"
             )
 
         grain_boundary = gb_gen.gb_from_parameters(
