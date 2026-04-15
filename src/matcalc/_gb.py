@@ -23,30 +23,18 @@ if TYPE_CHECKING:
 
 class GBCalc(PropCalc):
     """
-    A class for performing grain boundary energy calculations by generating grain boundary structures
-    from a bulk structure using pymatgen's GrainBoundaryGenerator, optionally relaxing bulk and GB,
-    and computing γ_GB via (E_GB - N_GB * E_bulk_per_atom) / (2 * A).
+    A class for performing grain boundary energy calculations by generating grain boundary
+    structures from a bulk structure using pymatgen's GrainBoundaryGenerator, optionally
+    relaxing bulk and GB, and computing gamma_GB via (E_GB - N_GB * E_bulk_per_atom) / (2 * A).
 
-    :ivar calculator: ASE Calculator used for energy and force evaluations.
-    :type calculator: Calculator
-
-    :ivar relax_bulk: Whether to relax the bulk structure (cell and atoms) before GB generation.
-    :type relax_bulk: bool
-
-    :ivar relax_gb: Whether to relax the grain boundary structures (atoms only) after generation.
-    :type relax_gb: bool
-
-    :ivar fmax: Force convergence criterion (eV/Å) for relaxations.
-    :type fmax: float
-
-    :ivar optimizer: Optimizer for structure relaxations.
-    :type optimizer: str | Optimizer
-
-    :ivar max_steps: Maximum optimization steps for relaxations.
-    :type max_steps: int
-
-    :ivar relax_calc_kwargs: Additional keyword arguments for relaxation calculations. Defaults to None.
-    :type relax_calc_kwargs: dict | None
+    Attributes:
+        calculator: ASE Calculator used for energy and force evaluations.
+        relax_bulk: Whether to relax the bulk structure (cell and atoms) before GB generation.
+        relax_gb: Whether to relax the grain boundary structures (atoms only) after generation.
+        fmax: Force convergence criterion (eV/Å) for relaxations.
+        optimizer: Optimizer for structure relaxations.
+        max_steps: Maximum optimization steps for relaxations.
+        relax_calc_kwargs: Additional keyword arguments for relaxation calculations.
     """
 
     def __init__(
@@ -61,29 +49,14 @@ class GBCalc(PropCalc):
         relax_calc_kwargs: dict | None = None,
     ) -> None:
         """
-        Constructor for initializing the GBCalc with all parameters needed
-        to generate and optionally relax bulk and grain boundary structures.
-
-        :param calculator: ASE Calculator or string identifier for a universal calculator.
-        :type calculator: Calculator | str
-
-        :param relax_bulk: Whether to relax the bulk structure before GB generation. Default True.
-        :type relax_bulk: bool, optional
-
-        :param relax_gb: Whether to relax the GB structures after generation. Default True.
-        :type relax_gb: bool, optional
-
-        :param fmax: Force tolerance (eV/Å) for relaxations. Default 0.1.
-        :type fmax: float, optional
-
-        :param optimizer: ASE optimizer or name for relaxations. Default "FIRE".
-        :type optimizer: str | Optimizer, optional
-
-        :param max_steps: Max optimization steps. Default 500.
-        :type max_steps: int, optional
-
-        :param relax_calc_kwargs: Additional keyword arguments for relaxation calculations. Defaults to None.
-        :type relax_calc_kwargs: dict | None
+        Args:
+            calculator: ASE Calculator or string identifier for a universal calculator.
+            relax_bulk: Whether to relax the bulk structure before GB generation. Default True.
+            relax_gb: Whether to relax the GB structures after generation. Default True.
+            fmax: Force tolerance (eV/Å) for relaxations. Default 0.1.
+            optimizer: ASE optimizer or name for relaxations. Default "FIRE".
+            max_steps: Max optimization steps. Default 500.
+            relax_calc_kwargs: Additional keyword arguments for relaxation calculations. Defaults to None.
         """
         self.calculator = calculator  # type: ignore[assignment]
         self.relax_bulk = relax_bulk
@@ -104,7 +77,7 @@ class GBCalc(PropCalc):
         vacuum_thickness: float = 0.0,
         ab_shift: tuple[float, float] = (0.0, 0.0),
         rotation_angle_tolerance: float = 0.1,
-        normal: bool = True,
+        normal: bool = True,  # noqa: FBT001,FBT002
         rm_ratio: float = 0.7,
         gb_generator_kwargs: dict | None = None,
         gb_from_parameters_kwargs: dict | None = None,
@@ -112,47 +85,33 @@ class GBCalc(PropCalc):
         """
         Generate grain boundary structures from bulk, relax them, and compute GB energies.
 
-        :param structure: Bulk Structure for GB generation.
-        :type structure: Structure
+        Args:
+            structure: Bulk Structure for GB generation.
+            sigma: Sigma value of the coincident site lattice (CSL) grain boundary.
+            rotation_axis: Rotation axis vector for GB (u, v, w).
+            gb_plane: Miller indices of GB plane.
+            rotation_angle: Rotation angle in degrees.
+            expand_times: Multiplier for cell expansion to avoid interactions. Default 4.
+            vacuum_thickness: Vacuum layer thickness (Å) between grains. Default 0.0.
+            ab_shift: In-plane shift along a, b vectors. Default (0.0, 0.0).
+            rotation_angle_tolerance: Tolerance (degrees) for matching rotation angle. Default 0.1.
+            normal: Whether the c axis of top grain should be perpendicular to the surface.
+                Default True.
+            rm_ratio: Criteria to remove atoms which are too close with each other. Default 0.7.
+            gb_generator_kwargs: Additional args for GrainBoundaryGenerator(). Default None.
+            gb_from_parameters_kwargs: Additional args for gb_from_parameters(). Default None.
 
-        :param rotation_axis: Rotation axis vector for GB (u, v, w).
-        :type rotation_axis: tuple[int, int, int]
+        Returns:
+            A dictionary containing the updated structure data, including fields like
+            'grain_boundary', 'final_grain_boundary', 'gb_relax_energy',
+            'grain_boundary_energy', and possibly updated 'bulk_energy_per_atom' and 'final_bulk'.
 
-        :param gb_plane: Miller indices of GB plane.
-        :type gb_plane: tuple[int, int, int]
-
-        :param rotation_angle: Rotation angle in degrees.
-        :type rotation_angle: float
-
-        :param expand_times: Multiplier for cell expansion to avoid interactions. Default 4.
-        :type expand_times: int, optional
-
-        :param vacuum_thickness: Vacuum layer thickness (Å) between grains. Default 0.0.
-        :type vacuum_thickness: float, optional
-
-        :param ab_shift: In-plane shift along a, b vectors. Default (0.0, 0.0).
-        :type ab_shift: tuple[float, float], optional
-
-        :param normal: Determine if the c axis of top grain should perpendicular to the surface. Default True.
-        :type normal: bool, optional
-
-        :param rm_ratio: The criteria to remove the atoms which are too close with each other. Default 0.7.
-        :type rm_ratio: float, optional
-
-        :param gb_generator_kwargs: Additional args for GrainBoundaryGenerator(). Default None.
-        :type gb_generator_kwargs: dict | None, optional
-
-        :param gb_from_parameters_kwargs: Additional args for gb_from_parameters(). Default None.
-        :type gb_from_parameters_kwargs: dict | None, optional
-
-        :return:  A dictionary containing the updated structure data, including fields like
-                 'grain_boundary', 'final_grain_boundary', 'gb_relax_energy', 'grain_boundary_energy', and possibly updated
-                 'bulk_energy_per_atom' and 'final_bulk'.
-        :rtype: dict[str, Any]
+        Raises:
+            ValueError: If no rotation angle within ``rotation_angle_tolerance`` of
+                ``rotation_angle`` exists for the given ``sigma``.
         """
-        # GB generation - start with a primitive structure.
+        # GB generation - start with a conventional cell for relaxation.
         structure = to_pmg_structure(structure)
-        bulk_primitive = structure.to_primitive()
         bulk_conventional = structure.to_conventional()
 
         # Bulk relaxation
@@ -170,6 +129,8 @@ class GBCalc(PropCalc):
         final_bulk = bulk_opt["final_structure"]
         bulk_energy_per_atom = bulk_opt["energy"] / len(final_bulk)
 
+        # Use relaxed primitive so GB lattice parameters are consistent with the bulk energy.
+        bulk_primitive = final_bulk.to_primitive()
         gb_gen = GrainBoundaryGenerator(
             initial_structure=bulk_primitive,
             **(gb_generator_kwargs or {}),
@@ -185,14 +146,13 @@ class GBCalc(PropCalc):
         # look through the list of computed angles and find the one
         # that is within the tolerance of the requested angle
         rotation_angle_exact = next(
-            (a for a in angles if math.isclose(a, rotation_angle, abs_tol=rotation_angle_tolerance)),
+            (a for a in angles if math.isclose(a, rotation_angle, rel_tol=0, abs_tol=rotation_angle_tolerance)),
             None,
         )
         # …and if none are within the tolerance, error out
         if rotation_angle_exact is None:
             raise ValueError(
-                f"No matching rotation angle {rotation_angle} for sigma={sigma}. \
-                                Possible angles: {angles}"
+                f"No matching rotation angle {rotation_angle} for sigma={sigma}. " f"Possible angles: {angles}"
             )
 
         grain_boundary = gb_gen.gb_from_parameters(
@@ -217,28 +177,37 @@ class GBCalc(PropCalc):
 
     def calc(
         self,
-        structure: Structure | Atoms | dict[str, Any],
+        structure: dict[str, Any],  # type: ignore[override]
     ) -> dict[str, Any]:
         """
-        Compute grain boundary energy for a single grain boundary structure dict produced by calc_gbs or direct input.
-        The function is equipped to handle the relaxation of both bulk and grain boundary structures when necessary.
+        Compute grain boundary energy for a single grain boundary structure dict produced by
+        calc_gb or direct input. The function handles relaxation of both bulk and grain boundary
+        structures when necessary.
 
-        :param structure: Dictionary containing information about the bulk and grain boundary structures.
-                          It must have the format:
-                          {'grain_boundary': gb_structure, 'bulk': bulk_structure}
-                          or
-                          {'grain_boundary': gb_structure, 'bulk_energy_per_atom': energy}.
-        :type structure: Structure | Atoms | dict[str, Any]
+        Args:
+            structure: Dictionary containing information about the bulk and grain boundary
+                structures. It must have the format:
+                ``{'grain_boundary': gb_structure, 'bulk': bulk_structure}``
+                or
+                ``{'grain_boundary': gb_structure, 'bulk_energy_per_atom': energy}``.
 
-        :return:  A dictionary containing the updated structure data, including fields like
-                 'grain_boundary', 'final_grain_boundary', 'gb_relax_energy', 'grain_boundary_energy', and possibly updated
-                 'bulk_energy_per_atom' and 'final_bulk'.
-        :rtype: dict[str, Any]
+        Returns:
+            A dictionary containing the updated structure data, including fields like
+            'grain_boundary', 'final_grain_boundary', 'gb_relax_energy',
+            'grain_boundary_energy', and possibly updated 'bulk_energy_per_atom' and 'final_bulk'.
+
+        Raises:
+            ValueError: If structure is not a dict with the required keys.
         """
-        if not (isinstance(structure, dict) and set(structure.keys()).intersection(("bulk", "bulk_energy_per_atom"))):
+        if not (
+            isinstance(structure, dict)
+            and "grain_boundary" in structure
+            and set(structure.keys()).intersection(("bulk", "bulk_energy_per_atom"))
+        ):
             raise ValueError(
                 "For grain boundary calculations, structure must be a dict in one of the following formats: "
-                "{'grain_boundary': gb_structure, 'bulk': bulk_structure} or {'grain_boundary': gb_structure, 'bulk_energy_per_atom': energy}."
+                "{'grain_boundary': gb_structure, 'bulk': bulk_structure} or "
+                "{'grain_boundary': gb_structure, 'bulk_energy_per_atom': energy}."
             )
 
         result_dict = structure.copy()
