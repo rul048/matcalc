@@ -295,7 +295,6 @@ def test_qha_imaginary_modes_raises(
         assert any("Imaginary mode correction attempt" in r.message for r in caplog.records)
 
 
-
 @pytest.mark.parametrize(
     ("store_ha_phonon", "scale_factors"),
     [
