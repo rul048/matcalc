@@ -77,7 +77,7 @@ class PhononCalc(PropCalc):
         imaginary_freq_tol: float = -0.01,
         on_imaginary_modes: Literal["error", "warn"] = "warn",
         fix_imaginary_attempts: int = 0,
-        symprec: float = 0.00001,
+        symprec: float = 1e-5,
         write_force_constants: bool | str | Path = False,
         write_band_structure: bool | str | Path = False,
         write_total_dos: bool | str | Path = False,
