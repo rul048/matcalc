@@ -261,22 +261,20 @@ class QHACalc(PropCalc):
                 eos=self.eos,
             )
             self._write_output_files(qha, pressure=pressure)
-            qha_results.append(
-                {
-                    "pressure": pressure,
-                    "qha": qha,
-                    "temperatures": temperatures,
-                    "thermal_expansion_coefficients": qha.thermal_expansion,
-                    "gibbs_free_energies": qha.gibbs_temperature,
-                    "bulk_modulus_P": qha.bulk_modulus_temperature,
-                    "heat_capacity_P": qha.heat_capacity_P_polyfit,
-                    "gruneisen_parameters": qha.gruneisen_temperature,
-                }
-            )
+            qha_results.append({
+                "pressure": pressure,
+                "qha": qha,
+                "temperatures": temperatures,
+                "thermal_expansion_coefficients": qha.thermal_expansion,
+                "gibbs_free_energies": qha.gibbs_temperature,
+                "bulk_modulus_P": qha.bulk_modulus_temperature,
+                "heat_capacity_P": qha.heat_capacity_P_polyfit,
+                "gruneisen_parameters": qha.gruneisen_temperature,
+            })
 
-            if self.store_ha_phonon:
-                qha_results["ha"] = properties["ha"]
-
+        if self.store_ha_phonon:
+            output_dict["ha"] = properties["ha"]
+            
         output_dict: dict[str, Any] = {
             "pressures": self.pressures,
             "scale_factors": self.scale_factors,
@@ -289,6 +287,7 @@ class QHACalc(PropCalc):
         # Backward-compatible unwrap for the single-pressure case.
         if len(self.pressures) == 1:
             output_dict |= qha_results[0]
+
 
         return result | output_dict
 
