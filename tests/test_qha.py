@@ -327,7 +327,7 @@ def test_qha_multiple_pressures(
 
     assert len(result["qha_results"]) == 2
     assert result["qha_results"][0]["pressure"] == 1.0
-    assert result["qha_results"][0]["pressure"] == 10.0
+    assert result["qha_results"][1]["pressure"] == 10.0
 
     # Test values at 300 K
     ind = result["temperatures"].tolist().index(300)
