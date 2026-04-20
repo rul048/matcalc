@@ -288,6 +288,7 @@ def test_qha_calc_fix_imaginary_attempts(
     assert any("Imaginary mode correction attempt" in r.message for r in caplog.records)
     caplog.clear()
 
+
 def test_qha_multiple_pressures(
     Li2O: Structure,
     matpes_calculator: PESCalculator,
