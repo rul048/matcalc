@@ -246,7 +246,6 @@ class QHACalc(PropCalc):
                 {
                     "pressure": pressure,
                     "qha": qha,
-                    "temperatures": temperatures,
                     "thermal_expansion_coefficients": qha.thermal_expansion,
                     "gibbs_free_energies": qha.gibbs_temperature,
                     "bulk_modulus_P": qha.bulk_modulus_temperature,
@@ -257,6 +256,7 @@ class QHACalc(PropCalc):
 
         output_dict: dict[str, Any] = {
             "pressures": self.pressures,
+            "temperatures": temperatures,
             "qha_results": qha_results,
             "scale_factors": self.scale_factors,
             "volumes": properties["volumes"],
