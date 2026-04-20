@@ -275,7 +275,7 @@ class QHACalc(PropCalc):
             )
 
             if self.store_ha_phonon:
-                output_dict["ha"] = properties["ha"]
+                qha_results["ha"] = properties["ha"]
 
         output_dict: dict[str, Any] = {
             "pressures": self.pressures,
