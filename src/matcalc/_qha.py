@@ -389,7 +389,7 @@ class QHACalc(PropCalc):
             if pressure is None or len(self.pressures) == 1:
                 return path
             s = str(path)
-            stem, dot, ext = s.rpartition(".")
+            stem, _, ext = s.rpartition(".")
             return f"{stem}_P{pressure}GPa.{ext}" if stem else f"{s}_P{pressure}GPa"
 
         # write_* are Optional[str | os.PathLike]; None means "do not write".
