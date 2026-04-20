@@ -134,7 +134,6 @@ class QHACalc(PropCalc):
         self.fix_imaginary_attempts = fix_imaginary_attempts
 
         # Normalize pressure to an internal list; None becomes [None].
-        # self.pressure preserves the original input for repr/serialization.
         self.pressure = pressure
         if pressure is None:
             self.pressures: list[float | None] = [None]
@@ -188,9 +187,6 @@ class QHACalc(PropCalc):
 
     def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict:
         """Quasi-harmonic thermodynamics via phonopy over a volume scan.
-
-        The expensive phonon calculations are performed once across all scale factors.
-        The QHA fit is then repeated cheaply for each pressure in ``self.pressures``.
 
         Args:
             structure: Pymatgen structure, ASE atoms, or dict with structure keys.
