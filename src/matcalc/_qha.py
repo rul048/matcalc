@@ -373,7 +373,7 @@ class QHACalc(PropCalc):
         )
         return phonon_calc.calc(structure)
 
-    def _write_output_files(self, qha: PhonopyQHA, pressure: float | None = None) -> None:
+    def _write_output_files(self, qha: PhonopyQHA, pressure: float | None = None) -> None:  # noqa: C901
         """Helper to write various output files based on the QHA calculation.
 
         When multiple pressures are requested, a ``_P{pressure}GPa`` suffix is inserted
