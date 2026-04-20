@@ -272,6 +272,9 @@ class QHACalc(PropCalc):
                 "gruneisen_parameters": qha.gruneisen_temperature,
             })
 
+            if self.store_ha_phonon:
+                output_dict["ha"] = properties["ha"]
+
         output_dict: dict[str, Any] = {
             "pressures": self.pressures,
             "scale_factors": self.scale_factors,
@@ -284,9 +287,6 @@ class QHACalc(PropCalc):
         # Backward-compatible unwrap for the single-pressure case.
         if len(self.pressures) == 1:
             output_dict |= qha_results[0]
-
-        if self.store_ha_phonon:
-            output_dict["ha"] = properties["ha"]
 
         return result | output_dict
 
