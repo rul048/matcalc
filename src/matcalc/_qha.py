@@ -246,8 +246,27 @@ class QHACalc(PropCalc):
                 pressure,
             )
             self._write_output_files(qha, pressure=pressure)
+<<<<<<< HEAD
             qha_results.append(self._generate_output_dict(qha, volumes, electronic_energies, temperatures, pressure))
 
+=======
+            qha_results.append(
+                {
+                    "pressure": pressure,
+                    "qha": qha,
+                    "temperatures": temperatures,
+                    "thermal_expansion_coefficients": qha.thermal_expansion,
+                    "gibbs_free_energies": qha.gibbs_temperature,
+                    "bulk_modulus_P": qha.bulk_modulus_temperature,
+                    "heat_capacity_P": qha.heat_capacity_P_polyfit,
+                    "gruneisen_parameters": qha.gruneisen_temperature,
+                }
+            )
+
+        if self.store_ha_phonon:
+            output_dict["ha"] = properties["ha"]
+
+>>>>>>> origin/pressures
         output_dict: dict[str, Any] = {
             "pressures": self.pressures,
             "scale_factors": self.scale_factors,
@@ -390,6 +409,7 @@ class QHACalc(PropCalc):
             qha.write_heat_capacity_P_numerical(filename=_suffixed(self.write_heat_capacity_p_numerical))
         if self.write_heat_capacity_p_polyfit:
             qha.write_heat_capacity_P_polyfit(filename=_suffixed(self.write_heat_capacity_p_polyfit))
+<<<<<<< HEAD
         if self.write_gruneisen_temperature:
             qha.write_gruneisen_temperature(filename=_suffixed(self.write_gruneisen_temperature))
 
@@ -426,3 +446,7 @@ class QHACalc(PropCalc):
             "heat_capacity_P": qha.heat_capacity_P_polyfit,
             "gruneisen_parameters": qha.gruneisen_temperature,
         }
+=======
+        if self.write_gruneisen_temperature is not None:
+            qha.write_gruneisen_temperature(filename=_suffixed(self.write_gruneisen_temperature))
+>>>>>>> origin/pressures
