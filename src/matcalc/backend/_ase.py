@@ -8,7 +8,6 @@ from __future__ import annotations
 import contextlib
 import io
 import logging
-import warnings
 from inspect import isclass
 from typing import TYPE_CHECKING
 
