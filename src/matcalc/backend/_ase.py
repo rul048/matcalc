@@ -8,7 +8,6 @@ from __future__ import annotations
 import contextlib
 import io
 import logging
-import warnings
 from inspect import isclass
 from typing import TYPE_CHECKING
 
@@ -134,7 +133,7 @@ def run_ase(
             if traj is not None:
                 traj.close()
             if opt.nsteps >= max_steps:
-                warnings.warn("Maximum steps reached in structure relaxation.", UserWarning, stacklevel=2)
+                logger.warning("Maximum steps reached in structure relaxation.")
 
         if relax_cell:
             atoms = atoms.atoms  # type:ignore[attr-defined]
