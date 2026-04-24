@@ -39,7 +39,9 @@ class QHACalc(PropCalc):
     Attributes:
         calculator: ASE calculator or universal model name.
         t_step, t_max, t_min: Temperature grid (K) for QHA output.
-        pressure: Target pressure (GPa) or None.
+        pressure: Target pressure(s) in GPa. Accepts a single float, a list of floats, or
+            None. When multiple pressures are given the expensive phonon calculations are run
+            once and the cheap QHA fitting is repeated per pressure.
         fmax: Relaxation force tolerance (eV/Å).
         max_steps: Max relaxation steps.
         optimizer: ASE optimizer name.
@@ -56,6 +58,9 @@ class QHACalc(PropCalc):
             True uses the default name ``phonon_{scale_factor:.3f}.yaml``, or a format string
             with a ``{scale_factor}`` placeholder selects a custom name.
         write_*: Output paths (or True for defaults) for phonopy QHA text files.
+        write_*: Output paths (or True for defaults) for phonopy QHA text files. When multiple
+            pressures are requested a ``_P{pressure}GPa`` suffix is inserted before the file
+            extension to avoid overwriting files across pressures.
     """
 
     def __init__(
@@ -65,7 +70,7 @@ class QHACalc(PropCalc):
         t_step: float = 10,
         t_max: float = 1000,
         t_min: float = 0,
-        pressure: None | float = None,
+        pressure: None | float | Sequence[float] = None,
         fmax: float = 1e-5,
         max_steps: int = 5000,
         optimizer: str = "FIRE",
@@ -95,7 +100,9 @@ class QHACalc(PropCalc):
             t_step: Temperature sampling step (K).
             t_max: Maximum temperature (K).
             t_min: Minimum temperature (K).
-            pressure: Pressure in GPa for Gibbs terms, or None.
+            pressure: Pressure in GPa for Gibbs terms. Accepts a single float, a list of
+                floats, or None. When multiple pressures are supplied the phonon calculations
+                are performed only once and the QHA fit is repeated for each pressure.
             fmax: Force tolerance for relaxations.
             max_steps: Max steps per relaxation.
             optimizer: ASE optimizer name.
@@ -127,7 +134,6 @@ class QHACalc(PropCalc):
         self.t_step = t_step
         self.t_max = t_max
         self.t_min = t_min
-        self.pressure = pressure
         self.fmax = fmax
         self.max_steps = max_steps
         self.optimizer = optimizer
@@ -142,6 +148,15 @@ class QHACalc(PropCalc):
         self.fix_imaginary_attempts = fix_imaginary_attempts
         self.store_ha_phonon = store_ha_phonon
         self.write_ha_phonon = write_ha_phonon
+
+        # Normalize pressure to an internal list; None becomes [None].
+        self.pressure = pressure
+        if pressure is None:
+            self.pressures: list[float | None] = [None]
+        elif isinstance(pressure, (int, float)):
+            self.pressures = [float(pressure)]
+        else:
+            self.pressures = list(pressure)
 
         # Needed to make sure the volume doesn't change during relaxations on scaled structures
         self._fixed_cell_relax_calc_kwargs = {
@@ -199,6 +214,14 @@ class QHACalc(PropCalc):
             relaxation fields from earlier steps. When ``store_ha_phonon=True``, also includes
             ``"ha"``: a list of per-scale-factor ``PhononCalc`` result dicts (one per scale
             factor, in the same order as ``scale_factors``). Units follow phonopy QHA.
+            Dict with per-volume data (``scale_factors``, ``volumes``, ``electronic_energies``,
+            ``scaled_structures``), a ``pressures`` list, and a ``qha_results`` list of
+            per-pressure dicts each containing ``pressure``, ``qha``, ``temperatures``,
+            ``thermal_expansion_coefficients``, ``gibbs_free_energies``, ``bulk_modulus_P``,
+            ``heat_capacity_P``, and ``gruneisen_parameters``. When only a single pressure was
+            requested the top-level dict also contains those keys directly for backward
+            compatibility. Merged with any relaxation fields from earlier steps.
+            Units follow phonopy QHA.
         """
         result = super().calc(structure)
         structure_in: Structure = to_pmg_structure(result["final_structure"])
@@ -221,7 +244,6 @@ class QHACalc(PropCalc):
         )
         properties = self._collect_properties(structure_in)
 
-        logger.info("Fitting equation of state and computing QHA thermal properties")
         temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
         # Collected as (n_volumes, n_temps); PhonopyQHA expects (n_temps, n_volumes).
         free_energy = np.array(properties["free_energies"]).T
@@ -238,23 +260,51 @@ class QHACalc(PropCalc):
             eos=self.eos,
         )
 
-        self._write_output_files(qha)
-        output_dict = {
-            "qha": qha,
+        qha_results: list[dict] = []
+        for pressure in self.pressures:
+            logger.info(
+                "Fitting equation of state and computing QHA thermal properties at pressure=%s GPa",
+                pressure,
+            )
+            qha = PhonopyQHA(
+                volumes=properties["volumes"],
+                electronic_energies=properties["electronic_energies"],
+                temperatures=temperatures,
+                free_energy=np.transpose(properties["free_energies"]),
+                cv=np.transpose(properties["heat_capacities"]),
+                entropy=np.transpose(properties["entropies"]),
+                pressure=pressure,
+                eos=self.eos,
+                t_max=self.t_max,
+            )
+            self._write_output_files(qha, pressure=pressure)
+            qha_results.append(
+                {
+                    "pressure": pressure,
+                    "qha": qha,
+                    "thermal_expansion_coefficients": qha.thermal_expansion,
+                    "gibbs_free_energies": qha.gibbs_temperature,
+                    "bulk_modulus_P": qha.bulk_modulus_temperature,
+                    "heat_capacity_P": qha.heat_capacity_P_polyfit,
+                    "gruneisen_parameters": qha.gruneisen_temperature,
+                }
+            )
+
+        output_dict: dict[str, Any] = {
+            "pressures": self.pressures,
+            "temperatures": temperatures,
+            "qha_results": qha_results,
             "scale_factors": self.scale_factors,
             "volumes": properties["volumes"],
             "scaled_structures": properties["scaled_structures"],
             "electronic_energies": properties["electronic_energies"],
-            "temperatures": temperatures,
-            "thermal_expansion_coefficients": qha.thermal_expansion,
-            "gibbs_free_energies": qha.gibbs_temperature,
-            "bulk_modulus_P": qha.bulk_modulus_temperature,
-            "heat_capacity_P": qha.heat_capacity_P_polyfit,
-            "gruneisen_parameters": qha.gruneisen_temperature,
         }
 
         if self.store_ha_phonon:
             output_dict["ha"] = properties["ha"]
+        # Backward-compatible unwrap for the single-pressure case.
+        if len(self.pressures) == 1:
+            output_dict |= qha_results[0]
 
         return result | output_dict
 
@@ -377,26 +427,39 @@ class QHACalc(PropCalc):
         )
         return phonon_calc.calc(structure)
 
-    def _write_output_files(self, qha: PhonopyQHA) -> None:
+    def _write_output_files(self, qha: PhonopyQHA, pressure: float | None = None) -> None:  # noqa: C901
         """Helper to write various output files based on the QHA calculation.
 
+        When multiple pressures are requested, a ``_P{pressure}GPa`` suffix is inserted
+        before the file extension to avoid overwriting files across pressures.
+
         Args:
-            qha: Phonopy.qha object
+            qha: Phonopy.qha object.
+            pressure: The pressure (GPa) associated with this QHA fit, or None.
         """
-        # write_* now are Optional[str | os.PathLike]; None means "do not write".
+
+        def _suffixed(path: str | os.PathLike) -> str | os.PathLike:
+            """Insert a pressure suffix before the file extension, only for multi-pressure runs."""
+            if pressure is None or len(self.pressures) == 1:
+                return path
+            s = str(path)
+            stem, _, ext = s.rpartition(".")
+            return f"{stem}_P{pressure}GPa.{ext}" if stem else f"{s}_P{pressure}GPa"
+
+        # write_* are Optional[str | os.PathLike]; None means "do not write".
         if self.write_helmholtz_volume is not None:
-            qha.write_helmholtz_volume(filename=self.write_helmholtz_volume)
+            qha.write_helmholtz_volume(filename=_suffixed(self.write_helmholtz_volume))
         if self.write_volume_temperature is not None:
-            qha.write_volume_temperature(filename=self.write_volume_temperature)
+            qha.write_volume_temperature(filename=_suffixed(self.write_volume_temperature))
         if self.write_thermal_expansion is not None:
-            qha.write_thermal_expansion(filename=self.write_thermal_expansion)
+            qha.write_thermal_expansion(filename=_suffixed(self.write_thermal_expansion))
         if self.write_gibbs_temperature is not None:
-            qha.write_gibbs_temperature(filename=self.write_gibbs_temperature)
+            qha.write_gibbs_temperature(filename=_suffixed(self.write_gibbs_temperature))
         if self.write_bulk_modulus_temperature is not None:
-            qha.write_bulk_modulus_temperature(filename=self.write_bulk_modulus_temperature)
+            qha.write_bulk_modulus_temperature(filename=_suffixed(self.write_bulk_modulus_temperature))
         if self.write_heat_capacity_p_numerical is not None:
-            qha.write_heat_capacity_P_numerical(filename=self.write_heat_capacity_p_numerical)
+            qha.write_heat_capacity_P_numerical(filename=_suffixed(self.write_heat_capacity_p_numerical))
         if self.write_heat_capacity_p_polyfit is not None:
-            qha.write_heat_capacity_P_polyfit(filename=self.write_heat_capacity_p_polyfit)
+            qha.write_heat_capacity_P_polyfit(filename=_suffixed(self.write_heat_capacity_p_polyfit))
         if self.write_gruneisen_temperature is not None:
-            qha.write_gruneisen_temperature(filename=self.write_gruneisen_temperature)
+            qha.write_gruneisen_temperature(filename=_suffixed(self.write_gruneisen_temperature))

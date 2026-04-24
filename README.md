@@ -1,14 +1,14 @@
 <h1 align="center">
-  <img src="https://raw.githubusercontent.com/materialsvirtuallab/matcalc/refs/heads/main/docs/assets/matcalc.png"
+  <img src="https://raw.githubusercontent.com/materialyzeai/matcalc/refs/heads/main/docs/assets/matcalc.png"
 width="200" alt="MatCalc" style="vertical-align: middle;" /><br>
 </h1>
 
-[![Test](https://github.com/materialsvirtuallab/matcalc/workflows/Test/badge.svg)](https://github.com/materialsvirtuallab/matcalc/workflows/Test/badge.svg)
-[![Lint](https://github.com/materialsvirtuallab/matcalc/workflows/Lint/badge.svg)](https://github.com/materialsvirtuallab/matcalc/workflows/Lint/badge.svg)
-[![codecov](https://codecov.io/gh/materialsvirtuallab/matcalc/branch/main/graph/badge.svg?token=OR7Z9WWRRC)](https://codecov.io/gh/materialsvirtuallab/matcalc)
+[![Test](https://github.com/materialyzeai/matcalc/workflows/Test/badge.svg)](https://github.com/materialyzeai/matcalc/workflows/Test/badge.svg)
+[![Lint](https://github.com/materialyzeai/matcalc/workflows/Lint/badge.svg)](https://github.com/materialyzeai/matcalc/workflows/Lint/badge.svg)
+[![codecov](https://codecov.io/gh/materialyzeai/matcalc/branch/main/graph/badge.svg?token=OR7Z9WWRRC)](https://codecov.io/gh/materialyzeai/matcalc)
 [![Requires Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg?logo=python&logoColor=white)](https://python.org/downloads)
 [![PyPI](https://img.shields.io/pypi/v/matcalc?logo=pypi&logoColor=white)](https://pypi.org/project/matcalc?logo=pypi&logoColor=white)
-[![GitHub license](https://img.shields.io/github/license/materialsvirtuallab/matcalc)](https://github.com/materialsvirtuallab/matcalc/blob/main/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/materialyzeai/matcalc)](https://github.com/materialyzeai/matcalc/blob/main/LICENSE)
 
 ## Introduction
 
@@ -264,9 +264,9 @@ using MatCalc to quickly obtain material properties.
 A manuscript on `matcalc` is currently in the works. In the meantime, please see [`citation.cff`](citation.cff) or the GitHub
 sidebar for a BibTeX and APA citation.
 
-[MAML]: https://materialsvirtuallab.github.io/maml/
+[MAML]: https://materialyzeai.github.io/maml/
 [MatGL]: https://matgl.ai
 [MatPES]: https://matpes.ai
 [MatCalc]: https://matcalc.ai
 [ASE]: https://wiki.fysik.dtu.dk/ase/
-[Materials Virtual Lab Docker Repository]: https://hub.docker.com/orgs/materialsvirtuallab/repositories
+[Materials Virtual Lab Docker Repository]: https://hub.docker.com/orgs/materialyzeai/repositories
