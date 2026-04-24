@@ -57,7 +57,7 @@ except Exception:  # noqa: BLE001
 MODEL_ALIASES = {
     "tensornet": "TensorNet-PES-MatPES-PBE-2025.1",
     "m3gnet": "M3GNet-PES-MatPES-PBE-2025.1",
-    "chgnet": "CHGNet-PES-MatPES-PBE-2025.2.10",
+    "chgnet": "CHGNet-PES-MatPES-PBE-2025.1",
     "pbe": "TensorNet-PES-MatPES-PBE-2025.1",
     "r2scan": "TensorNet-PES-MatPES-r2SCAN-2025.1",
 }
