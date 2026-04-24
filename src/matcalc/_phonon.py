@@ -52,6 +52,7 @@ class PhononCalc(PropCalc):
         imaginary_freq_tol: Frequencies below this (THz) count as imaginary.
         on_imaginary_modes: ``"warn"`` or ``"error"`` on imaginary modes.
         fix_imaginary_attempts: Rattle/retry cycles to fix imaginary modes.
+        symprec: symmetry precision used for spglib symmetry finding.
         write_force_constants: Output path for force constants (or False).
         write_band_structure: Band structure YAML path (or False).
         write_total_dos: Total DOS path (or False).
@@ -76,6 +77,7 @@ class PhononCalc(PropCalc):
         imaginary_freq_tol: float = -0.01,
         on_imaginary_modes: Literal["error", "warn"] = "warn",
         fix_imaginary_attempts: int = 0,
+        symprec: float = 1e-5,
         write_force_constants: bool | str | Path = False,
         write_band_structure: bool | str | Path = False,
         write_total_dos: bool | str | Path = False,
@@ -98,6 +100,7 @@ class PhononCalc(PropCalc):
             imaginary_freq_tol: Threshold (THz) for classifying imaginary modes.
             on_imaginary_modes: ``"warn"`` or ``"error"`` when imaginary modes exist.
             fix_imaginary_attempts: Rattle/relax/phonon retries; 0 disables.
+            symprec: symmetry precision used for spglib symmetry finding.
             write_force_constants: Path to write FCs, True for default name, or False.
             write_band_structure: Path, True for default YAML, or False.
             write_total_dos: Path, True for default DOS file, or False.
@@ -118,6 +121,7 @@ class PhononCalc(PropCalc):
         self.imaginary_freq_tol = imaginary_freq_tol
         self.on_imaginary_modes = on_imaginary_modes
         self.fix_imaginary_attempts = fix_imaginary_attempts
+        self.symprec = symprec
         self.write_force_constants = write_force_constants
         self.write_band_structure = write_band_structure
         self.write_total_dos = write_total_dos
@@ -196,7 +200,7 @@ class PhononCalc(PropCalc):
         else:
             supercell_matrix = np.diag(np.ceil(self.min_length / np.array(structure.lattice.abc)).astype(int))
 
-        phonon = phonopy.Phonopy(cell, supercell_matrix=supercell_matrix, primitive_matrix="auto")
+        phonon = phonopy.Phonopy(cell, supercell_matrix=supercell_matrix, symprec=self.symprec, primitive_matrix="auto")
         phonon.generate_displacements(distance=self.atom_disp)
         disp_supercells = [
             get_pmg_structure(supercell)
