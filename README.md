@@ -90,10 +90,10 @@ MLIPs such as MTP, NNP, GAP, SNAP, ACE, etc.
 
 | Model | String Name / Alias | Package |
 |---|---|---|
-| TensorNet-MatPES-PBE | `"TensorNet-MatPES-PBE-v2025.1-PES"` or `"pbe"` | matgl |
-| TensorNet-MatPES-r²SCAN | `"TensorNet-MatPES-r2SCAN-v2025.1-PES"` or `"r2scan"` | matgl |
-| M3GNet-MatPES-PBE | `"M3GNet-MatPES-PBE-v2025.1-PES"` or `"m3gnet"` | matgl |
-| CHGNet | `"CHGNet-MatPES-PBE-2025.2.10-2.7M-PES"` or `"chgnet"` | matgl |
+| TensorNet-MatPES-PBE | `"TensorNet-PES-MatPES-PBE-2025.1"` or `"pbe"` | matgl |
+| TensorNet-MatPES-r²SCAN | `"TensorNet-PES-MatPES-r2SCAN-2025.1"` or `"r2scan"` | matgl |
+| M3GNet-MatPES-PBE | `"M3GNet-PES-MatPES-PBE-v2025.1"` or `"m3gnet"` | matgl |
+| CHGNet | `"CHGNet-PES-MatPES-PBE-2025.2.10"` or `"chgnet"` | matgl |
 | MACE-MP | `"MACE"` | mace-torch |
 | SevenNet | `"SevenNet"` | sevenn |
 | GRACE / TensorPotential | `"GRACE"` or `"TensorPotential"` | tensorpotential |
@@ -108,7 +108,7 @@ Aliases are case-insensitive. All pretrained MatGL PES models are auto-discovere
 ## Basic Usage
 
 MatCalc provides convenient methods to quickly compute properties with minimal code. The following example
-computes the elastic constants of Si using the `TensorNet-MatPES-PBE-v2025.1-PES` universal MLIP.
+computes the elastic constants of Si using the `TensorNet-PES-MatPES-PBE-2025.1` universal MLIP.
 
 ```python
 import matcalc as mtc
@@ -116,7 +116,7 @@ from pymatgen.ext.matproj import MPRester
 
 mpr = MPRester()
 si = mpr.get_structure_by_material_id("mp-149")
-c = mtc.ElasticityCalc("TensorNet-MatPES-PBE-v2025.1-PES", relax_structure=True)
+c = mtc.ElasticityCalc("TensorNet-PES-MatPES-PBE-2025.1", relax_structure=True)
 props = c.calc(si)
 print(f"K_VRH = {props['bulk_modulus_vrh'] * 160.2176621} GPa")
 ```
@@ -137,7 +137,7 @@ pbe_calculator = mtc.load_fp("pbe")
 r2scan_calculator = mtc.load_fp("r2scan")
 ```
 
-These currently resolve to the `TensorNet-MatPES-v2025.1` models, but may be updated as better models
+These currently resolve to the `TensorNet-PES-MatPES-*-2025.1` models, but may be updated as better models
 become available.
 
 `matcalc.load_up` is the same as `matcalc.load_fp` (historical alias).
@@ -225,7 +225,7 @@ MatCalc includes a benchmarking framework released alongside [MatPES].
 ```python
 import matcalc as mtc
 
-calculator = mtc.load_fp("TensorNet-MatPES-PBE-v2025.1-PES")
+calculator = mtc.load_fp("TensorNet-PES-MatPES-PBE-2025.1")
 benchmark = mtc.benchmark.ElasticityBenchmark(fmax=0.05, relax_structure=True)
 results = benchmark.run(calculator, "TensorNet-MatPES")
 ```
@@ -237,8 +237,8 @@ To run multiple benchmarks on multiple models:
 ```python
 import matcalc as mtc
 
-tensornet = mtc.load_fp("TensorNet-MatPES-PBE-v2025.1-PES")
-m3gnet = mtc.load_fp("M3GNet-MatPES-PBE-v2025.1-PES")
+tensornet = mtc.load_fp("TensorNet-PES-MatPES-PBE-2025.1")
+m3gnet = mtc.load_fp("M3GNet-PES-MatPES-PBE-2025.1")
 
 elasticity_benchmark = mtc.benchmark.ElasticityBenchmark(fmax=0.5, relax_structure=True)
 phonon_benchmark = mtc.benchmark.PhononBenchmark(write_phonon=False)
