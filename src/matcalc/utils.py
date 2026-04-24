@@ -55,11 +55,11 @@ except Exception:  # noqa: BLE001
 
 # Provide simple aliases for some common models. The key in MODEL_ALIASES must be lower case.
 MODEL_ALIASES = {
-    "tensornet": "TensorNet-MatPES-PBE-v2025.1-PES",
-    "m3gnet": "M3GNet-MatPES-PBE-v2025.1-PES",
-    "chgnet": "CHGNet-MatPES-PBE-2025.2.10-2.7M-PES",
-    "pbe": "TensorNet-MatPES-PBE-v2025.1-PES",
-    "r2scan": "TensorNet-MatPES-r2SCAN-v2025.1-PES",
+    "tensornet": "TensorNet-PES-MatPES-PBE-2025.1",
+    "m3gnet": "M3GNet-PES-MatPES-PBE-2025.1",
+    "chgnet": "CHGNet-PES-MatPES-PBE-2025.2.10",
+    "pbe": "TensorNet-PES-MatPES-PBE-2025.1",
+    "r2scan": "TensorNet-PES-MatPES-r2SCAN-2025.1",
 }
 
 
@@ -171,13 +171,6 @@ class PESCalculator(Calculator):
         model = matgl.load_model(path=path)  # type:ignore[arg-type]
         kwargs.setdefault("stress_unit", "eV/A3")
 
-        if path in (
-            "TensorNet-MatPES-PBE-v2025.1-PES",
-            "TensorNet-MatPES-r2SCAN-v2025.1-PES",
-        ):
-            from matgl.ext._ase_pyg import PESCalculator as PESCalculator_pyg
-
-            return PESCalculator_pyg(potential=model, **kwargs)
         from matgl.ext.ase import PESCalculator as PESCalculator_
 
         return PESCalculator_(potential=model, **kwargs)
