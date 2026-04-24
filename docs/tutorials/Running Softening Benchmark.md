@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Running the softening benchmark
+title: Running Softening Benchmark.md
 nav_exclude: true
 ---
 
@@ -14,10 +14,13 @@ from __future__ import annotations
 
 import warnings
 
+import matgl
 import pandas as pd
 
 from matcalc import load_fp
 from matcalc.benchmark import SofteningBenchmark
+
+matgl.set_backend("DGL")
 ```
 
 

@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Calculating MLIP properties
+title: Calculating MLIP properties.md
 nav_exclude: true
 ---
 
@@ -18,6 +18,11 @@ from matcalc import ElasticityCalc, EOSCalc, PESCalculator, PhononCalc, RelaxCal
 
 warnings.filterwarnings("ignore", category=UserWarning, module="matgl")
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="spglib")
+
+import matgl
+
+matgl.set_backend("DGL")
+
 ```
 
 

@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Running the MatCalc benchmark
+title: Running the MatCalc-Benchmark.md
 nav_exclude: true
 ---
 
@@ -14,11 +14,14 @@ from __future__ import annotations
 
 import warnings
 
+import matgl
 import numpy as np
 import pandas as pd
 
 from matcalc import load_fp
 from matcalc.benchmark import ElasticityBenchmark
+
+matgl.set_backend("DGL")
 ```
 
 # Elasticity Benchmark

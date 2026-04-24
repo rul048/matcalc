@@ -6,18 +6,18 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>matcalc._elasticity module &mdash; matcalc 0.4.2 documentation</title>
+  <title>matcalc._elasticity module &mdash; matcalc 0.4.6 documentation</title>
       <link rel="stylesheet" type="text/css" href="assets/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="assets/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="assets/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="assets/css/custom.css" />
 
 
     <link rel="canonical" href="http://matcalc.aimatcalc._elasticity.html"/>
       <script src="assets/jquery.js?v=5d32c60e"></script>
       <script src="assets/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="assets/documentation_options.js?v=ff822928"></script>
-      <script src="assets/doctools.js?v=9bcbadda"></script>
-      <script src="assets/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="assets/documentation_options.js?v=03f3338f"></script>
+      <script src="assets/doctools.js?v=fd6eb6e6"></script>
+      <script src="assets/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="assets/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -48,6 +48,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="matcalc.html">matcalc package</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="matcalc.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="matcalc.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="matcalc._adsorption.html">matcalc._adsorption module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._base.html">matcalc._base module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._cli.html">matcalc._cli module</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">matcalc._elasticity module</a><ul>
@@ -55,6 +56,8 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._eos.html">matcalc._eos module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matcalc._gb.html">matcalc._gb module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matcalc._interface.html">matcalc._interface module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._lammps.html">matcalc._lammps module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._md.html">matcalc._md module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._neb.html">matcalc._neb module</a></li>
@@ -104,121 +107,115 @@
 <p>Calculator for elastic properties.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ElasticityCalc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Calculator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_strains</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(-0.01,</span> <span class="pre">-0.005,</span> <span class="pre">0.005,</span> <span class="pre">0.01)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shear_strains</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(-0.06,</span> <span class="pre">-0.03,</span> <span class="pre">0.03,</span> <span class="pre">0.06)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relax_structure</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relax_deformed_structures</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_equilibrium</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relax_calc_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/_elasticity.py#L26-L218"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ElasticityCalc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Calculator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_strains</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(-0.01,</span> <span class="pre">-0.005,</span> <span class="pre">0.005,</span> <span class="pre">0.01)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shear_strains</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(-0.06,</span> <span class="pre">-0.03,</span> <span class="pre">0.03,</span> <span class="pre">0.06)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relax_structure</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relax_deformed_structures</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_equilibrium</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relax_calc_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/_elasticity.py#L26-L171"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropCalc</span></code></a></p>
-<p>Class for calculating elastic properties of a material. This includes creating
-an elastic tensor, shear modulus, bulk modulus, and other related properties with
-the help of strain and stress analyses. It leverages the provided ASE Calculator
-for computations and supports relaxation of structures when necessary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Variables<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>calculator</strong> – The ASE Calculator used for performing computations.</p></li>
-<li><p><strong>norm_strains</strong> – Sequence of normal strain values to be applied.</p></li>
-<li><p><strong>shear_strains</strong> – Sequence of shear strain values to be applied.</p></li>
-<li><p><strong>fmax</strong> – Maximum force tolerated for structure relaxation.</p></li>
-<li><p><strong>symmetry</strong> – Whether to apply symmetry reduction techniques during calculations.</p></li>
-<li><p><strong>relax_structure</strong> – Whether the initial structure should be relaxed before applying strains.</p></li>
-<li><p><strong>relax_deformed_structures</strong> – Whether to relax atomic positions in deformed/strained structures.</p></li>
-<li><p><strong>use_equilibrium</strong> – Whether to use equilibrium stress and strain in calculations.</p></li>
-<li><p><strong>relax_calc_kwargs</strong> – Additional arguments for relaxation calculations.</p></li>
-</ul>
-</dd>
-</dl>
-<p>Initializes the class with parameters to construct normalized and shear strain values
-and control relaxation behavior for structures. Validates input parameters to ensure
-appropriate constraints are maintained.</p>
+<p>Elastic tensor and related moduli via strain-stress fitting with pymatgen.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc.calculator">
+<span class="sig-name descname"><span class="pre">calculator</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/_elasticity.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc.calculator" title="Link to this definition"></a></dt>
+<dd><p>ASE calculator (or universal model name).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc.norm_strains">
+<span class="sig-name descname"><span class="pre">norm_strains</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/_elasticity.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc.norm_strains" title="Link to this definition"></a></dt>
+<dd><p>Normal strains applied in <code class="docutils literal notranslate"><span class="pre">DeformedStructureSet</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc.shear_strains">
+<span class="sig-name descname"><span class="pre">shear_strains</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/_elasticity.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc.shear_strains" title="Link to this definition"></a></dt>
+<dd><p>Shear strains applied in <code class="docutils literal notranslate"><span class="pre">DeformedStructureSet</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc.fmax">
+<span class="sig-name descname"><span class="pre">fmax</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/_elasticity.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc.fmax" title="Link to this definition"></a></dt>
+<dd><p>Force tolerance for optional relaxations.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc.symmetry">
+<span class="sig-name descname"><span class="pre">symmetry</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/_elasticity.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc.symmetry" title="Link to this definition"></a></dt>
+<dd><p>Whether to reduce deformations by symmetry.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc.relax_structure">
+<span class="sig-name descname"><span class="pre">relax_structure</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/_elasticity.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc.relax_structure" title="Link to this definition"></a></dt>
+<dd><p>Relax initial structure before deforming.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc.relax_deformed_structures">
+<span class="sig-name descname"><span class="pre">relax_deformed_structures</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/_elasticity.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc.relax_deformed_structures" title="Link to this definition"></a></dt>
+<dd><p>Relax each deformed structure before stress.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc.use_equilibrium">
+<span class="sig-name descname"><span class="pre">use_equilibrium</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/_elasticity.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc.use_equilibrium" title="Link to this definition"></a></dt>
+<dd><p>Include equilibrium stress in the fit when applicable.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc.relax_calc_kwargs">
+<span class="sig-name descname"><span class="pre">relax_calc_kwargs</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/_elasticity.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc.relax_calc_kwargs" title="Link to this definition"></a></dt>
+<dd><p>Optional kwargs for <code class="docutils literal notranslate"><span class="pre">RelaxCalc</span></code>.</p>
+</dd></dl>
+
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calculator</strong> (<em>Calculator</em><em> | </em><em>str</em>) – An ASE calculator object used to perform energy and force
-calculations. If string is provided, the corresponding universal calculator is loaded.</p></li>
-<li><p><strong>norm_strains</strong> – Sequence of normalized strain values applied during deformation.
-Can also be a single float. Must not be empty or contain zero.</p></li>
-<li><p><strong>shear_strains</strong> – Sequence of shear strain values applied during deformation.
-Can also be a single float. Must not be empty or contain zero.</p></li>
-<li><p><strong>fmax</strong> – Maximum force magnitude tolerance for relaxation. Default is 0.1.</p></li>
-<li><p><strong>symmetry</strong> – Boolean flag to enforce symmetry in deformation. Default is False.</p></li>
-<li><p><strong>relax_structure</strong> – Boolean flag indicating if the structure should be relaxed before
-applying strains. Default is True.</p></li>
-<li><p><strong>relax_deformed_structures</strong> – Boolean flag indicating if the deformed structures
-should be relaxed. Default is False.</p></li>
-<li><p><strong>use_equilibrium</strong> – Boolean flag indicating if equilibrium conditions should be used for
-calculations. Automatically enabled if multiple normal and shear strains are provided.</p></li>
-<li><p><strong>relax_calc_kwargs</strong> – Optional dictionary containing keyword arguments for structure
-relaxation calculations.</p></li>
+<li><p><strong>calculator</strong> – ASE calculator or universal model name string.</p></li>
+<li><p><strong>norm_strains</strong> – Normal strains (non-empty, no zeros); scalar broadcast to one value.</p></li>
+<li><p><strong>shear_strains</strong> – Shear strains (non-empty, no zeros); scalar allowed.</p></li>
+<li><p><strong>fmax</strong> – Force tolerance for relaxations.</p></li>
+<li><p><strong>symmetry</strong> – Pass-through to pymatgen <code class="docutils literal notranslate"><span class="pre">DeformedStructureSet</span></code>.</p></li>
+<li><p><strong>relax_structure</strong> – Relax parent structure before generating deformations.</p></li>
+<li><p><strong>relax_deformed_structures</strong> – Relax each deformed structure before stress eval.</p></li>
+<li><p><strong>use_equilibrium</strong> – Use equilibrium stress in fit; forced True if only one strain type.</p></li>
+<li><p><strong>relax_calc_kwargs</strong> – Optional kwargs for <code class="docutils literal notranslate"><span class="pre">RelaxCalc</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc._abc_impl">
-<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/matcalc/_elasticity.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc._abc_impl" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/_elasticity.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc._abc_impl" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc._elastic_tensor_from_strains">
-<span class="sig-name descname"><span class="pre">_elastic_tensor_from_strains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strains</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stresses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eq_stress</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ArrayLike</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-07</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ElasticTensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/_elasticity.py#L172-L218"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc._elastic_tensor_from_strains" title="Link to this definition"></a></dt>
-<dd><p>Compute the elastic tensor from given strain and stress data using least-squares
-fitting.</p>
-<p>This function calculates the elastic constants from strain-stress relations,
-using a least-squares fitting procedure for each independent component of stress
-and strain tensor pairs. An optional equivalent stress array can be supplied.
-Residuals from the fitting process are accumulated and returned alongside the
-elastic tensor. The elastic tensor is zeroed according to the given tolerance.</p>
+<span class="sig-name descname"><span class="pre">_elastic_tensor_from_strains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strains</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stresses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eq_stress</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ArrayLike</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-07</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ElasticTensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/_elasticity.py#L139-L171"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc._elastic_tensor_from_strains" title="Link to this definition"></a></dt>
+<dd><p>Fit elastic constants from strain-stress pairs (Voigt), optionally subtracting
+equilibrium stress.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>strains</strong> – Strain data array-like, representing different strain states.</p></li>
-<li><p><strong>stresses</strong> – Stress data array-like corresponding to the given strain states.</p></li>
-<li><p><strong>eq_stress</strong> – Optional array-like, equivalent stress values for equilibrium stress states.
-Defaults to None.</p></li>
-<li><p><strong>tol</strong> – A float representing the tolerance threshold used for zeroing the elastic
-tensor. Defaults to 1e-7.</p></li>
+<li><p><strong>strains</strong> – Strain states (array-like) for each deformation.</p></li>
+<li><p><strong>stresses</strong> – Matching stress tensors (array-like).</p></li>
+<li><p><strong>eq_stress</strong> – Equilibrium stress to subtract; None to omit.</p></li>
+<li><p><strong>tol</strong> – Small components below this are zeroed on the fitted tensor.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>A tuple consisting of:</dt><dd><ul class="simple">
-<li><p>ElasticTensor object: The computed and zeroed elastic tensor in Voigt
-notation.</p></li>
-<li><p>float: The summed residuals from least-squares fittings across all
-tensor components.</p></li>
-</ul>
-</dd>
-</dl>
-</p>
+<dd class="field-even"><p>Tuple of <code class="docutils literal notranslate"><span class="pre">(ElasticTensor,</span> <span class="pre">residuals_sum)</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc._elasticity.ElasticityCalc.calc">
-<span class="sig-name descname"><span class="pre">calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Structure</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Atoms</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/_elasticity.py#L108-L170"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc.calc" title="Link to this definition"></a></dt>
-<dd><p>Performs a calculation to determine the elastic tensor and related elastic
-properties. It involves multiple steps such as optionally relaxing the input
-structure, generating deformed structures, calculating stresses, and evaluating
-elastic properties. The method supports equilibrium stress computation and various
-relaxations depending on configuration.</p>
-<dl class="field-list simple">
+<span class="sig-name descname"><span class="pre">calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Structure</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Atoms</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/_elasticity.py#L86-L137"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc._elasticity.ElasticityCalc.calc" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>structure</strong> – The input structure which can either be an instance of <cite>Structure</cite> or
-a dictionary containing structural data.</p>
+<dd class="field-odd"><p><strong>structure</strong> – Pymatgen structure, ASE atoms, or dict with structure keys.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>A dictionary containing the calculation results that include:
-- <cite>elastic_tensor</cite>: The computed elastic tensor of the material.
-- <cite>shear_modulus_vrh</cite>: Shear modulus obtained from the elastic tensor</p>
-<blockquote>
-<div><p>using the Voigt-Reuss-Hill approximation.</p>
-</div></blockquote>
-<ul class="simple">
-<li><p><cite>bulk_modulus_vrh</cite>: Bulk modulus calculated using the Voigt-Reuss-Hill
-approximation.</p></li>
-<li><p><cite>youngs_modulus</cite>: Young’s modulus derived from the elastic tensor.</p></li>
-<li><p><cite>residuals_sum</cite>: The residual sum from the elastic tensor fitting.</p></li>
-<li><p><cite>structure</cite>: The (potentially relaxed) final structure after calculations.</p></li>
-</ul>
-</p>
+<dd class="field-even"><p>Dict including <code class="docutils literal notranslate"><span class="pre">elastic_tensor</span></code>, <code class="docutils literal notranslate"><span class="pre">shear_modulus_vrh</span></code>, <code class="docutils literal notranslate"><span class="pre">bulk_modulus_vrh</span></code>,
+<code class="docutils literal notranslate"><span class="pre">youngs_modulus</span></code>, <code class="docutils literal notranslate"><span class="pre">residuals_sum</span></code>, <code class="docutils literal notranslate"><span class="pre">structure</span></code>, and merged relaxation
+fields. Moduli follow pymatgen <code class="docutils literal notranslate"><span class="pre">ElasticTensor</span></code> conventions (see pymatgen
+elasticity docs for units).</p>
 </dd>
 </dl>
 </dd></dl>

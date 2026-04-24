@@ -1,6 +1,6 @@
 ---
 layout: default
-title: NEB calculations with MLIPs
+title: NEB Calculations with MLIPs.md
 nav_exclude: true
 ---
 
@@ -17,10 +17,13 @@ from __future__ import annotations
 
 import os
 
+import matgl
 from ase.mep import NEBTools
 from pymatgen.ext.matproj import MPRester
 
 from matcalc import NEBCalc, RelaxCalc, load_fp
+
+matgl.set_backend("DGL")
 
 mpr = MPRester()
 

@@ -6,18 +6,18 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>matcalc.benchmark module &mdash; matcalc 0.4.2 documentation</title>
+  <title>matcalc.benchmark module &mdash; matcalc 0.4.6 documentation</title>
       <link rel="stylesheet" type="text/css" href="assets/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="assets/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="assets/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="assets/css/custom.css" />
 
 
     <link rel="canonical" href="http://matcalc.aimatcalc.benchmark.html"/>
       <script src="assets/jquery.js?v=5d32c60e"></script>
       <script src="assets/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="assets/documentation_options.js?v=ff822928"></script>
-      <script src="assets/doctools.js?v=9bcbadda"></script>
-      <script src="assets/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="assets/documentation_options.js?v=03f3338f"></script>
+      <script src="assets/doctools.js?v=fd6eb6e6"></script>
+      <script src="assets/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="assets/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -48,10 +48,13 @@
 <li class="toctree-l1 current"><a class="reference internal" href="matcalc.html">matcalc package</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="matcalc.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="matcalc.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="matcalc._adsorption.html">matcalc._adsorption module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._base.html">matcalc._base module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._cli.html">matcalc._cli module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._elasticity.html">matcalc._elasticity module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._eos.html">matcalc._eos module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matcalc._gb.html">matcalc._gb module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matcalc._interface.html">matcalc._interface module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._lammps.html">matcalc._lammps module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._md.html">matcalc._md module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="matcalc._neb.html">matcalc._neb module</a></li>
@@ -112,67 +115,82 @@
 <p>This module implements classes for running benchmarks on materials properties.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="matcalc.benchmark.Benchmark">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Benchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">benchmark_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property_rename_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix_ground_truth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'DFT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L142-L374"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Benchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">benchmark_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property_rename_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix_ground_truth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'DFT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L144-L325"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Represents an abstract base class for benchmarking elasticity properties of materials.</p>
-<p>This class provides functionality to process benchmark elemental_refs, create a DataFrame for analysis,
-and run calculations using a specified potential energy surface (PES) calculator. It is designed
-to facilitate benchmarking of bulk and shear moduli against pre-defined ground truth elemental_refs.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Variables<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>properties</strong> – List of properties to extract and benchmark. These properties
-are key inputs for analysis tasks.</p></li>
-<li><p><strong>other_fields</strong> – Tuple of additional fields in the benchmark entries to
-include in the processed elemental_refs. Useful for metadata or optional attributes.</p></li>
-<li><p><strong>index_name</strong> – Name of the index field in the benchmark dataset. This is used
-as the primary key for identifying entries.</p></li>
-<li><p><strong>structures</strong> – List of structures extracted from the benchmark entries. Structures
-are objects describing material geometries stored in the dataset.</p></li>
-<li><p><strong>kwargs</strong> – Additional keywords passed through to the ElasticityCalculator or associated
-processes for extended configuration.</p></li>
-<li><p><strong>ground_truth</strong> – DataFrame containing the processed benchmark elemental_refs, including ground truth
-reference values for materials properties.</p></li>
-</ul>
-</dd>
-</dl>
-<p>Initializes an instance for processing benchmark elemental_refs and constructing a DataFrame
-representing the ground truth properties of input structures. Additionally, stores
-information about input structures and other auxiliary elemental_refs for further usage.</p>
+<p>Abstract base for property benchmarks against published datasets.</p>
+<p>Loads benchmark JSON, builds per-row ground-truth records and structure list, and runs a
+<code class="docutils literal notranslate"><span class="pre">PropCalc</span></code> over structures (with optional checkpointing).</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc.benchmark.Benchmark.properties">
+<span class="sig-name descname"><span class="pre">properties</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.properties" title="Link to this definition"></a></dt>
+<dd><p>Target property keys to compare.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc.benchmark.Benchmark.other_fields">
+<span class="sig-name descname"><span class="pre">other_fields</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.other_fields" title="Link to this definition"></a></dt>
+<dd><p>Extra benchmark fields copied into each row.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc.benchmark.Benchmark.index_name">
+<span class="sig-name descname"><span class="pre">index_name</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.index_name" title="Link to this definition"></a></dt>
+<dd><p>Primary key column (e.g. material id).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc.benchmark.Benchmark.structures">
+<span class="sig-name descname"><span class="pre">structures</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.structures" title="Link to this definition"></a></dt>
+<dd><p>Pymatgen structures in benchmark order.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc.benchmark.Benchmark.kwargs">
+<span class="sig-name descname"><span class="pre">kwargs</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.kwargs" title="Link to this definition"></a></dt>
+<dd><p>Kwargs forwarded to <code class="docutils literal notranslate"><span class="pre">get_prop_calc</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc.benchmark.Benchmark.property_rename_map">
+<span class="sig-name descname"><span class="pre">property_rename_map</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.property_rename_map" title="Link to this definition"></a></dt>
+<dd><p>Optional column renames on the results frame.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc.benchmark.Benchmark.ground_truth">
+<span class="sig-name descname"><span class="pre">ground_truth</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.ground_truth" title="Link to this definition"></a></dt>
+<dd><p>List of dict rows (converted to DataFrame in <code class="docutils literal notranslate"><span class="pre">run</span></code>).</p>
+</dd></dl>
+
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>benchmark_name</strong> (<em>str</em><em> | </em><em>Path</em>) – The name of the benchmark dataset or a path to a file containing
-the benchmark entries.</p></li>
-<li><p><strong>properties</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – A list of property names to extract.</p></li>
-<li><p><strong>index_name</strong> (<em>str</em>) – The name of the field used as the index for the resulting DataFrame (typically a unique id
-like mp_id).</p></li>
-<li><p><strong>other_fields</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – Additional fields to include in the DataFrame, default is an empty tuple. Useful ones
-are for example formula or metadata.</p></li>
-<li><p><strong>property_rename_map</strong> (<em>dict</em><em> | </em><em>None</em>) – A dict used to rename the properties for easier reading.</p></li>
-<li><p><strong>suffix_ground_truth</strong> (<em>str</em>) – The suffix added to the property names in the DataFrame for
-distinguishing ground truth values, default is “DFT”.</p></li>
-<li><p><strong>n_samples</strong> (<em>int</em><em> | </em><em>None</em>) – Number of samples to randomly select from the benchmark dataset, or
-<code class="docutils literal notranslate"><span class="pre">None</span></code> to include all samples, default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – Seed value for random sampling of entries (if <cite>n_samples</cite> is specified), default is <code class="docutils literal notranslate"><span class="pre">42</span></code>.</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – Additional keyword arguments for configuring the PropCalc..</p></li>
+<li><p><strong>benchmark_name</strong> – Remote benchmark filename or local path to JSON.</p></li>
+<li><p><strong>properties</strong> – Keys to pull from each benchmark entry as targets.</p></li>
+<li><p><strong>index_name</strong> – Row id field name.</p></li>
+<li><p><strong>other_fields</strong> – Extra fields to copy into each ground-truth row.</p></li>
+<li><p><strong>property_rename_map</strong> – Renames applied to result columns.</p></li>
+<li><p><strong>suffix_ground_truth</strong> – Suffix for reference columns (e.g. <code class="docutils literal notranslate"><span class="pre">_DFT</span></code>).</p></li>
+<li><p><strong>n_samples</strong> – Random subsample size, or None for all.</p></li>
+<li><p><strong>seed</strong> – RNG seed when subsampling.</p></li>
+<li><p><strong>**kwargs</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">get_prop_calc</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>FileNotFoundError</strong> – If the provided <cite>benchmark_name</cite> is a path that does not exist.</p></li>
-<li><p><strong>ValueError</strong> – If invalid or incomplete elemental_refs is encountered in the benchmark entries.</p></li>
+<li><p><strong>FileNotFoundError</strong> – If <code class="docutils literal notranslate"><span class="pre">benchmark_name</span></code> is a missing local path.</p></li>
+<li><p><strong>ValueError</strong> – If entries lack required fields.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="matcalc.benchmark.Benchmark._abc_impl">
-<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark._abc_impl" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark._abc_impl" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.Benchmark.get_prop_calc">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_prop_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc"><span class="pre">PropCalc</span></a></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L248-L262"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.get_prop_calc" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_prop_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc"><span class="pre">PropCalc</span></a></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L214-L228"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.get_prop_calc" title="Link to this definition"></a></dt>
 <dd><p>Abstract method to retrieve a property calculation object using the provided calculator and additional
 parameters.
 This method must be implemented by subclasses and will utilize the provided calculator to create a
@@ -180,44 +198,38 @@ This method must be implemented by subclasses and will utilize the provided calc
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calculator</strong> (<em>Calculator</em>) – The calculator instance to be used for generating the property calculation.</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – Additional keyword arguments that can influence the property calculation process.</p></li>
+<li><p><strong>calculator</strong> – ASE calculator or model name string.</p></li>
+<li><p><strong>**kwargs</strong> – Merged with <code class="docutils literal notranslate"><span class="pre">self.kwargs</span></code> in <code class="docutils literal notranslate"><span class="pre">run</span></code> (subclass dependent).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>An instance of <cite>PropCalc</cite> representing the property calculation result.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc">PropCalc</a></p>
+<dd class="field-even"><p>Configured <code class="docutils literal notranslate"><span class="pre">PropCalc</span></code> instance.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.Benchmark.process_result">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">process_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L264-L282"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.process_result" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">process_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L230-L248"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.process_result" title="Link to this definition"></a></dt>
 <dd><p>Implements post-processing of results. A default implementation is provided that simply appends the model name
 as a suffix to the key of the input dictionary for all properties. Subclasses can override this method to
 provide more sophisticated processing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>result</strong> (<em>dict</em>) – Input dictionary containing key-value pairs to be processed.</p></li>
-<li><p><strong>model_name</strong> (<em>str</em>) – The name of the model to append to each key as a suffix.</p></li>
+<li><p><strong>result</strong> – Output dict from <code class="docutils literal notranslate"><span class="pre">PropCalc.calc</span></code>, or None on failure.</p></li>
+<li><p><strong>model_name</strong> – Suffix tag for predicted columns.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A new dictionary with modified keys based on the model name suffix.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dd class="field-even"><p>Flat dict mapping <code class="docutils literal notranslate"><span class="pre">{prop}_{model_name}</span></code> to values (or None).</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.Benchmark.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_checkpoint_on_finish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_full_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.DataFrame</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L284-L374"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.run" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_checkpoint_on_finish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_full_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.DataFrame</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L250-L325"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.Benchmark.run" title="Link to this definition"></a></dt>
 <dd><p>Processes a collection of structures using a calculator, saves intermittent
 checkpoints, and returns the results in a DataFrame. This function supports
 parallel computation and allows for error tolerance during processing.</p>
@@ -228,31 +240,18 @@ lost in case of interruptions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calculator</strong> (<em>Calculator</em>) – ASE-compatible calculator instance used to provide PES information for PropCalc.</p></li>
-<li><p><strong>model_name</strong> (<em>str</em>) – Name of the model used for properties’ calculation.
-This name is updated in the results DataFrame.</p></li>
-<li><p><strong>n_jobs</strong> (<em>int</em><em> | </em><em>None</em>) – Number of parallel jobs to be used in the computation. Use -1
-to allocate all cores available on the system. Defaults to -1.</p></li>
-<li><p><strong>checkpoint_file</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>None</em>) – File path where checkpoint elemental_refs is saved periodically.
-If None, no checkpoints are saved.</p></li>
-<li><p><strong>checkpoint_freq</strong> (<em>int</em>) – Frequency after which checkpoint elemental_refs is saved.
-Corresponds to the number of structures processed.</p></li>
-<li><p><strong>delete_checkpoint_on_finish</strong> (<em>bool</em>) – Whether to delete checkpoint files when the benchmark finishes. Defaults to
-True.</p></li>
-<li><p><strong>include_full_results</strong> (<em>bool</em>) – Whether to save full results from PropCalc.calc for analysis afterwards. For
-instance, the ElasticityProp does not just compute the bulk and shear moduli, but also the full elastic
-tensors, which can be used for other kinds of analysis. Defaults to False.</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – Additional keyword arguments passed to the property calculator,
-for instance, to customize its behavior or computation options.</p></li>
+<li><p><strong>calculator</strong> – ASE calculator or universal model name.</p></li>
+<li><p><strong>model_name</strong> – Label appended to predicted property columns.</p></li>
+<li><p><strong>n_jobs</strong> – <code class="docutils literal notranslate"><span class="pre">joblib</span></code> parallelism for <code class="docutils literal notranslate"><span class="pre">calc_many</span></code> (-1 = all cores).</p></li>
+<li><p><strong>checkpoint_file</strong> – Optional path to resume/save partial results.</p></li>
+<li><p><strong>checkpoint_freq</strong> – Save checkpoint every this many completed structures.</p></li>
+<li><p><strong>delete_checkpoint_on_finish</strong> – Remove checkpoint file after success.</p></li>
+<li><p><strong>include_full_results</strong> – Keep all <code class="docutils literal notranslate"><span class="pre">calc</span></code> keys, not only <code class="docutils literal notranslate"><span class="pre">properties</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">calc_many</span></code> / calculator.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A pandas DataFrame containing the processed results for the given
-input structures. The DataFrame includes updated results and relevant
-metrics.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>pd.DataFrame</p>
+<dd class="field-even"><p>DataFrame of ground-truth rows plus model predictions.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -261,7 +260,7 @@ metrics.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="matcalc.benchmark.BenchmarkSuite">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">BenchmarkSuite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">benchmarks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L890-L963"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.BenchmarkSuite" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">BenchmarkSuite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">benchmarks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L785-L848"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.BenchmarkSuite" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Represents a suite for handling and executing a list of benchmarks. This class is designed
 for the comprehensive execution and management of benchmarks with support for configurable
@@ -269,49 +268,34 @@ parallel computation and checkpointing.</p>
 <p>The purpose of this class is to facilitate the execution of multiple benchmarks using
 various computational models (calculators) while enabling efficient resource utilization
 and result aggregation. It supports checkpointing to handle long computations reliably.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Variables<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>benchmarks</strong> – A list of benchmarks to be configured or evaluated.</p>
-</dd>
-</dl>
-<p>Represents a collection of benchmarks.</p>
-<p>This class is designed to store and manage a list of benchmarks. It provides
-an initialization method to set up the benchmark list during object creation.
-It does not include any specialized methods or functionality beyond holding
-a list of benchmarks.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="matcalc.benchmark.BenchmarkSuite.benchmarks">
-<span class="sig-name descname"><span class="pre">benchmarks</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.BenchmarkSuite.benchmarks" title="Link to this definition"></a></dt>
-<dd><p>A list of benchmarks provided during initialization.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
+<span class="sig-name descname"><span class="pre">benchmarks</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.BenchmarkSuite.benchmarks" title="Link to this definition"></a></dt>
+<dd><p>Sequence of <code class="docutils literal notranslate"><span class="pre">Benchmark</span></code> (or compatible) instances.</p>
 </dd></dl>
 
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>benchmarks</strong> – Benchmark objects to run in sequence.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.BenchmarkSuite.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculators</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Calculator</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_checkpoint_on_finish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">pd.DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L918-L963"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.BenchmarkSuite.run" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculators</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Calculator</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_checkpoint_on_finish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">pd.DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L806-L848"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.BenchmarkSuite.run" title="Link to this definition"></a></dt>
 <dd><p>Executes benchmarks using the provided calculators and combines the results into a
 list of dataframes. Each benchmark runs for all models provided by calculators, collecting
-individual results and performing validations during elemental_refs combination.</p>
+individual results and joining columns without duplicate reference fields.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calculators</strong> – A dictionary where the keys are the model names (str)
-and the values are the corresponding calculator instances (Calculator).</p></li>
-<li><p><strong>n_jobs</strong> – The maximum number of concurrent jobs to run. If set to -1,
-utilizes all available processors. Defaults to -1.</p></li>
-<li><p><strong>checkpoint_freq</strong> – The frequency at which progress is saved as checkpoints,
-in terms of calculation steps. Defaults to 1000.</p></li>
-<li><p><strong>delete_checkpoint_on_finish</strong> (<em>bool</em>) – Whether to delete checkpoint files when the benchmark finishes. Defaults to
-True.</p></li>
+<li><p><strong>calculators</strong> – Map of model label to ASE calculator.</p></li>
+<li><p><strong>n_jobs</strong> – Parallelism forwarded to each <code class="docutils literal notranslate"><span class="pre">benchmark.run</span></code>.</p></li>
+<li><p><strong>checkpoint_freq</strong> – Checkpoint interval per benchmark run.</p></li>
+<li><p><strong>delete_checkpoint_on_finish</strong> – Remove per-model checkpoint files when done.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A list of pandas DataFrames, each containing combined results
-for all calculators across the benchmarks.</p>
+<dd class="field-even"><p>One combined DataFrame per benchmark (joined across models).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -320,61 +304,54 @@ for all calculators across the benchmarks.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="matcalc.benchmark.CheckpointFile">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CheckpointFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L80-L139"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.CheckpointFile" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">CheckpointFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L83-L141"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.CheckpointFile" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Represents a checkpoint file system management utility.</p>
 <p>This class provides mechanisms to manage and process a file path and its
 associated actions such as loading and saving data. It ensures standardized
 path handling through the use of <cite>Path</cite> objects, enables loading checkpoint
 data from a file, and facilitates the saving of resulting data.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Variables<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> – Standardized file system path, managed as a <cite>Path</cite> object.</p>
-</dd>
-</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc.benchmark.CheckpointFile.path">
+<span class="sig-name descname"><span class="pre">path</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.CheckpointFile.path" title="Link to this definition"></a></dt>
+<dd><p>Checkpoint file path as <code class="docutils literal notranslate"><span class="pre">pathlib.Path</span></code>.</p>
+</dd></dl>
+
 <p>Represents an initialization process for handling a filesystem path. The
 provided path is converted into a <cite>Path</cite> object for standardized path
 management in the application.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> – The filesystem path to be managed. Can be provided as a
-string or as a <cite>Path</cite> object.</p>
+<dd class="field-odd"><p><strong>path</strong> – Filesystem path as str or <code class="docutils literal notranslate"><span class="pre">Path</span></code>.</p>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.CheckpointFile.load">
-<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L107-L129"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.CheckpointFile.load" title="Link to this definition"></a></dt>
-<dd><p>Loads elemental_refs from a specified path if it exists, returning the loaded elemental_refs along with
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L110-L131"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.CheckpointFile.load" title="Link to this definition"></a></dt>
+<dd><p>Loads checkpoint data from a specified path if it exists, returning the loaded entries along with
 remaining portions of the given input arguments.</p>
-<p>The method checks if the file path exists, and if so, it loads elemental_refs from the specified
+<p>The method checks if the file path exists, and if so, it loads data from the specified
 file using a predefined <cite>loadfn</cite> function. It logs the number of loaded entries and
-returns the successfully loaded elemental_refs alongside sliced input arguments based on the
+returns the successfully loaded entries alongside sliced input arguments based on the
 number of loaded entries. If the file path does not exist, it returns empty results
 and the original input arguments unchanged.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>args</strong> – List of lists where each list corresponds to additional elemental_refs to
-process in conjunction with the loaded file content.</p>
+<dd class="field-odd"><p><strong>*args</strong> – Additional list arguments aligned with checkpoint rows (sliced after load).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A tuple where the first element is the loaded elemental_refs (list) from the specified
-file path (or an empty list if the path does not exist), and subsequent elements
-are the remaining unsliced portions of each input list from <cite>args</cite> or the entire
-original lists if nothing was loaded.</p>
+<dd class="field-even"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(loaded_rows,</span> <span class="pre">*tail_slices)</span></code>; <code class="docutils literal notranslate"><span class="pre">loaded_rows</span></code> is empty if missing file.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.CheckpointFile.save">
-<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L131-L139"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.CheckpointFile.save" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L133-L141"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.CheckpointFile.save" title="Link to this definition"></a></dt>
 <dd><p>Saves a list of results at the specified checkpoint location.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>results</strong> – A list of dictionaries or objects to be saved.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
+<dd class="field-odd"><p><strong>results</strong> – Rows to serialize to the checkpoint path.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -383,7 +360,7 @@ original lists if nothing was loaded.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="matcalc.benchmark.ElasticityBenchmark">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ElasticityBenchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mp_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mp-binary-pbe-elasticity-2025.1.json.gz'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L584-L676"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.ElasticityBenchmark" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ElasticityBenchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mp_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mp-binary-pbe-elasticity-2025.1.json.gz'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L504-L579"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.ElasticityBenchmark" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#matcalc.benchmark.Benchmark" title="matcalc.benchmark.Benchmark"><code class="xref py py-class docutils literal notranslate"><span class="pre">Benchmark</span></code></a></p>
 <p>Represents a benchmark for evaluating and analyzing mechanical properties such as
 bulk modulus and shear modulus for various materials. The benchmark primarily utilizes
@@ -399,48 +376,39 @@ specified mechanical properties and metadata.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>index_name</strong> (<em>str</em>) – The name of the index used to uniquely identify records
-in the benchmark dataset.</p></li>
-<li><p><strong>benchmark_name</strong> (<em>str</em><em> | </em><em>Path</em>) – The path or name of the benchmark file that contains
-the dataset. Can either be a string or a Path object.</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – Additional keyword arguments that may be passed to parent
-class methods or used for customization.</p></li>
+<li><p><strong>index_name</strong> – Primary key field name.</p></li>
+<li><p><strong>benchmark_name</strong> – Remote filename or local benchmark path.</p></li>
+<li><p><strong>**kwargs</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">Benchmark</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="matcalc.benchmark.ElasticityBenchmark._abc_impl">
-<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.ElasticityBenchmark._abc_impl" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.ElasticityBenchmark._abc_impl" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.ElasticityBenchmark.get_prop_calc">
-<span class="sig-name descname"><span class="pre">get_prop_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc"><span class="pre">PropCalc</span></a></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L627-L642"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.ElasticityBenchmark.get_prop_calc" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_prop_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc"><span class="pre">PropCalc</span></a></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L542-L556"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.ElasticityBenchmark.get_prop_calc" title="Link to this definition"></a></dt>
 <dd><p>Calculates and returns a property calculation object based on the provided
 calculator and optional parameters. This is useful for initializing and
 configuring a property calculation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calculator</strong> – A Calculator object responsible for performing numerical
-operations required for property calculations.</p></li>
-<li><p><strong>kwargs</strong> – Additional keyword arguments used for configuring the property
-calculation.</p></li>
+<li><p><strong>calculator</strong> – ASE calculator or model name.</p></li>
+<li><p><strong>**kwargs</strong> – Merged into <code class="docutils literal notranslate"><span class="pre">ElasticityCalc</span></code> (default <code class="docutils literal notranslate"><span class="pre">fmax</span></code> 0.05).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>An initialized <cite>PropCalc</cite> object configured based on the specified
-calculator and keyword arguments.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc">PropCalc</a></p>
+<dd class="field-even"><p>Configured <code class="docutils literal notranslate"><span class="pre">ElasticityCalc</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.ElasticityBenchmark.process_result">
-<span class="sig-name descname"><span class="pre">process_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L644-L676"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.ElasticityBenchmark.process_result" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">process_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L558-L579"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.ElasticityBenchmark.process_result" title="Link to this definition"></a></dt>
 <dd><p>Processes the result dictionary containing bulk and shear modulus values, adjusts
 them by multiplying with a predefined conversion factor, and formats the keys
 according to the provided model name. If the result is None, default values of
@@ -448,21 +416,12 @@ NaN are returned for both bulk and shear modulus.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>result</strong> (<em>dict</em><em> or </em><em>None</em>) – A dictionary containing the bulk and shear modulus values under the keys
-‘bulk_modulus_vrh’ and ‘shear_modulus_vrh’ respectively. It can also be
-None to indicate missing elemental_refs.</p></li>
-<li><p><strong>model_name</strong> (<em>str</em>) – A string representing the identifier or name of the model. It will be used
-to format the returned dictionary’s keys.</p></li>
+<li><p><strong>result</strong> – <code class="docutils literal notranslate"><span class="pre">ElasticityCalc</span></code> output or None.</p></li>
+<li><p><strong>model_name</strong> – Column suffix for predictions.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dictionary containing two entries. The keys will be dynamically created
-by appending the model name to the terms ‘<a href="#id1"><span class="problematic" id="id2">bulk_modulus_vrh_</span></a>’ and
-‘<a href="#id3"><span class="problematic" id="id4">shear_modulus_vrh_</span></a>’. The values will either be scaled modulus values or
-NaN if the input result is None.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dd class="field-even"><p>K and G in GPa as <code class="docutils literal notranslate"><span class="pre">bulk_modulus_vrh_{model}</span></code>, <code class="docutils literal notranslate"><span class="pre">shear_modulus_vrh_{model}</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -471,7 +430,7 @@ NaN if the input result is None.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="matcalc.benchmark.EquilibriumBenchmark">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">EquilibriumBenchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'material_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'wbm-random-pbe52-equilibrium-2025.1.json.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'default_folder'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L377-L581"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.EquilibriumBenchmark" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">EquilibriumBenchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'material_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'wbm-random-pbe52-equilibrium-2025.1.json.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'default_folder'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L328-L501"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.EquilibriumBenchmark" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#matcalc.benchmark.Benchmark" title="matcalc.benchmark.Benchmark"><code class="xref py py-class docutils literal notranslate"><span class="pre">Benchmark</span></code></a></p>
 <p>Represents a benchmark for evaluating and analyzing equilibrium properties of materials.
 This benchmark utilizes a dataset and provides functionality for property calculation
@@ -487,21 +446,21 @@ required for equilibrium benchmark analysis.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>index_name</strong> (<em>str</em>) – The name of the index used to uniquely identify records in the dataset.</p></li>
-<li><p><strong>benchmark_name</strong> (<em>str</em><em> | </em><em>Path</em>) – The path or name of the benchmark file that contains the dataset.</p></li>
-<li><p><strong>folder_name</strong> (<em>str</em>) – The folder name used for file operations related to structure files.</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – Additional keyword arguments for customization.</p></li>
+<li><p><strong>index_name</strong> – Primary key field in benchmark rows.</p></li>
+<li><p><strong>benchmark_name</strong> – Remote filename or local path to benchmark JSON.</p></li>
+<li><p><strong>folder_name</strong> – Label for file/artifact grouping.</p></li>
+<li><p><strong>**kwargs</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">Benchmark</span></code> (properties, sampling, etc.).</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="matcalc.benchmark.EquilibriumBenchmark._abc_impl">
-<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.EquilibriumBenchmark._abc_impl" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.EquilibriumBenchmark._abc_impl" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.EquilibriumBenchmark._prepare_elemental_refs">
-<span class="sig-name descname"><span class="pre">_prepare_elemental_refs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L550-L581"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.EquilibriumBenchmark._prepare_elemental_refs" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_prepare_elemental_refs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L470-L501"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.EquilibriumBenchmark._prepare_elemental_refs" title="Link to this definition"></a></dt>
 <dd><p>Helper function to prepare and cache ground-state reference energies for all elements in the benchmark.</p>
 <p>This method performs the following steps exactly once per Benchmark instance:
 1. Load the full elemental references.
@@ -521,64 +480,52 @@ required for equilibrium benchmark analysis.</p>
 will simply look up values in <cite>self.elemental_refs</cite>, avoiding repeated relaxations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>calculator</strong> (<em>Calculator</em><em> | </em><em>str</em>) – ASE calculator (or its string name) used by RelaxCalc to compute energies.</p>
+<dd class="field-odd"><p><strong>calculator</strong> – ASE calculator or universal model name for elemental relaxations.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.EquilibriumBenchmark.get_prop_calc">
-<span class="sig-name descname"><span class="pre">get_prop_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc"><span class="pre">PropCalc</span></a></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L416-L439"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.EquilibriumBenchmark.get_prop_calc" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_prop_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc"><span class="pre">PropCalc</span></a></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L364-L385"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.EquilibriumBenchmark.get_prop_calc" title="Link to this definition"></a></dt>
 <dd><p>Returns a property calculation object for performing relaxation and formation energy
 calculations. This method initializes the stability calculator using the provided
 Calculator object and any additional configuration parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calculator</strong> (<em>Calculator</em>) – A Calculator object responsible for performing the relaxation and
-formation energy calculation.</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – Additional keyword arguments used for configuration.</p></li>
+<li><p><strong>calculator</strong> – ASE calculator or model name.</p></li>
+<li><p><strong>**kwargs</strong> – Merged into <code class="docutils literal notranslate"><span class="pre">EnergeticsCalc</span></code> (after elemental ref prep).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>An initialized PropCalc object configured for relaxation and formation energy
-calculations.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc">PropCalc</a></p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">EnergeticsCalc</span></code> with MP-PBE elemental references relaxed per element.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.EquilibriumBenchmark.process_result">
-<span class="sig-name descname"><span class="pre">process_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L441-L469"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.EquilibriumBenchmark.process_result" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">process_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L387-L405"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.EquilibriumBenchmark.process_result" title="Link to this definition"></a></dt>
 <dd><p>Processes the result dictionary containing final structures and formation energy per atom,
 formats the keys according to the provided model name. If the result is None, default values
 of NaN are returned for final structures or formation energy per atom.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>result</strong> (<em>dict</em><em> or </em><em>None</em>) – A dictionary containing the final structures and formation energy per atom under the keys
-‘final_structure’ and ‘formation energy per atom’. It can also be None to indicate missing
-elemental_refs.</p></li>
-<li><p><strong>model_name</strong> (<em>str</em>) – A string representing the identifier or name of the model. It will be used
-to format the returned dictionary’s keys.</p></li>
+<li><p><strong>result</strong> – <code class="docutils literal notranslate"><span class="pre">EnergeticsCalc</span></code> output dict, or None if calculation failed.</p></li>
+<li><p><strong>model_name</strong> – Suffix for column keys.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dictionary containing the specific final structure and formation energy per atomprefixed
-by the model name. The values will be NaN if the input result is None.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dd class="field-even"><p>Dict with <code class="docutils literal notranslate"><span class="pre">structure_{model_name}</span></code> and <code class="docutils literal notranslate"><span class="pre">formation_energy_per_atom_{model_name}</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.EquilibriumBenchmark.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_checkpoint_on_finish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_full_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.DataFrame</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L471-L548"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.EquilibriumBenchmark.run" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_checkpoint_on_finish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_full_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.DataFrame</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L407-L468"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.EquilibriumBenchmark.run" title="Link to this definition"></a></dt>
 <dd><p>Processes a collection of structures using a calculator, saves intermittent checkpoints,
 and returns the results in a DataFrame. In addition to the base processing performed
 by the parent class, this method computes the Euclidean distance between the relaxed
@@ -592,31 +539,18 @@ ensuring that progress is not lost in case of interruptions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calculator</strong> (<em>Calculator</em>) – ASE-compatible calculator instance used to provide PES information for PropCalc.</p></li>
-<li><p><strong>model_name</strong> (<em>str</em>) – Name of the model used for properties’ calculation.
-This name is updated in the results DataFrame.</p></li>
-<li><p><strong>n_jobs</strong> (<em>int</em><em> | </em><em>None</em>) – Number of parallel jobs to be used in the computation. Use -1
-to allocate all cores available on the system. Defaults to -1.</p></li>
-<li><p><strong>checkpoint_file</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>None</em>) – File path where checkpoint elemental_refs is saved periodically.
-If None, no checkpoints are saved.</p></li>
-<li><p><strong>checkpoint_freq</strong> (<em>int</em>) – Frequency after which checkpoint elemental_refs is saved.
-Corresponds to the number of structures processed.</p></li>
-<li><p><strong>delete_checkpoint_on_finish</strong> (<em>bool</em>) – Whether to delete checkpoint files when the benchmark finishes. Defaults to
-True.</p></li>
-<li><p><strong>include_full_results</strong> (<em>bool</em>) – Whether to save full results from PropCalc.calc for analysis afterwards. For
-instance, the ElasticityProp does not just compute the bulk and shear moduli, but also the full elastic
-tensors, which can be used for other kinds of analysis. Defaults to False.</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – Additional keyword arguments passed to the property calculator,
-for instance, to customize its behavior or computation options.</p></li>
+<li><p><strong>calculator</strong> – ASE calculator or model name.</p></li>
+<li><p><strong>model_name</strong> – Label for predicted columns.</p></li>
+<li><p><strong>n_jobs</strong> – Parallelism for <code class="docutils literal notranslate"><span class="pre">calc_many</span></code>.</p></li>
+<li><p><strong>checkpoint_file</strong> – Optional resume path.</p></li>
+<li><p><strong>checkpoint_freq</strong> – Checkpoint interval (structures).</p></li>
+<li><p><strong>delete_checkpoint_on_finish</strong> – Remove checkpoint after success.</p></li>
+<li><p><strong>include_full_results</strong> – Keep full <code class="docutils literal notranslate"><span class="pre">calc</span></code> dict keys.</p></li>
+<li><p><strong>**kwargs</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">Benchmark.run</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A pandas DataFrame containing the processed results for the given
-input structures. The DataFrame includes updated results and relevant
-metrics.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>pd.DataFrame</p>
+<dd class="field-even"><p>Results frame plus <code class="docutils literal notranslate"><span class="pre">d_{model_name}</span></code> structure fingerprint distance to DFT.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -625,15 +559,10 @@ metrics.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="matcalc.benchmark.PhononBenchmark">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PhononBenchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mp_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'alexandria-binary-pbe-phonon-2025.1.json.gz'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L679-L755"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.PhononBenchmark" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">PhononBenchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mp_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'alexandria-binary-pbe-phonon-2025.1.json.gz'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L582-L649"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.PhononBenchmark" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#matcalc.benchmark.Benchmark" title="matcalc.benchmark.Benchmark"><code class="xref py py-class docutils literal notranslate"><span class="pre">Benchmark</span></code></a></p>
-<p>Manages phonon benchmarking tasks, such as initializing benchmark elemental_refs,
-performing calculations, and processing results.</p>
-<p>This class facilitates constructing and managing phonon benchmarks based on
-provided elemental_refs. It supports operations for processing benchmark elemental_refs,
-extracting relevant attributes, and computing thermal properties. It is
-compatible with various calculators and is designed to streamline the
-benchmarking process for materials’ phonon-related properties.</p>
+<p>Phonon benchmark: compares heat capacity at 300 K (configurable index) to reference data.</p>
+<p>Wraps <code class="docutils literal notranslate"><span class="pre">PhononCalc</span></code> with benchmark-specific defaults and result extraction.</p>
 <p>Initializes an instance with specified index and benchmark details.</p>
 <p>This constructor sets up an object with predefined properties such as heat
 capacity and additional fields such as the formula. It supports customizations
@@ -641,22 +570,20 @@ via keyword arguments for further configurations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>index_name</strong> – The name of the index to be used for identification in
-the dataset.</p></li>
-<li><p><strong>benchmark_name</strong> – The benchmark file name or path containing
-the dataset information in JSON or compressed format.</p></li>
-<li><p><strong>kwargs</strong> – Additional optional parameters for configuration.</p></li>
+<li><p><strong>index_name</strong> – Primary key field name.</p></li>
+<li><p><strong>benchmark_name</strong> – Remote filename or local path.</p></li>
+<li><p><strong>**kwargs</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">Benchmark</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="matcalc.benchmark.PhononBenchmark._abc_impl">
-<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.PhononBenchmark._abc_impl" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.PhononBenchmark._abc_impl" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.PhononBenchmark.get_prop_calc">
-<span class="sig-name descname"><span class="pre">get_prop_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc"><span class="pre">PropCalc</span></a></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L719-L736"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.PhononBenchmark.get_prop_calc" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_prop_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc"><span class="pre">PropCalc</span></a></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L616-L632"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.PhononBenchmark.get_prop_calc" title="Link to this definition"></a></dt>
 <dd><p>Retrieves a phonon calculation instance based on the given calculator and
 additional keyword arguments.</p>
 <p>This function initializes and returns a <cite>PhononCalc</cite> object using the provided
@@ -665,40 +592,29 @@ calculation further.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calculator</strong> – The calculator instance used to perform the phonon
-calculation. Must be an instance of the <cite>Calculator</cite> class.</p></li>
-<li><p><strong>kwargs</strong> – Additional keyword arguments for configuring the resulting
-<cite>PhononCalc</cite> instance.</p></li>
+<li><p><strong>calculator</strong> – ASE calculator or model name.</p></li>
+<li><p><strong>**kwargs</strong> – Merged into <code class="docutils literal notranslate"><span class="pre">PhononCalc</span></code> (defaults <code class="docutils literal notranslate"><span class="pre">fmax=0.05</span></code>, no phonon YAML).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A new <cite>PhononCalc</cite> object, initialized with the input calculator and
-optional parameters.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="matcalc._base.html#matcalc._base.PropCalc" title="matcalc._base.PropCalc">PropCalc</a></p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">PhononCalc</span></code> instance.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.PhononBenchmark.process_result">
-<span class="sig-name descname"><span class="pre">process_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L738-L755"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.PhononBenchmark.process_result" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">process_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L634-L649"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.PhononBenchmark.process_result" title="Link to this definition"></a></dt>
 <dd><p>Processes the result dictionary to extract specific thermal property information for the provided model name.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>result</strong> (<em>dict</em>) – Dictionary containing thermal properties, with keys structured to access relevant elemental_refs
-like “thermal_properties” and “heat_capacity”.</p></li>
-<li><p><strong>model_name</strong> (<em>str</em>) – The model name used as a prefix in returned result keys.</p></li>
+<li><p><strong>result</strong> – <code class="docutils literal notranslate"><span class="pre">PhononCalc</span></code> output dict or None.</p></li>
+<li><p><strong>model_name</strong> – Column suffix.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dictionary containing the specific heat capacity at a particular index (e.g., 30),
-prefixed by the model name.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">heat_capacity_{model_name}</span></code> at fixed thermal-properties index (default grid).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -707,7 +623,7 @@ prefixed by the model name.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="matcalc.benchmark.SofteningBenchmark">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SofteningBenchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">benchmark_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'wbm-high-energy-states.json.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'wbm_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L758-L887"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.SofteningBenchmark" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SofteningBenchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">benchmark_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'wbm-high-energy-states.json.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'wbm_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L652-L782"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.SofteningBenchmark" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="simple">
 <dt>A benchmark for the systematic softening of a PES, as described in:</dt><dd><p>B. Deng, et al. npj Comput. Mater. 11, 9 (2025).
@@ -719,30 +635,42 @@ doi: 10.1038/s41524-024-01500-6</p>
 <p>This benchmark essentially performs static calculation on pre-sampled high-energy
 PES configurations, and then compare the systematic underestimation of forces
 predicted between GGA-DFT and the provided force field.</p>
-<p>Initializes an instance with specified index and benchmark details.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>index_name</strong> – The name of the index to be used for identification in
-the dataset.</p></li>
-<li><p><strong>benchmark_name</strong> – The benchmark file name or path containing
-the dataset information in JSON or compressed format.</p></li>
-<li><p><strong>kwargs</strong> – Additional optional parameters for configuration.</p></li>
+<li><p><strong>benchmark_name</strong> – Remote filename or local path to high-energy-state dataset.</p></li>
+<li><p><strong>index_name</strong> – Id field name for each material block.</p></li>
+<li><p><strong>n_samples</strong> – Optional random subset of material keys.</p></li>
+<li><p><strong>seed</strong> – RNG seed for subsampling.</p></li>
+<li><p><strong>**kwargs</strong> – Stored on <code class="docutils literal notranslate"><span class="pre">self.kwargs</span></code> for extensions.</p></li>
 </ul>
 </dd>
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matcalc.benchmark.SofteningBenchmark.data">
+<span class="sig-name descname"><span class="pre">data</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/matcalc/benchmark.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.SofteningBenchmark.data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.SofteningBenchmark.get_linear_fitted_slope">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_linear_fitted_slope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L796-L811"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.SofteningBenchmark.get_linear_fitted_slope" title="Link to this definition"></a></dt>
-<dd><p>Return the linearly fitted slope of x and y using a simple linear model (y = ax).
-:param x: A list of the x values.
-:param y: A list of the y values.
-:return: A float of the fitted slope.</p>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_linear_fitted_slope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L695-L714"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.SofteningBenchmark.get_linear_fitted_slope" title="Link to this definition"></a></dt>
+<dd><p>Linear least-squares slope for <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">≈</span> <span class="pre">a</span> <span class="pre">x</span></code> (proportional fit).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – Reference force components (flattened).</p></li>
+<li><p><strong>y</strong> – Predicted force components (flattened).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Fitted proportionality constant <code class="docutils literal notranslate"><span class="pre">a</span></code>.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matcalc.benchmark.SofteningBenchmark.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_full_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.DataFrame</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L813-L887"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.SofteningBenchmark.run" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Calculator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_full_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.DataFrame</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L716-L782"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.SofteningBenchmark.run" title="Link to this definition"></a></dt>
 <dd><p>Process all the material ids by
 1. calculate the forces on all the sampled structures.
 2. perform a linear fit on the predicted forces w.r.t. provided DFT forces.
@@ -750,22 +678,15 @@ the dataset information in JSON or compressed format.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calculator</strong> (<em>Calculator</em>) – The ASE-compatible calculator instance</p></li>
-<li><p><strong>model_name</strong> (<em>str</em>) – Name of the model used for properties’ calculation.
-This name is updated in the results DataFrame.</p></li>
-<li><p><strong>checkpoint_file</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>None</em>) – File path where checkpoint is saved periodically.
-If None, no checkpoints are saved.</p></li>
-<li><p><strong>checkpoint_freq</strong> (<em>int</em>) – Frequency after which checkpoint is saved.
-Corresponds to the number of structures processed.</p></li>
-<li><p><strong>include_full_results</strong> (<em>bool</em>) – Whether to include the raw force prediction in the
-returned dataframe</p></li>
+<li><p><strong>calculator</strong> – ASE calculator for force evaluation.</p></li>
+<li><p><strong>model_name</strong> – Column suffix for softening scale.</p></li>
+<li><p><strong>checkpoint_file</strong> – Optional resume path.</p></li>
+<li><p><strong>checkpoint_freq</strong> – Checkpoint every N materials completed.</p></li>
+<li><p><strong>include_full_results</strong> – Keep <code class="docutils literal notranslate"><span class="pre">raw_force_predictions</span></code> column when True.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dataframe containing the softening scales.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>pd.DataFrame</p>
+<dd class="field-even"><p>DataFrame with per-material softening scale and metadata.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -774,38 +695,31 @@ returned dataframe</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="matcalc.benchmark.get_available_benchmarks">
-<span class="sig-name descname"><span class="pre">get_available_benchmarks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L42-L54"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.get_available_benchmarks" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_available_benchmarks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L43-L55"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.get_available_benchmarks" title="Link to this definition"></a></dt>
 <dd><p>Fetches and returns a list of available benchmarks.</p>
 <p>This function makes a request to a predefined URL to retrieve benchmark
 data. It then filters and extracts the names of benchmarks that end with
 the ‘.json.gz’ extension.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A list of benchmark names available in the retrieved data.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>list[str]</p>
+<dd class="field-odd"><p>Benchmark archive filenames ending in <code class="docutils literal notranslate"><span class="pre">.json.gz</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="matcalc.benchmark.get_benchmark_data">
-<span class="sig-name descname"><span class="pre">get_benchmark_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.2/src/matcalc/benchmark.py#L57-L77"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.get_benchmark_data" title="Link to this definition"></a></dt>
-<dd><p>Retrieve benchmark data as a Pandas DataFrame. Uses fsspec to cache files locally if possible.</p>
+<span class="sig-name descname"><span class="pre">get_benchmark_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/materialsvirtuallab/matcalc/blob/v0.4.6/src/matcalc/benchmark.py#L58-L80"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#matcalc.benchmark.get_benchmark_data" title="Link to this definition"></a></dt>
+<dd><p>Retrieve a benchmark dataset from the remote store. Uses fsspec to cache files locally if possible.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – Name of the benchmark elemental_refs file to be retrieved</p>
+<dd class="field-odd"><p><strong>name</strong> – Benchmark JSON archive filename (e.g. <code class="docutils literal notranslate"><span class="pre">*.json.gz</span></code>).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Benchmark elemental_refs loaded as a Pandas DataFrame</p>
+<dd class="field-even"><p>List of entries decoded with <code class="docutils literal notranslate"><span class="pre">MontyDecoder</span></code> (typically dicts).</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>pd.DataFrame</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>requests.RequestException</strong> – If the benchmark elemental_refs file cannot be
-downloaded from the specified URL</p>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>requests.RequestException</strong> – If the file cannot be downloaded.</p>
 </dd>
 </dl>
 </dd></dl>
