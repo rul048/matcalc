@@ -252,7 +252,7 @@ subset before running the full suite. HPC resources are recommended for full ben
 
 ## Docker Images
 
-Docker images with MatCalc and LAMMPS support are available at the [Materials Virtual Lab Docker Repository].
+Docker images with MatCalc and LAMMPS support are available at the [Materialyze AI Docker Repository].
 
 ## Tutorials
 
@@ -269,4 +269,4 @@ sidebar for a BibTeX and APA citation.
 [MatPES]: https://matpes.ai
 [MatCalc]: https://matcalc.ai
 [ASE]: https://wiki.fysik.dtu.dk/ase/
-[Materials Virtual Lab Docker Repository]: https://hub.docker.com/orgs/materialyzeai/repositories
+[Materialyze AI Docker Repository]: https://hub.docker.com/orgs/materialyzeai/repositories
