@@ -6,6 +6,12 @@ nav_order: 2
 
 # Change Log
 
+## 0.4.7
+1. **`ElasticityCalc` can now return moduli in GPa.**
+   - Added a new `units_GPa` keyword argument (default `False`). When set to `True`, the returned `elastic_tensor`, `bulk_modulus_vrh`, `shear_modulus_vrh`, and `residuals_sum` are converted from pymatgen's native eV/A^3 units to GPa.
+2. **Bug fix in `EOSCalc`.**
+   - Fixed a variable shadowing issue where the loop-local relaxation result was overwriting the outer merged `result` dict, causing the merged relaxation/structure fields returned by `EOSCalc.calc` to come from a strained calculation rather than the originally relaxed input structure.
+
 ## v0.4.6
 1. **PR #199 Add `GBCalc` Class for Grain Boundary Calculation** (originally PR #111)
    - Author: @rul048
