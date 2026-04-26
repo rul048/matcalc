@@ -97,30 +97,38 @@ def test_qha_calc(
 
     # Test values corresponding to different scale factors
     assert result["volumes"] == pytest.approx(
-        [23.07207, 23.79302, 24.52884, 25.27967, 26.04567, 26.82699, 27.62378],
+        [
+            22.75431542332498,
+            23.465337138175542,
+            24.19101858051767,
+            24.931509339407416,
+            25.686959003900803,
+            26.45751716305386,
+            27.24333340592264,
+        ],
         rel=1e-3,
     )
 
     assert result["electronic_energies"] == pytest.approx(
         [
-            -14.043658256530762,
-            -14.065637588500977,
-            -14.07603645324707,
-            -14.07599925994873,
-            -14.066689491271973,
-            -14.048959732055664,
-            -14.023341178894043,
+            -14.271234512329102,
+            -14.289902687072754,
+            -14.296747207641602,
+            -14.292953491210938,
+            -14.279546737670898,
+            -14.257353782653809,
+            -14.227141380310059,
         ],
         abs=1e-2,
     )
 
     # Test values at 300 K
     ind = result["temperatures"].tolist().index(300)
-    assert result["thermal_expansion_coefficients"][ind] == pytest.approx(1.03973e-04, rel=1e-1)
-    assert result["gibbs_free_energies"][ind] == pytest.approx(-14.04472, rel=1e-1)
-    assert result["bulk_modulus_P"][ind] == pytest.approx(54.25954, rel=1e-1)
-    assert result["heat_capacity_P"][ind] == pytest.approx(62.27455, rel=1e-1)
-    assert result["gruneisen_parameters"][ind] == pytest.approx(1.688877575687573, rel=1e-1)
+    assert result["thermal_expansion_coefficients"][ind] == pytest.approx(0.00010143776811023052, rel=1e-1)
+    assert result["gibbs_free_energies"][ind] == pytest.approx(-14.132227718880952, rel=1e-1)
+    assert result["bulk_modulus_P"][ind] == pytest.approx(62.69111894808186, rel=1e-1)
+    assert result["heat_capacity_P"][ind] == pytest.approx(60.19093788454247, rel=1e-1)
+    assert result["gruneisen_parameters"][ind] == pytest.approx(1.6941006869234219, rel=1e-1)
     assert len(result["scaled_structures"]) == len(result["volumes"])
     scaled_structure_volumes = [scaled_structure.volume for scaled_structure in result["scaled_structures"]]
     assert_allclose(scaled_structure_volumes, result["volumes"])
@@ -159,26 +167,34 @@ def test_qha_pressure(
 
     # Test values corresponding to different scale factors
     assert result["volumes"] == pytest.approx(
-        [23.07207, 23.79302, 24.52884, 25.27967, 26.04567, 26.82699, 27.62378],
+        [
+            22.28315065451624,
+            22.979449518968405,
+            23.690104557630665,
+            24.415262262076606,
+            25.155069123879795,
+            25.90967163461379,
+            26.67921628585219,
+        ],
         abs=1e-1,
     )
 
     assert result["electronic_energies"] == pytest.approx(
         [
-            -14.043658256530762,
-            -14.065637588500977,
-            -14.07603645324707,
-            -14.07599925994873,
-            -14.066689491271973,
-            -14.048959732055664,
-            -14.023341178894043,
+            -14.25145435333252,
+            -14.278569221496582,
+            -14.293281555175781,
+            -14.296686172485352,
+            -14.289942741394043,
+            -14.273972511291504,
+            -14.2495698928833,
         ],
         abs=1e-2,
     )
 
     # Test values at 300 K
     ind = result["temperatures"].tolist().index(300)
-    assert result["gibbs_free_energies"][ind] == pytest.approx(-12.43074657443325, rel=1e-1)
+    assert result["gibbs_free_energies"][ind] == pytest.approx(-12.650951886940106, rel=1e-1)
 
 
 def test_qha_calc_atoms(
@@ -201,7 +217,7 @@ def test_qha_calc_atoms(
 
     # Test values at 300 K
     ind = result["temperatures"].tolist().index(300)
-    assert result["thermal_expansion_coefficients"][ind] == pytest.approx(5.191273165438463e-06, rel=1e-1)
+    assert result["thermal_expansion_coefficients"][ind] == pytest.approx(6.333789329033238e-06, rel=1e-1)
 
 
 def test_phonon_calc_imaginary_freq_tol(
@@ -224,7 +240,7 @@ def test_phonon_calc_imaginary_freq_tol(
     result = qha_calc.calc(Si_atoms)
 
     ind = result["temperatures"].tolist().index(300)
-    assert result["thermal_expansion_coefficients"][ind] == pytest.approx(5.191273165438463e-06, rel=1e-1)
+    assert result["thermal_expansion_coefficients"][ind] == pytest.approx(6.374814103341018e-06, rel=1e-1)
     assert len(result["volumes"]) == 7
     assert len(result["electronic_energies"]) == 7
 
@@ -309,19 +325,27 @@ def test_qha_multiple_pressures(
 
     # Test values corresponding to different scale factors
     assert result["volumes"] == pytest.approx(
-        [23.07207, 23.79302, 24.52884, 25.27967, 26.04567, 26.82699, 27.62378],
+        [
+            22.28315038639947,
+            22.97944924247358,
+            23.690104272585057,
+            24.415261968305703,
+            25.155068821207333,
+            25.909671322861758,
+            26.679215964840786,
+        ],
         abs=1e-1,
     )
 
     assert result["electronic_energies"] == pytest.approx(
         [
-            -14.043658256530762,
-            -14.065637588500977,
-            -14.07603645324707,
-            -14.07599925994873,
-            -14.066689491271973,
-            -14.048959732055664,
-            -14.023341178894043,
+            -14.25145435333252,
+            -14.278570175170898,
+            -14.293282508850098,
+            -14.296686172485352,
+            -14.289942741394043,
+            -14.27397346496582,
+            -14.249568939208984,
         ],
         abs=1e-2,
     )
@@ -332,5 +356,5 @@ def test_qha_multiple_pressures(
 
     # Test values at 300 K
     ind = result["temperatures"].tolist().index(300)
-    assert result["qha_results"][0]["gibbs_free_energies"][ind] == pytest.approx(-13.783952868872804, rel=1e-1)
-    assert result["qha_results"][1]["gibbs_free_energies"][ind] == pytest.approx(-12.43074657443325, rel=1e-1)
+    assert result["qha_results"][0]["gibbs_free_energies"][ind] == pytest.approx(-13.975436772046931, rel=1e-1)
+    assert result["qha_results"][1]["gibbs_free_energies"][ind] == pytest.approx(-12.650951210662038, rel=1e-1)

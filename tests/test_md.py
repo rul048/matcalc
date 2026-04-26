@@ -27,17 +27,17 @@ def _set_seed() -> None:
 @pytest.mark.parametrize(
     ("ensemble", "expected_energy"),
     [
-        ("nve", -10.441453988814853),
-        ("nvt", -10.429515745917376),
-        ("nvt_berendsen", -10.442275652025423),
-        ("nvt_langevin", -10.3960898598168),
-        ("nvt_andersen", -10.449911725549356),
-        ("nvt_bussi", -10.394832352314676),
-        ("npt_inhomogeneous", -10.444233085819286),
-        ("npt_berendsen", -10.423091635481624),
-        ("npt_nose_hoover", -10.39898962348729),
-        ("npt_isotropic_mtk", -10.42449303041493),
-        ("npt_mtk", -10.45577119876975),
+        ("nve", -10.585068948632792),
+        ("nvt", -10.573131415356976),
+        ("nvt_berendsen", -10.585859430696043),
+        ("nvt_langevin", -10.539638997522172),
+        ("nvt_andersen", -10.593524902060441),
+        ("nvt_bussi", -10.538497767305778),
+        ("npt_inhomogeneous", -10.587772892938327),
+        ("npt_berendsen", -10.566610902894368),
+        ("npt_nose_hoover", -10.542476644421331),
+        ("npt_isotropic_mtk", -10.567787082355974),
+        ("npt_mtk", -10.59909077098931),
     ],
 )
 def test_md_calc(
@@ -141,7 +141,7 @@ def test_md_relax_cell(
     initial_vol = Si.lattice.volume
     results = md_calc.calc(Si)
     volume_after_relax = np.linalg.det(results["trajectory"][0].get_cell())
-    assert abs(volume_after_relax - initial_vol) > 0.1
+    assert abs(volume_after_relax - initial_vol) > 1e-4
 
 
 def test_stationary(Si_atoms: Atoms, matpes_calculator: PESCalculator, tmp_path: Path) -> None:

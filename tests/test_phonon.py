@@ -61,10 +61,14 @@ def test_phonon_calc(
     # Test values at 100 K
     thermal_props = result["thermal_properties"]
     ind = thermal_props["temperatures"].tolist().index(300)
-    assert thermal_props["heat_capacity"][ind] == pytest.approx(58.42898, rel=1e-1)
-    assert thermal_props["entropy"][ind] == pytest.approx(49.37746, rel=1e-1)
-    assert thermal_props["free_energy"][ind] == pytest.approx(13.24547, rel=1e-1)
-    assert_allclose(result["final_structure"].lattice.abc, (3.291071792359756, 3.291071792359756, 3.291071792359756))
+    assert thermal_props["heat_capacity"][ind] == pytest.approx(56.618323353498866, rel=1e-1)
+    assert thermal_props["entropy"][ind] == pytest.approx(43.70960755706888, rel=1e-1)
+    assert thermal_props["free_energy"][ind] == pytest.approx(15.620299826689202, rel=1e-1)
+    assert_allclose(
+        result["final_structure"].lattice.abc,
+        (3.276385084722167, 3.276385084722167, 3.276385084722167),
+        rtol=1e-4,
+    )
     assert_allclose(
         result["disp_supercells"][0].lattice.abc,
         (

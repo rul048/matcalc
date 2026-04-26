@@ -34,7 +34,6 @@ from ._relaxation import RelaxCalc
 from ._stability import EnergeticsCalc
 from .backend import run_pes_calc
 from .config import BENCHMARK_DATA_DIR, BENCHMARK_HF_REPO_ID
-from .units import eVA3ToGPa
 
 logger = logging.getLogger(__name__)
 
@@ -549,6 +548,7 @@ class ElasticityBenchmark(Benchmark):
             Configured ``ElasticityCalc``.
         """
         kwargs.setdefault("fmax", 0.05)
+        kwargs.setdefault("units_GPa", True)
         return ElasticityCalc(calculator, **kwargs)
 
     def process_result(self, result: dict | None, model_name: str) -> dict:
@@ -566,12 +566,8 @@ class ElasticityBenchmark(Benchmark):
             K and G in GPa as ``bulk_modulus_vrh_{model}``, ``shear_modulus_vrh_{model}``.
         """
         return {
-            f"bulk_modulus_vrh_{model_name}": (
-                result["bulk_modulus_vrh"] * eVA3ToGPa if result is not None else float("nan")
-            ),
-            f"shear_modulus_vrh_{model_name}": (
-                result["shear_modulus_vrh"] * eVA3ToGPa if result is not None else float("nan")
-            ),
+            f"bulk_modulus_vrh_{model_name}": (result["bulk_modulus_vrh"] if result is not None else float("nan")),
+            f"shear_modulus_vrh_{model_name}": (result["shear_modulus_vrh"] if result is not None else float("nan")),
         }
 
 
