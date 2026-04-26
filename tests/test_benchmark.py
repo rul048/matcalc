@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
+from huggingface_hub.errors import EntryNotFoundError
 
 from matcalc.benchmark import (
     BenchmarkSuite,
@@ -30,7 +31,7 @@ def test_available_benchmarks() -> None:
 def test_get_benchmark_data() -> None:
     d = get_benchmark_data("mp-pbe-elasticity-2025.3.json.gz")
     assert len(d) > 10000
-    with pytest.raises(FileNotFoundError) as _:
+    with pytest.raises(EntryNotFoundError) as _:
         get_benchmark_data("bad_url")
 
 

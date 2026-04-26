@@ -3,18 +3,17 @@
 from __future__ import annotations
 
 import abc
+import gzip
 import json
 import logging
 import os
 import random
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from urllib.parse import urlparse
 
-import fsspec
 import numpy as np
 import pandas as pd
-import requests
+from huggingface_hub import HfApi, hf_hub_download
 from matminer.featurizers.site import CrystalNNFingerprint
 from matminer.featurizers.structure import SiteStatsFingerprint
 from monty.json import MontyDecoder
@@ -34,7 +33,7 @@ from ._phonon import PhononCalc
 from ._relaxation import RelaxCalc
 from ._stability import EnergeticsCalc
 from .backend import run_pes_calc
-from .config import BENCHMARK_DATA_DIR, BENCHMARK_DATA_DOWNLOAD_URL, BENCHMARK_DATA_URL
+from .config import BENCHMARK_DATA_DIR, BENCHMARK_HF_REPO_ID
 from .units import eVA3ToGPa
 
 logger = logging.getLogger(__name__)
@@ -42,22 +41,20 @@ logger = logging.getLogger(__name__)
 
 def get_available_benchmarks() -> list[str]:
     """
-    Fetches and returns a list of available benchmarks.
-
-    This function makes a request to a predefined URL to retrieve benchmark
-    data. It then filters and extracts the names of benchmarks that end with
-    the '.json.gz' extension.
+    Fetches and returns a list of available benchmarks from the
+    ``Materialyze/matcalc-bench`` Hugging Face dataset.
 
     Returns:
         Benchmark archive filenames ending in ``.json.gz``.
     """
-    r = requests.get(BENCHMARK_DATA_URL)  # noqa: S113
-    return [d["name"] for d in json.loads(r.content.decode("utf-8")) if d["name"].endswith(".json.gz")]
+    files = HfApi().list_repo_files(BENCHMARK_HF_REPO_ID, repo_type="dataset")
+    return [f for f in files if f.endswith(".json.gz")]
 
 
 def get_benchmark_data(name: str) -> list[Any]:
     """
-    Retrieve a benchmark dataset from the remote store. Uses fsspec to cache files locally if possible.
+    Retrieve a benchmark dataset from the ``Materialyze/matcalc-bench`` Hugging
+    Face dataset. Files are cached locally by ``huggingface_hub``.
 
     Args:
         name: Benchmark JSON archive filename (e.g. ``*.json.gz``).
@@ -66,17 +63,16 @@ def get_benchmark_data(name: str) -> list[Any]:
         List of entries decoded with ``MontyDecoder`` (typically dicts).
 
     Raises:
-        requests.RequestException: If the file cannot be downloaded.
+        huggingface_hub.errors.EntryNotFoundError: If the file does not exist
+            in the dataset.
     """
-    uri = f"{BENCHMARK_DATA_DOWNLOAD_URL}/{name}"
-    parsed = urlparse(str(uri))
-    fs = fsspec.filesystem(
-        "filecache",
-        target_protocol=parsed.scheme,
-        cache_storage=str(BENCHMARK_DATA_DIR),
-        same_names=True,
+    local_path = hf_hub_download(
+        repo_id=BENCHMARK_HF_REPO_ID,
+        filename=name,
+        repo_type="dataset",
+        cache_dir=str(BENCHMARK_DATA_DIR),
     )
-    with fs.open(uri, compression="infer") as f:
+    with gzip.open(local_path, "rt", encoding="utf-8") as f:
         return json.load(f, cls=MontyDecoder)
 
 

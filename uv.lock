@@ -2499,7 +2499,7 @@ version = "0.4.7"
 source = { editable = "." }
 dependencies = [
     { name = "ase" },
-    { name = "fsspec" },
+    { name = "huggingface-hub" },
     { name = "joblib" },
     { name = "phono3py" },
     { name = "phonopy" },
@@ -2578,7 +2578,7 @@ requires-dist = [
     { name = "codecov-cli", marker = "extra == 'ci'", specifier = ">=10.3.0" },
     { name = "coverage", marker = "extra == 'ci'", specifier = ">=7.7.1" },
     { name = "coveralls", marker = "extra == 'ci'", specifier = ">=4.0.1" },
-    { name = "fsspec", specifier = ">=2025.3.0" },
+    { name = "huggingface-hub", specifier = ">=0.30.0" },
     { name = "ipython", marker = "extra == 'ci'", specifier = ">=8.34.0" },
     { name = "joblib", specifier = ">=1.4.2" },
     { name = "jupyter", marker = "extra == 'ci'", specifier = ">=1.1.1" },

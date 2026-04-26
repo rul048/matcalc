@@ -22,7 +22,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: docker.io/materialyzeai/lammps_gnnp
+      image: docker.io/materialsvirtuallab/lammps_gnnp
 
     env:
       PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python
