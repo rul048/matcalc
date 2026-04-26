@@ -29,7 +29,7 @@ MODEL_ALIASES = {
     "m3gnet": "M3GNet-MatPES-PBE-v2025.1-PES",
     "chgnet": "CHGNet-MatPES-PBE-2025.2.10-2.7M-PES",
     "pbe": "TensorNet-PES-MatPES-PBE-2025.2",
-    "r2scan": "TensorNet-PES-MatPES-r2SCAN-2025.1",
+    "r2scan": "TensorNet-PES-MatPES-r2SCAN-2025.2",
 }
 
 

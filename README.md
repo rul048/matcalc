@@ -91,7 +91,7 @@ MLIPs such as MTP, NNP, GAP, SNAP, ACE, etc.
 | Model | String Name / Alias | Package |
 |---|---|---|
 | TensorNet-MatPES-PBE | `"TensorNet-PES-MatPES-PBE-2025.2"` or `"pbe"` | matgl |
-| TensorNet-MatPES-r²SCAN | `"TensorNet-PES-MatPES-r2SCAN-2025.1"` or `"r2scan"` | matgl |
+| TensorNet-MatPES-r²SCAN | `"TensorNet-PES-MatPES-r2SCAN-2025.2"` or `"r2scan"` | matgl |
 | M3GNet-MatPES-PBE | `"M3GNet-PES-MatPES-PBE-v2025.1"` or `"m3gnet"` | matgl |
 | CHGNet | `"CHGNet-PES-MatPES-PBE-2025.2.10"` or `"chgnet"` | matgl |
 | MACE-MP | `"MACE"` | mace-torch |
@@ -225,7 +225,7 @@ MatCalc includes a benchmarking framework released alongside [MatPES].
 ```python
 import matcalc as mtc
 
-calculator = mtc.load_fp("TensorNet-PES-MatPES-PBE-2025.1")
+calculator = mtc.load_fp("TensorNet-PES-MatPES-PBE-2025.2")
 benchmark = mtc.benchmark.ElasticityBenchmark(fmax=0.05, relax_structure=True)
 results = benchmark.run(calculator, "TensorNet-MatPES")
 ```
@@ -237,7 +237,7 @@ To run multiple benchmarks on multiple models:
 ```python
 import matcalc as mtc
 
-tensornet = mtc.load_fp("TensorNet-PES-MatPES-PBE-2025.1")
+tensornet = mtc.load_fp("TensorNet-PES-MatPES-PBE-2025.2")
 m3gnet = mtc.load_fp("M3GNet-PES-MatPES-PBE-2025.1")
 
 elasticity_benchmark = mtc.benchmark.ElasticityBenchmark(fmax=0.5, relax_structure=True)
