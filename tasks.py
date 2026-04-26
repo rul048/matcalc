@@ -87,7 +87,7 @@ def make_docs(ctx: Context):
         ctx.run("mv html/modules.html .")
 
         ctx.run("rm -r html", warn=True)
-        ctx.run('sed -I "" "s/_static/assets/g" matcalc*.html')
+        ctx.run('sed -i "s/_static/assets/g" matcalc*.html')
         ctx.run("rm -rf doctrees", warn=True)
 
         ctx.run("cp ../README.md index.md")
