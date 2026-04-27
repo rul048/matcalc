@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 def get_available_benchmarks() -> list[str]:
     """
     Fetches and returns a list of available benchmarks from the
-    ``Materialyze/matcalc-bench`` Hugging Face dataset.
+    ``materialyze/matcalc-bench`` Hugging Face dataset.
 
     Returns:
         Benchmark archive filenames ending in ``.json.gz``.
@@ -52,7 +52,7 @@ def get_available_benchmarks() -> list[str]:
 
 def get_benchmark_data(name: str) -> list[Any]:
     """
-    Retrieve a benchmark dataset from the ``Materialyze/matcalc-bench`` Hugging
+    Retrieve a benchmark dataset from the ``materialyze/matcalc-bench`` Hugging
     Face dataset. Files are cached locally by ``huggingface_hub``.
 
     Args:

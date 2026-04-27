@@ -6,7 +6,7 @@ import os
 import pathlib
 import shutil
 
-BENCHMARK_HF_REPO_ID: str = "Materialyze/matcalc-bench"
+BENCHMARK_HF_REPO_ID: str = "materialyze/matcalc-bench"
 BENCHMARK_DATA_DIR: pathlib.Path = pathlib.Path.home() / ".cache" / "matcalc"
 SIMULATION_BACKEND: str = os.environ.get("MATCALC_BACKEND", "ASE").upper()
 
