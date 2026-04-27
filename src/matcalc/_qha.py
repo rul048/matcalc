@@ -153,7 +153,7 @@ class QHACalc(PropCalc):
         self.pressure = pressure
         if pressure is None:
             self.pressures: list[float | None] = [None]
-        elif isinstance(pressure, (int, float)):
+        elif isinstance(pressure, int | float):
             self.pressures = [float(pressure)]
         else:
             self.pressures = list(pressure)
@@ -245,20 +245,8 @@ class QHACalc(PropCalc):
         properties = self._collect_properties(structure_in)
 
         temperatures = np.arange(self.t_min, self.t_max + self.t_step, self.t_step)
-        # Collected as (n_volumes, n_temps); PhonopyQHA expects (n_temps, n_volumes).
-        free_energy = np.array(properties["free_energies"]).T
-        cv = np.array(properties["heat_capacities"]).T
-        entropy = np.array(properties["entropies"]).T
-        qha = PhonopyQHA(
-            volumes=properties["volumes"],
-            electronic_energies=properties["electronic_energies"],
-            temperatures=np.append(temperatures, temperatures[-1] + self.t_step),
-            free_energy=free_energy,
-            cv=cv,
-            entropy=entropy,
-            pressure=self.pressure,
-            eos=self.eos,
-        )
+        # PhonopyQHA needs one extra temperature point for finite-difference derivatives.
+        temperatures_ext = np.append(temperatures, temperatures[-1] + self.t_step)
 
         qha_results: list[dict] = []
         for pressure in self.pressures:
@@ -269,13 +257,12 @@ class QHACalc(PropCalc):
             qha = PhonopyQHA(
                 volumes=properties["volumes"],
                 electronic_energies=properties["electronic_energies"],
-                temperatures=temperatures,
+                temperatures=temperatures_ext,
                 free_energy=np.transpose(properties["free_energies"]),
                 cv=np.transpose(properties["heat_capacities"]),
                 entropy=np.transpose(properties["entropies"]),
                 pressure=pressure,
                 eos=self.eos,
-                t_max=self.t_max,
             )
             self._write_output_files(qha, pressure=pressure)
             qha_results.append(
