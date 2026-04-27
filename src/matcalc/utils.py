@@ -55,10 +55,10 @@ except Exception:  # noqa: BLE001
 
 # Provide simple aliases for some common models. The key in MODEL_ALIASES must be lower case.
 MODEL_ALIASES = {
-    "tensornet": "TensorNet-PES-MatPES-PBE-2025.1",
+    "tensornet": "TensorNet-PES-MatPES-PBE-2025.2",
     "m3gnet": "M3GNet-PES-MatPES-PBE-2025.1",
     "chgnet": "CHGNet-PES-MatPES-PBE-2025.1",
-    "pbe": "TensorNet-PES-MatPES-PBE-2025.1",
+    "pbe": "TensorNet-PES-MatPES-PBE-2025.2",
     "r2scan": "TensorNet-PES-MatPES-r2SCAN-2025.2",
 }
 

@@ -2495,7 +2495,7 @@ wheels = [
 
 [[package]]
 name = "matcalc"
-version = "0.4.7"
+version = "0.4.8"
 source = { editable = "." }
 dependencies = [
     { name = "ase" },
@@ -2585,7 +2585,7 @@ requires-dist = [
     { name = "maml", marker = "extra == 'ci'", specifier = ">=2025.4.3" },
     { name = "maml", marker = "extra == 'maml'", specifier = ">=2025.4.3" },
     { name = "matgl", marker = "extra == 'ci'", specifier = ">=2.1.1" },
-    { name = "matgl", marker = "extra == 'matgl'", specifier = ">=2.2.0" },
+    { name = "matgl", marker = "extra == 'matgl'", specifier = ">=2.2.1" },
     { name = "matminer", marker = "extra == 'benchmark'", specifier = ">=0.10.1" },
     { name = "matminer", marker = "extra == 'ci'", specifier = ">=0.10.1" },
     { name = "mp-api", marker = "extra == 'ci'", specifier = ">=0.45.3" },
@@ -2636,7 +2636,7 @@ lint = [
 
 [[package]]
 name = "matgl"
-version = "2.2.0"
+version = "2.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ase" },
@@ -2651,9 +2651,9 @@ dependencies = [
     { name = "torch-geometric" },
     { name = "torchdata" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3c/44/a9d8c29aec50cf85284be480f841357f396a4eacef327104268053d02b82/matgl-2.2.0.tar.gz", hash = "sha256:1a07b09edefbbfc803ca2247ded34b32e28bc635d0f8eaa2690991773d4f5e08", size = 274950, upload-time = "2026-04-26T05:42:54.415Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ea/bf/3ab4d1786a45526cf8ad41d432fe0044d35d8fdb5801d9a3172b2210d8fc/matgl-2.2.1.tar.gz", hash = "sha256:37e972d3a529e8a413e21b1c07d38aa3d320d6f926d457b3bda1219b899c587b", size = 274937, upload-time = "2026-04-27T10:37:55.625Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3c/a8/252cc66629a7c16f5828fa512f83e1a6a68778553d670b71e9ec35e5b7ba/matgl-2.2.0-py3-none-any.whl", hash = "sha256:d56bda240071d5317eb53c7dc1ec25323a6bb9da24b5dd63ffb96347ca0d89d1", size = 337947, upload-time = "2026-04-26T05:42:52.438Z" },
+    { url = "https://files.pythonhosted.org/packages/3d/02/7ae14114e39346daf5524fe9074ba239c102a16e25c66cf2284b7a052dd9/matgl-2.2.1-py3-none-any.whl", hash = "sha256:b0d36fd4f16a61cf4e5d6a4f6271b2770c26c0dc2e12a7b1bd86d7f248f098e5", size = 337947, upload-time = "2026-04-27T10:37:53.583Z" },
 ]
 
 [[package]]

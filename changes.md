@@ -6,6 +6,9 @@ nav_order: 2
 
 # Change Log
 
+## v0.4.8
+1. Updated the Hugging Face organization to `materialyze` (lower case).
+
 ## v0.4.7
 1. **`ElasticityCalc` can now return moduli in GPa.**
    - Added a new `units_GPa` keyword argument (default `False`). When set to `True`, the returned `elastic_tensor`, `bulk_modulus_vrh`, `shear_modulus_vrh`, and `residuals_sum` are converted from pymatgen's native eV/A^3 units to GPa.
