@@ -331,6 +331,7 @@ def test_qha_imaginary_modes_raises(
     else:
         assert not any("Imaginary mode correction attempt" in r.message for r in caplog.records)
 
+
 @pytest.mark.parametrize(
     ("store_ha_phonon", "scale_factors"),
     [
@@ -408,7 +409,6 @@ def test_qha_write_ha_phonon(
         assert expected_file.is_file(), f"Expected phonopy file not found: {expected_file}"
 
 
-
 def test_qha_multiple_pressures(
     Li2O: Structure,
     matpes_calculator: PESCalculator,
@@ -462,4 +462,3 @@ def test_qha_multiple_pressures(
     ind = result["temperatures"].tolist().index(300)
     assert result["qha_results"][0]["gibbs_free_energies"][ind] == pytest.approx(-13.975436772046931, rel=1e-1)
     assert result["qha_results"][1]["gibbs_free_energies"][ind] == pytest.approx(-12.650951210662038, rel=1e-1)
-
