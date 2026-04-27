@@ -25,11 +25,11 @@ LAMMPS_TEMPLATES_DIR = Path(__file__).parent / "lammps_templates"
 
 # Provide simple aliases for some common models. The key in MODEL_ALIASES must be lower case.
 MODEL_ALIASES = {
-    "tensornet": "TensorNet-MatPES-PBE-v2025.1-PES",
+    "tensornet": "TensorNet-PES-MatPES-PBE-2025.2",
     "m3gnet": "M3GNet-MatPES-PBE-v2025.1-PES",
     "chgnet": "CHGNet-MatPES-PBE-2025.2.10-2.7M-PES",
-    "pbe": "TensorNet-MatPES-PBE-v2025.1-PES",
-    "r2scan": "TensorNet-MatPES-r2SCAN-v2025.1-PES",
+    "pbe": "TensorNet-PES-MatPES-PBE-2025.2",
+    "r2scan": "TensorNet-PES-MatPES-r2SCAN-2025.2",
 }
 
 

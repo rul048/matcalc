@@ -22,7 +22,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: docker.io/materialsvirtuallab/lammps_gnnp
+      image: docker.io/materialyzeai/lammps_gnnp
 
     env:
       PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python
@@ -33,7 +33,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
+          pip install mace-torch
           pip install -e '.[ci]'
 
       - name: Execute all notebook examples

@@ -115,19 +115,19 @@ class EOSCalc(PropCalc):
             structure_strained.apply_strain(
                 (((1 + idx) ** 3 * structure_in.volume) / (structure_strained.volume)) ** (1 / 3) - 1
             )
-            result = relaxer.calc(structure_strained)
-            volumes.append(result["final_structure"].volume)
-            energies.append(result["energy"])
-            temp_structure = result["final_structure"]
+            r = relaxer.calc(structure_strained)
+            volumes.append(r["final_structure"].volume)
+            energies.append(r["energy"])
+            temp_structure = r["final_structure"]
 
         for idx in np.flip(np.linspace(-self.max_abs_strain, self.max_abs_strain, self.n_points)[: self.n_points // 2]):
             structure_strained = structure_in.copy()
             structure_strained.apply_strain(
                 (((1 + idx) ** 3 * structure_in.volume) / (structure_strained.volume)) ** (1 / 3) - 1
             )
-            result = relaxer.calc(structure_strained)
-            volumes.append(result["final_structure"].volume)
-            energies.append(result["energy"])
+            r = relaxer.calc(structure_strained)
+            volumes.append(r["final_structure"].volume)
+            energies.append(r["energy"])
 
         bm = BirchMurnaghan(volumes=volumes, energies=energies)
         bm.fit()

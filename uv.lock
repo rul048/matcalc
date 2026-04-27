@@ -2495,11 +2495,11 @@ wheels = [
 
 [[package]]
 name = "matcalc"
-version = "0.4.5"
+version = "0.4.8"
 source = { editable = "." }
 dependencies = [
     { name = "ase" },
-    { name = "fsspec" },
+    { name = "huggingface-hub" },
     { name = "joblib" },
     { name = "phono3py" },
     { name = "phonopy" },
@@ -2578,14 +2578,14 @@ requires-dist = [
     { name = "codecov-cli", marker = "extra == 'ci'", specifier = ">=10.3.0" },
     { name = "coverage", marker = "extra == 'ci'", specifier = ">=7.7.1" },
     { name = "coveralls", marker = "extra == 'ci'", specifier = ">=4.0.1" },
-    { name = "fsspec", specifier = ">=2025.3.0" },
+    { name = "huggingface-hub", specifier = ">=0.30.0" },
     { name = "ipython", marker = "extra == 'ci'", specifier = ">=8.34.0" },
     { name = "joblib", specifier = ">=1.4.2" },
     { name = "jupyter", marker = "extra == 'ci'", specifier = ">=1.1.1" },
     { name = "maml", marker = "extra == 'ci'", specifier = ">=2025.4.3" },
     { name = "maml", marker = "extra == 'maml'", specifier = ">=2025.4.3" },
     { name = "matgl", marker = "extra == 'ci'", specifier = ">=2.1.1" },
-    { name = "matgl", marker = "extra == 'matgl'", specifier = ">=2.1.2" },
+    { name = "matgl", marker = "extra == 'matgl'", specifier = ">=2.2.1" },
     { name = "matminer", marker = "extra == 'benchmark'", specifier = ">=0.10.1" },
     { name = "matminer", marker = "extra == 'ci'", specifier = ">=0.10.1" },
     { name = "mp-api", marker = "extra == 'ci'", specifier = ">=0.45.3" },
@@ -2636,7 +2636,7 @@ lint = [
 
 [[package]]
 name = "matgl"
-version = "2.1.2"
+version = "2.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ase" },
@@ -2651,9 +2651,9 @@ dependencies = [
     { name = "torch-geometric" },
     { name = "torchdata" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d5/cc/bf87bda161bfb3a5fb80bc7578639c6f6e833541cec8d60c9a4c3f846f99/matgl-2.1.2.tar.gz", hash = "sha256:2bd7bd0f6c009eef6cea1b6d8d4edb4f36db6d9fecbfd39def07b672ce160e9c", size = 274883, upload-time = "2026-04-24T11:22:48.941Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ea/bf/3ab4d1786a45526cf8ad41d432fe0044d35d8fdb5801d9a3172b2210d8fc/matgl-2.2.1.tar.gz", hash = "sha256:37e972d3a529e8a413e21b1c07d38aa3d320d6f926d457b3bda1219b899c587b", size = 274937, upload-time = "2026-04-27T10:37:55.625Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0f/e3/a823250f8fc2cfe339d88d2d49226814a46e1e862157fb756944f6c0b4e9/matgl-2.1.2-py3-none-any.whl", hash = "sha256:f9008af0a26c910339bbf643cd8e344059f88b4bf06c893e38bb5cd8e3507003", size = 337712, upload-time = "2026-04-24T11:22:50.769Z" },
+    { url = "https://files.pythonhosted.org/packages/3d/02/7ae14114e39346daf5524fe9074ba239c102a16e25c66cf2284b7a052dd9/matgl-2.2.1-py3-none-any.whl", hash = "sha256:b0d36fd4f16a61cf4e5d6a4f6271b2770c26c0dc2e12a7b1bd86d7f248f098e5", size = 337947, upload-time = "2026-04-27T10:37:53.583Z" },
 ]
 
 [[package]]
@@ -3562,7 +3562,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess" },
+    { name = "ptyprocess", marker = "sys_platform != 'win32' or (extra == 'extra-7-matcalc-fairchem' and extra == 'extra-7-matcalc-mace') or (extra == 'extra-7-matcalc-fairchem' and extra == 'extra-7-matcalc-mattersim') or (extra == 'extra-7-matcalc-mace' and extra == 'extra-7-matcalc-mattersim')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [

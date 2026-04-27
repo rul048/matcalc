@@ -36,6 +36,7 @@ class ElasticityCalc(PropCalc):
         relax_structure: Relax initial structure before deforming.
         relax_deformed_structures: Relax each deformed structure before stress.
         use_equilibrium: Include equilibrium stress in the fit when applicable.
+        units_GPa: If True, report moduli in GPa instead of pymatgen's native eV/A^3.
         relax_calc_kwargs: Optional kwargs for ``RelaxCalc``.
     """
 
@@ -50,6 +51,7 @@ class ElasticityCalc(PropCalc):
         relax_structure: bool = True,
         relax_deformed_structures: bool = False,
         use_equilibrium: bool = True,
+        units_GPa: bool = False,  # noqa: N803
         relax_calc_kwargs: dict | None = None,
     ) -> None:
         """
@@ -62,6 +64,9 @@ class ElasticityCalc(PropCalc):
             relax_structure: Relax parent structure before generating deformations.
             relax_deformed_structures: Relax each deformed structure before stress eval.
             use_equilibrium: Use equilibrium stress in fit; forced True if only one strain type.
+            units_GPa: If True, return moduli (and elastic tensor / residuals) in GPa.
+                Defaults to False, in which case values are returned in pymatgen's native
+                units of eV/A^3.
             relax_calc_kwargs: Optional kwargs for ``RelaxCalc``.
         """
         self.calculator = calculator  # type: ignore[assignment]
@@ -81,6 +86,7 @@ class ElasticityCalc(PropCalc):
             self.use_equilibrium = use_equilibrium
         else:
             self.use_equilibrium = True
+        self.units_GPa = units_GPa
         self.relax_calc_kwargs = relax_calc_kwargs
 
     def calc(self, structure: Structure | Atoms | dict[str, Any]) -> dict[str, Any]:
@@ -91,8 +97,10 @@ class ElasticityCalc(PropCalc):
         Returns:
             Dict including ``elastic_tensor``, ``shear_modulus_vrh``, ``bulk_modulus_vrh``,
             ``youngs_modulus``, ``residuals_sum``, ``structure``, and merged relaxation
-            fields. Moduli follow pymatgen ``ElasticTensor`` conventions (see pymatgen
-            elasticity docs for units).
+            fields. ``elastic_tensor``, ``shear_modulus_vrh``, ``bulk_modulus_vrh`` and
+            ``residuals_sum`` are returned in GPa if ``units_GPa=True``, otherwise in eV/A^3
+            (pymatgen's native units). ``youngs_modulus`` is always reported in pymatgen's
+            default units (see pymatgen ``ElasticTensor`` docs).
         """
         result = super().calc(structure)
         structure_in: Structure | Atoms = result["final_structure"]
@@ -127,12 +135,13 @@ class ElasticityCalc(PropCalc):
             stresses,
             eq_stress=sim.stress if self.use_equilibrium else None,
         )
+        factor = 1 if not self.units_GPa else 1 / elastic_tensor.GPa_to_eV_A3
         return result | {
-            "elastic_tensor": elastic_tensor,
-            "shear_modulus_vrh": elastic_tensor.g_vrh,
-            "bulk_modulus_vrh": elastic_tensor.k_vrh,
+            "elastic_tensor": elastic_tensor * factor,
+            "shear_modulus_vrh": elastic_tensor.g_vrh * factor,
+            "bulk_modulus_vrh": elastic_tensor.k_vrh * factor,
             "youngs_modulus": elastic_tensor.y_mod,
-            "residuals_sum": residuals_sum,
+            "residuals_sum": residuals_sum * factor,
             "structure": structure_in,
         }
 

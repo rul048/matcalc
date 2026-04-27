@@ -6,8 +6,7 @@ import os
 import pathlib
 import shutil
 
-BENCHMARK_DATA_URL: str = "https://api.github.com/repos/materialsvirtuallab/matcalc/contents/benchmark_data"
-BENCHMARK_DATA_DOWNLOAD_URL: str = "https://raw.githubusercontent.com/materialsvirtuallab/matcalc/main/benchmark_data"
+BENCHMARK_HF_REPO_ID: str = "materialyze/matcalc-bench"
 BENCHMARK_DATA_DIR: pathlib.Path = pathlib.Path.home() / ".cache" / "matcalc"
 SIMULATION_BACKEND: str = os.environ.get("MATCALC_BACKEND", "ASE").upper()
 

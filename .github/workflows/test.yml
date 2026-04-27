@@ -3,10 +3,10 @@ name: Test
 on:
   push:
     branches: [main]
-    paths-ignore: ["**/*.md", "docs/**", "dev_scripts/**"]
+    paths-ignore: ["examples/*.ipynb", "**/*.md", "docs/**", "dev_scripts/**"]
   pull_request:
     branches: [main]
-    paths-ignore: ["**/*.md", "docs/**", "dev_scripts/**"]
+    paths-ignore: ["examples/*.ipynb", "**/*.md", "docs/**", "dev_scripts/**"]
   workflow_dispatch:
     inputs:
       task:
@@ -22,7 +22,7 @@ jobs:
     container:
       # MAVRL's docker container build on uv with LAMMPS with ML-GNNP and ML-SNAP.
       # Required for testing the LAMMPS related methods.
-      image: docker.io/materialsvirtuallab/lammps_gnnp
+      image: docker.io/materialyzeai/lammps_gnnp
     env:
       PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python
       PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
